@@ -34,20 +34,22 @@ namespace GRA.Controllers.MissionControl
 
         public IActionResult Index(string Search, string FilterBy, int? page)
         {
-            PaginateViewModel paginateModel = new PaginateViewModel();
-
             int currentPage = page ?? 1;
             int take = 15;
             int skip = take * (currentPage - 1);
 
-            var challengeList = challengeService.GetPaginatedChallengeList(null, 0, 50);
+            var challengeList = challengeService.GetPaginatedChallengeList(null, skip, take);
 
             ChallengeListViewModel viewModel = new ChallengeListViewModel();
 
-            viewModel.Challenges = challengeList.Skip(skip).Take(take).ToList();
-            paginateModel.ItemCount = challengeList.Count();
-            paginateModel.CurrentPage = currentPage;
-            paginateModel.ItemsPerPage = take;
+            viewModel.Challenges = challengeList.Data;
+
+            PaginateViewModel paginateModel = new PaginateViewModel()
+            {
+                ItemCount = challengeList.Count,
+                CurrentPage = currentPage,
+                ItemsPerPage = take
+            };
 
             if (paginateModel.MaxPage > 0 && paginateModel.CurrentPage > paginateModel.MaxPage)
             {
@@ -58,6 +60,7 @@ namespace GRA.Controllers.MissionControl
                     });
             }
             viewModel.PaginateModel = paginateModel;
+
             return View(viewModel);
         }
 
@@ -70,13 +73,41 @@ namespace GRA.Controllers.MissionControl
         [HttpPost]
         public IActionResult Create(ChallengeDetailViewModel viewModel)
         {
-            
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    challengeService.AddChallenge(null, viewModel.Challenge);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"Error creating challenge: {ex}");
+                    AlertDanger = $"Error creating challenge: {ex}";
+                    return RedirectToAction("Index");
+                }
+                AlertSuccess = $"{viewModel.Challenge.Name} was successfully created";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                return View("Detail", viewModel);
+            }
         }
 
         public IActionResult Edit(int id)
         {
-            return View("Detail");
+            var challenge = challengeService.GetChallengeDetails(null, id);
+            if (challenge == null)
+            {
+                TempData["AlertDanger"] = "The requested challenge could not be accessed or does not exist";
+                return RedirectToAction("Index");
+            }
+            ChallengeDetailViewModel viewModel = new ChallengeDetailViewModel()
+            {
+                Challenge = challenge,
+                Exists = true
+            };
+            return View("Detail", viewModel);
         }
 
         [HttpPost]
