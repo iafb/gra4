@@ -91,5 +91,63 @@ namespace GRA.Domain.Service
             // todo: add access control - only some users can remove
             challengeRepository.Remove(0, challengeId);
         }
+
+        /// <summary>
+        /// Create a new task if the provided user has rights
+        /// </summary>
+        /// <param name="user">A valid user</param>
+        /// <param name="task">The task to add to the challenge</param>
+        /// <param name="challengeId">The id of the challenge to add the task to</param>
+        public ChallengeTask AddTask(User user, ChallengeTask task, int challengeId)
+        {
+            // todo: Add method
+            return null;
+        }
+
+        /// <summary>
+        /// Edit an existing task if the provided user has rights
+        /// </summary>
+        /// <param name="user">A valid user</param>
+        /// <param name="task">The modified task object</param>
+        public ChallengeTask EditTask(User user, ChallengeTask task)
+        {
+            // todo: Add method
+            return null;
+        }
+
+        /// <summary>
+        /// Remove an existing task if the provided user has rights
+        /// </summary>
+        /// <param name="user">A valid user</param>
+        /// <param name="taskId">The id of the task to remove</param>
+        public bool RemoveTask(User user, int taskId)
+        {
+            // todo: Add method
+            return false;
+        }
+
+        /// <summary>
+        /// Decrease the sorting position of the task if the provided user has rights
+        /// </summary>
+        /// <param name="user">A valid user</param>
+        /// <param name="taskId">The id of the task whose position to decrease</param>
+        public bool DecreaseTaskPosition(User user, int taskId)
+        {
+            // todo: Add method
+            return false;
+        }
+
+        /// <summary>
+        /// Increase the sorting position of the task if the provided user has rights
+        /// </summary>
+        /// <param name="user">A valid user</param>
+        /// <param name="taskId">The id of the task whose position to increase</param>
+        public bool IncreaseTaskPosition(User user, int taskId)
+        {
+            // todo: Add method
+            return false;
+        }
+
+
     }
 }
