@@ -8,5 +8,6 @@ namespace GRA.Domain.Repository
         void AddChallengeTaskType(int userId, string name);
         IQueryable<Challenge> GetPagedChallengeList(int skip, int take);
         int GetChallengeCount();
+        IQueryable<ChallengeTask> GetChallengeTasks(int challengeId);
     }
 }

@@ -148,6 +148,9 @@ namespace GRA.Domain.Service
             return false;
         }
 
-
+        public IEnumerable<ChallengeTask> GetChallengeTasks(int challengeId)
+        {
+            return challengeRepository.GetChallengeTasks(challengeId);
+        }
     }
 }
