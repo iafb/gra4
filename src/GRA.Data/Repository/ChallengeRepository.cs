@@ -130,5 +130,14 @@ namespace GRA.Data.Repository
             });
             context.SaveChanges();
         }
+
+        public IQueryable<Domain.Model.ChallengeTask> GetChallengeTasks(int challengeId)
+        {
+            return context.ChallengeTasks
+                .AsNoTracking()
+                .Where(_ => _.ChallengeId == challengeId)
+                .OrderBy(_ => _.Position)
+                .ProjectTo<Domain.Model.ChallengeTask>();
+        }
     }
 }
