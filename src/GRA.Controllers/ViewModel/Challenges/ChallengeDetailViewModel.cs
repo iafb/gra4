@@ -4,6 +4,7 @@ namespace GRA.Controllers.ViewModel.Challenges
 {
     public class ChallengeDetailViewModel
     {
+        public bool IsAuthenticated { get; set; }
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }

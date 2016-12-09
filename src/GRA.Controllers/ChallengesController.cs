@@ -1,6 +1,8 @@
 ﻿using GRA.Controllers.ViewModel.Challenges;
 using GRA.Controllers.ViewModel.Shared;
+using GRA.Domain.Model;
 using GRA.Domain.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -11,12 +13,17 @@ namespace GRA.Controllers
     public class ChallengesController : Base.Controller
     {
         private readonly ILogger<ChallengesController> _logger;
+        private readonly AutoMapper.IMapper _mapper;
+        public readonly ActivityService _activityService;
         private readonly ChallengeService _challengeService;
         public ChallengesController(ILogger<ChallengesController> logger,
             ServiceFacade.Controller context,
+            ActivityService activityService,
             ChallengeService challengeService) : base(context)
         {
             _logger = Require.IsNotNull(logger, nameof(logger));
+            _mapper = context.Mapper;
+            _activityService = Require.IsNotNull(activityService, nameof(activityService));
             _challengeService = Require.IsNotNull(challengeService, nameof(challengeService));
             PageTitle = "Challenges";
         }
@@ -73,6 +80,7 @@ namespace GRA.Controllers
 
             ChallengeDetailViewModel viewModel = new ChallengeDetailViewModel()
             {
+                IsAuthenticated = AuthUser.Identity.IsAuthenticated,
                 Id = challenge.Id,
                 Name = challenge.Name,
                 Description = challenge.Description,
@@ -91,6 +99,7 @@ namespace GRA.Controllers
                 TaskDetailViewModel taskModel = new TaskDetailViewModel()
                 {
                     Id = task.Id,
+                    IsCompleted = task.IsCompleted ?? false,
                     TaskType = task.ChallengeTaskType.ToString(),
                     Url = task.Url
                 };
@@ -110,6 +119,15 @@ namespace GRA.Controllers
                 viewModel.Tasks.Add(taskModel);
             }
             return View(viewModel);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> CompleteTasks(ChallengeDetailViewModel model)
+        {
+            List<ChallengeTask> tasks = _mapper.Map<List<ChallengeTask>>(model.Tasks);
+            await _activityService.UpdateChallengeTasks(model.Id, tasks);
+            return RedirectToAction("Detail", new { id = model.Id });
         }
     }
 }
