@@ -57,5 +57,26 @@ namespace GRA.Controllers
             }
             return View(model);
         }
+
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(string username)
+        {
+            try
+            {
+                await _authenticationService.GenerateTokenAndEmail(username);
+                AlertSuccess = $"A password recovery email has been sent to the email of '{username}'";
+            }
+            catch(GraException gex)
+            {
+                AlertWarning = gex.Message;
+            }
+
+            return View();
+        }
     }
 }
