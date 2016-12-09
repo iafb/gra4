@@ -24,16 +24,40 @@ namespace GRA.Web
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
 
-            Configuration = builder.Build();
-            Configuration[ConfigurationKey.DefaultSiteName] = "The Great Reading Adventure";
-            Configuration[ConfigurationKey.DefaultPageTitle] = "Great Reading Adventure";
-            Configuration[ConfigurationKey.DefaultSitePath] = "gra";
-            Configuration[ConfigurationKey.DefaultFooter] = "This site is running the open source <a href=\"http://www.greatreadingadventure.com/\">Great Reading Adventure</a> software developed by the <a href=\"https://mcldaz.org/\">Maricopa County Library District</a> with support by the <a href=\"http://www.azlibrary.gov/\">Arizona State Library, Archives and Public Records</a>, a division of the Secretary of State, and with federal funds from the <a href=\"http://www.imls.gov/\">Institute of Museum and Library Services</a>.";
-            Configuration[ConfigurationKey.InitialAuthorizationCode] = "gra4adminmagic";
-            Configuration[ConfigurationKey.ContentDirectory] = "content";
             if (env.IsDevelopment())
             {
                 builder.AddUserSecrets();
+            }
+            builder.AddEnvironmentVariables();
+
+            Configuration = builder.Build();
+            if (string.IsNullOrEmpty(Configuration[ConfigurationKey.DefaultSiteName]))
+            {
+                Configuration[ConfigurationKey.DefaultSiteName] = "The Great Reading Adventure";
+            }
+            if (string.IsNullOrEmpty(Configuration[ConfigurationKey.DefaultPageTitle]))
+            {
+                Configuration[ConfigurationKey.DefaultPageTitle] = "Great Reading Adventure";
+            }
+            if (string.IsNullOrEmpty(Configuration[ConfigurationKey.DefaultSitePath]))
+            {
+                Configuration[ConfigurationKey.DefaultSitePath] = "gra";
+            }
+            if (string.IsNullOrEmpty(Configuration[ConfigurationKey.DefaultFooter]))
+            {
+                Configuration[ConfigurationKey.DefaultFooter] = "This site is running the open source <a href=\"http://www.greatreadingadventure.com/\">Great Reading Adventure</a> software developed by the <a href=\"https://mcldaz.org/\">Maricopa County Library District</a> with support by the <a href=\"http://www.azlibrary.gov/\">Arizona State Library, Archives and Public Records</a>, a division of the Secretary of State, and with federal funds from the <a href=\"http://www.imls.gov/\">Institute of Museum and Library Services</a>.";
+            }
+            if (string.IsNullOrEmpty(Configuration[ConfigurationKey.InitialAuthorizationCode]))
+            {
+                Configuration[ConfigurationKey.InitialAuthorizationCode] = "gra4adminmagic";
+            }
+            if (string.IsNullOrEmpty(Configuration[ConfigurationKey.ContentDirectory]))
+            {
+                Configuration[ConfigurationKey.ContentDirectory] = "content";
+            }
+
+            if (env.IsDevelopment())
+            {
                 Configuration[ConfigurationKey.DefaultCSSqlServer] = DefaultConnectionString.SqlServer;
                 Configuration[ConfigurationKey.DefaultCSSQLite] = DefaultConnectionString.SQLite;
             }
