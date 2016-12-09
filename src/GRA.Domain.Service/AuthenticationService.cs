@@ -89,7 +89,7 @@ namespace GRA.Domain.Service
 
             var tokens = await _recoveryTokenRepository.GetByUserIdAsync(user.Id);
             var validTokens = tokens
-                .Where(_ => _.Token.Contains(token))
+                .Where(_ => _.Token == fixedToken)
                 .OrderByDescending(_ => _.CreatedBy);
             if (validTokens.Count() > 0)
             {
