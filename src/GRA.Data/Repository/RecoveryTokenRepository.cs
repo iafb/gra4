@@ -20,29 +20,14 @@ namespace GRA.Data.Repository
         {
         }
 
-        private async Task<bool> UserHasTokens(int userId)
+        public async Task<IEnumerable<RecoveryToken>> GetByUserIdAsync(int userId)
         {
             return await DbSet
                 .AsNoTracking()
                 .Where(_ => _.UserId == userId)
-                .CountAsync() > 0;
-        }
-
-        public async Task<IEnumerable<RecoveryToken>> GetByUserIdAsync(int userId)
-        {
-            if (await UserHasTokens(userId))
-            {
-                return await DbSet
-                    .AsNoTracking()
-                    .Where(_ => _.UserId == userId)
-                    .OrderByDescending(_ => _.CreatedAt)
-                    .ProjectTo<RecoveryToken>()
-                    .ToListAsync();
-            }
-            else
-            {
-                return new List<RecoveryToken>();
-            }
+                .OrderByDescending(_ => _.CreatedAt)
+                .ProjectTo<RecoveryToken>()
+                .ToListAsync();
         }
     }
 }
