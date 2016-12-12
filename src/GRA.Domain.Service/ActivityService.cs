@@ -196,7 +196,7 @@ namespace GRA.Domain.Service
             var challenge = await _challengeRepository.GetByIdAsync(challengeId);
             int pointsAwarded = (int)challenge.PointsAwarded;
             int completedTasks = challengeTasks.Where(_ => _.IsCompleted == true).Count();
-            if (completedTasks > challenge.TasksToComplete)
+            if (completedTasks >= challenge.TasksToComplete)
             {
                 var userLog = new UserLog
                 {
