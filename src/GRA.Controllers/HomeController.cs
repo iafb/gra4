@@ -59,6 +59,10 @@ namespace GRA.Controllers
                     avatar.Filename = ResolveContentPath(avatar.Filename);
                 }
                 var badges = await _userService.GetPaginatedBadges(user.Id, 0, BadgesToDisplay);
+                foreach (var badge in badges.Data)
+                {
+                    badge.Filename = ResolveContentPath(badge.Filename);
+                }
                 DashboardViewModel viewModel = new DashboardViewModel()
                 {
                     FirstName = user.FirstName,
