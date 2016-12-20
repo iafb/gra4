@@ -14,6 +14,7 @@ namespace GRA.Controllers
     public class HomeController : Base.UserController
     {
         private const string AuthorMissingTitle = "AuthorMissingTitle";
+        private const int BadgesToDisplay = 6;
 
         private readonly ILogger<HomeController> _logger;
         private readonly ActivityService _activityService;
@@ -57,11 +58,13 @@ namespace GRA.Controllers
                     avatar = await _staticAvatarService.GetByIdAsync(user.AvatarId.Value);
                     avatar.Filename = ResolveContentPath(avatar.Filename);
                 }
+                var badges = await _userService.GetPaginatedBadges(user.Id, 0, BadgesToDisplay);
                 DashboardViewModel viewModel = new DashboardViewModel()
                 {
                     FirstName = user.FirstName,
                     CurrentPointTotal = user.PointsEarned,
                     AvatarPath = avatar.Filename
+                    Badges = badges.Data
                 };
                 if (TempData.ContainsKey(AuthorMissingTitle))
                 {
