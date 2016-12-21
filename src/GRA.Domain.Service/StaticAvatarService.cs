@@ -23,5 +23,17 @@ namespace GRA.Domain.Service
             int siteId = GetClaimId(ClaimType.SiteId);
             return await _staticAvatarRepository.GetAvartarListAsync(siteId);
         }
+
+        public async Task<StaticAvatar> GetByIdAsync(int id)
+        {
+            int siteId = GetClaimId(ClaimType.SiteId);
+            var avatar = await _staticAvatarRepository.GetByIdAsync(siteId, id);
+            if (avatar == null)
+            {
+                _logger.LogError($"User {GetClaimId(ClaimType.UserId)} cannot change avatar to avatar {id}");
+                throw new GraException("Avatar does not exist");
+            }
+            return avatar;
+        }
     }
 }

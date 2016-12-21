@@ -22,7 +22,8 @@ namespace GRA.Controllers
             : base(context)
         {
             _logger = Require.IsNotNull(logger, nameof(logger));
-            _staticAvatarService = Require.IsNotNull(staticAvatarService, nameof(staticAvatarService));
+            _staticAvatarService = Require.IsNotNull(staticAvatarService,
+                nameof(staticAvatarService));
             _userService = Require.IsNotNull(userService, nameof(userService));
             PageTitle = "Avatar";
         }
@@ -43,6 +44,9 @@ namespace GRA.Controllers
 
                 var user = await _userService.GetDetails(GetActiveUserId());
                 var viewingAvatarId = id ?? user.AvatarId ?? avatarList.FirstOrDefault().Id;
+                var avatar = avatarList.FirstOrDefault(_ => _.Id == viewingAvatarId);
+                avatar.Filename = ResolveContentPath(avatar.Filename);
+
                 var currentIndex = avatarList.FindIndex(_ => _.Id == viewingAvatarId);
                 int previousAvatarId;
                 int nextAvatarId;
@@ -79,14 +83,23 @@ namespace GRA.Controllers
             }
         }
 
-        /*[HttpPost]
+        [HttpPost]
         public async Task<IActionResult> Index (AvatarSelectionViewModel model)
         {
-            var avatar = await _staticAvatarService.
-            if (model.ViewingAvatarId != null)
-            var user = await _userService.GetDetails(GetActiveUserId());
-            user.AvatarId = mod
-                return View();
-        }*/
+            try
+            {
+                var avatar = await _staticAvatarService.GetByIdAsync(model.Avatar.Id);
+                var user = await _userService.GetDetails(GetActiveUserId());
+                user.AvatarId = avatar.Id;
+                await _userService.Update(user);
+                AlertSuccess = "Your avatar has been updated";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (GraException gex)
+            {
+                AlertInfo = gex.Message;
+                return RedirectToAction("Index");
+            }
+        }
     }
 }

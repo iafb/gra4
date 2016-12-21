@@ -27,5 +27,14 @@ namespace GRA.Data.Repository
                 .ProjectTo<StaticAvatar>()
                 .ToListAsync();
         }
+
+        public async Task<StaticAvatar> GetByIdAsync(int siteId, int id)
+        {
+            return await DbSet
+                .AsNoTracking()
+                .Where(_ => _.SiteId == siteId && _.Id == id)
+                .ProjectTo<StaticAvatar>()
+                .SingleOrDefaultAsync();
+        }
     }
 }
