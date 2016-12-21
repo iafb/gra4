@@ -58,6 +58,7 @@ namespace GRA.Controllers
                     avatar = await _staticAvatarService.GetByIdAsync(user.AvatarId.Value);
                     avatar.Filename = ResolveContentPath(avatar.Filename);
                 }
+
                 var badges = await _userService.GetPaginatedBadges(user.Id, 0, BadgesToDisplay);
                 foreach (var badge in badges.Data)
                 {
