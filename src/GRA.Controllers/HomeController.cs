@@ -67,7 +67,7 @@ namespace GRA.Controllers
                 {
                     FirstName = user.FirstName,
                     CurrentPointTotal = user.PointsEarned,
-                    AvatarPath = avatar.Filename
+                    AvatarPath = avatar.Filename,
                     Badges = badges.Data
                 };
                 if (TempData.ContainsKey(AuthorMissingTitle))
