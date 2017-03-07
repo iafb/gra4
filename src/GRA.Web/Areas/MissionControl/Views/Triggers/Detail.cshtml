@@ -219,66 +219,80 @@
                 </div>
             </div>
 
-            <div class="col-xs-12 form-group">
-                <label asp-for="Trigger.ItemsRequired" class="control-label col-sm-4"></label>
-                <div class="col-sm-8">
-                    <input asp-for="Trigger.ItemsRequired" class="form-control" min="0" />
-                    <span asp-validation-for="Trigger.ItemsRequired" class="text-danger"></span>
-                </div>
-            </div>
+            <div class="col-xs-12 col-sm-10 col-sm-offset-1" style="margin-top: 2rem;">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Require Challenges and Triggers</h3>
+                    </div>
+                    <div class="panel-body">
 
-            <div class="col-xs-12 col-sm-10 col-sm-offset-1 trigger-requirements-box">
-                <div>
-                    <label asp-for="TriggerRequirements" class="control-label"></label>
-                    <table class="table table-condensed table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <td>Name</td>
-                                <td>Type</td>
-                                <td>Badge</td>
-                                <td width="42px">&nbsp;</td>
-                            </tr>
-                        </thead>
-                        <tbody id="requirementList">
-                            @if (Model.TriggerRequirements != null)
-                            {
-                                @foreach (var requirement in Model.TriggerRequirements)
-                                {
+                        <div class="form-inline" style="margin-bottom: 1em;">
+                            <p class="form-control-static"><strong>Participant must have earned</strong></p>
+                            <input asp-for="Trigger.ItemsRequired" class="form-control" min="0" />
+                            <p class="form-control-static"><strong>of the following:</strong></p>
+                            <span asp-validation-for="Trigger.ItemsRequired" class="text-danger" />
+                        </div>
+                        <div>
+
+                        </div>
+                        <div>
+                            <table class="table table-condensed table-bordered table-striped">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            @requirement.Name
-                                        </td>
-                                        <td>
-                                            <span class="fa fa-2x @requirement.Icon"></span>
-                                        </td>
-                                        <td>
-                                            @if (!string.IsNullOrWhiteSpace(requirement.BadgePath))
-                                            {
-                                                <img class="img-thumbnail" style="height: auto; width: 64px;"
-                                                     src="~/@requirement.BadgePath?@DateTime.Now.ToString("yyMMddHHmmss")"
-                                                     asp-append-version="true" />
-                                            }
-                                            else
-                                            {
-                                                <text>&nbsp;</text>
-                                            }
-                                        </td>
-                                        <td>
-                                            <button type="button"
-                                                    id="removeRequirementButton"
-                                                    class="btn btn-primary btn-xs"
-                                                    data-badgeid="@requirement.BadgeId"
-                                                    data-challengeid="@requirement.ChallengeId">
-                                                <span class="fa fa-2x fa-minus" aria-hidden="true"></span>
-                                            </button>
-                                        </td>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Badge</th>
+                                        <th width="42px">&nbsp;</th>
                                     </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody id="requirementList">
+                                    @if (Model.TriggerRequirements == null || Model.TriggerRequirements.Count == 0)
+                                    {
+                                        <tr>
+                                            <td colspan="4"><em>No challenges or triggers required.</em></td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var requirement in Model.TriggerRequirements)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @requirement.Name
+                                                </td>
+                                                <td>
+                                                    <span class="fa fa-2x @requirement.Icon"></span>
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrWhiteSpace(requirement.BadgePath))
+                                                    {
+                                                        <img class="img-thumbnail" style="height: auto; width: 64px;"
+                                                             src="~/@requirement.BadgePath?@DateTime.Now.ToString("yyMMddHHmmss")"
+                                                             asp-append-version="true" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <text>&nbsp;</text>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            id="removeRequirementButton"
+                                                            class="btn btn-primary btn-xs"
+                                                            data-badgeid="@requirement.BadgeId"
+                                                            data-challengeid="@requirement.ChallengeId">
+                                                        <span class="fa fa-2x fa-minus" aria-hidden="true"></span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" id="addButton" class="btn btn-warning">Add Challenges or Triggers</button>
+                    </div>
                 </div>
-                <button type="button" id="addButton" class="btn btn-primary">Add Challenges or Triggers</button>
             </div>
 
             <div class="col-xs-12 form-group">
@@ -400,9 +414,9 @@
 
 
     @if (Model.EditVendorCode || Model.Trigger?.AwardVendorCodeTypeId != null)
-    {
-        if (Model.VendorCodeTypeList.Count() > 0)
-        {
+            {
+                if (Model.VendorCodeTypeList.Count() > 0)
+                {
             <div class="row row-spacing">
                 <div class="col-xs-12">
                     <label asp-for="Trigger.AwardVendorCodeTypeId" class="control-label"></label>
