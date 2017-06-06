@@ -1,35 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GRA.Domain.Model;
 using GRA.Domain.Report.Abstract;
 using GRA.Domain.Report.Attribute;
+using GRA.Domain.Report.ServiceFacade;
 using GRA.Domain.Repository;
 using Microsoft.Extensions.Logging;
 
 namespace GRA.Domain.Report
 {
-    [ReportInformation(1,
-        "Current Status Report",
-        "Overall status by branch (filterable by system) including registered users, challenges completed, badges earned, and points earned.",
-        "Program")]
-    public class CurrentStatusReport : BaseReport
+    [ReportInformation(2,
+    "Registrations and Achievers Report",
+    "Registered participants and achievers by branch (filterable by system and date)",
+    "Program")]
+    class RegistrationsAchieversReport : BaseReport
     {
         private readonly IBranchRepository _branchRepository;
         private readonly ISystemRepository _systemRepository;
         private readonly IUserRepository _userRepository;
         private readonly IUserLogRepository _userLogRepository;
-        public CurrentStatusReport(ILogger<CurrentStatusReport> logger,
-            Domain.Report.ServiceFacade.Report serviceFacade,
+        public RegistrationsAchieversReport(ILogger<RegistrationsAchieversReport> logger, 
+            ServiceFacade.Report serviceFacade,
             IBranchRepository branchRepository,
             ISystemRepository systemRepository,
             IUserRepository userRepository,
             IUserLogRepository userLogRepository) : base(logger, serviceFacade)
         {
-            _branchRepository = branchRepository
+            _branchRepository = branchRepository 
                 ?? throw new ArgumentNullException(nameof(branchRepository));
             _systemRepository = systemRepository
                 ?? throw new ArgumentNullException(nameof(systemRepository));
@@ -39,8 +40,8 @@ namespace GRA.Domain.Report
                 ?? throw new ArgumentNullException(nameof(userLogRepository));
         }
 
-        public override async Task ExecuteAsync(ReportRequest request,
-            CancellationToken token,
+        public override async Task ExecuteAsync(ReportRequest request, 
+            CancellationToken token, 
             IProgress<OperationStatus> progress = null)
         {
             #region Reporting initialization
@@ -57,10 +58,10 @@ namespace GRA.Domain.Report
 
             var report = new StoredReport();
             var reportData = new List<object[]>();
-            int percentComplete = 0;
             #endregion Reporting initialization
 
             #region Adjust report criteria as needed
+            // collect systems - all if none is specified
             ICollection<int> systemIds = null;
             if (criterion.SystemId == null)
             {
@@ -81,9 +82,7 @@ namespace GRA.Domain.Report
             row.Add("Branch Name");
             row.Add("Registered Users");
             row.Add("Achievers");
-            row.Add("Challenges Completed");
-            row.Add("Badges Earned");
-            row.Add("Points Earned");
+            row.Add("Achiever Percentage");
             report.HeaderRow = row.ToArray();
 
             int count = 0;
@@ -91,9 +90,6 @@ namespace GRA.Domain.Report
             // running totals
             long totalRegistered = 0;
             long totalAchiever = 0;
-            long totalChallenges = 0;
-            long totalBadges = 0;
-            long totalPoints = 0;
 
             foreach (var systemId in systemIds)
             {
@@ -112,16 +108,9 @@ namespace GRA.Domain.Report
                     criterion.BranchId = branch.Id;
 
                     var users = await _userRepository.GetCountAsync(criterion);
-                    long challenge = await _userLogRepository
-                        .CompletedChallengeCountAsync(criterion);
-                    long badge = await _userLogRepository.EarnedBadgeCountAsync(criterion);
-                    long points = await _userLogRepository.PointsEarnedTotalAsync(criterion);
 
                     totalRegistered += users.users;
                     totalAchiever += users.achievers;
-                    totalChallenges += challenge;
-                    totalBadges += badge;
-                    totalPoints += points;
 
                     // add row
                     row = new List<object>();
@@ -129,9 +118,7 @@ namespace GRA.Domain.Report
                     row.Add(branch.Name);
                     row.Add(users.users);
                     row.Add(users.achievers);
-                    row.Add(challenge);
-                    row.Add(badge);
-                    row.Add(points);
+                    row.Add((users.achievers * 100) / users.users);
 
                     reportData.Add(row.ToArray());
 
@@ -150,11 +137,10 @@ namespace GRA.Domain.Report
             row.Add(string.Empty);
             row.Add(totalRegistered);
             row.Add(totalAchiever);
-            row.Add(totalChallenges);
-            row.Add(totalBadges);
-            row.Add(totalPoints);
+            row.Add((totalAchiever * 100) / totalRegistered);
             report.FooterRow = row.ToArray();
             report.AsOf = _serviceFacade.DateTimeProvider.Now;
+
             #endregion Collect data
 
             #region Finish up reporting

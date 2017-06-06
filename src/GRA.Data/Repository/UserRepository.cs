@@ -45,7 +45,7 @@ namespace GRA.Data.Repository
             await _context.UserRoles.AddAsync(userRoleAssignment);
         }
 
-        public async Task<ICollection<int>> GetUserRolesAsync (int userId)
+        public async Task<ICollection<int>> GetUserRolesAsync(int userId)
         {
             return await _context.UserRoles.AsNoTracking()
                 .Where(_ => _.UserId == userId)
@@ -243,16 +243,6 @@ namespace GRA.Data.Repository
                 .AsNoTracking()
                 .Where(_ => _.IsDeleted == false && _.SiteId == request.SiteId);
 
-            if (request.StartDate != null)
-            {
-                userCount = userCount.Where(_ => _.CreatedAt >= request.StartDate);
-            }
-
-            if (request.EndDate != null)
-            {
-                userCount = userCount.Where(_ => _.CreatedAt <= request.EndDate);
-            }
-
             if (request.ProgramId != null)
             {
                 userCount = userCount.Where(_ => _.ProgramId == request.ProgramId);
@@ -267,9 +257,50 @@ namespace GRA.Data.Repository
             {
                 userCount = userCount.Where(_ => _.BranchId == request.BranchId);
             }
+            if (request.StartDate != null)
+            {
+                userCount = userCount.Where(_ => _.CreatedAt >= request.StartDate);
+            }
+
+            if (request.EndDate != null)
+            {
+                userCount = userCount.Where(_ => _.CreatedAt <= request.EndDate);
+            }
+
+            IQueryable<Model.User> achieverCount = null;
+            achieverCount = DbSet
+                .AsNoTracking()
+                .Where(_ => _.IsDeleted == false
+                    && _.SiteId == request.SiteId
+                    && _.IsAchiever == true);
+
+            if (request.ProgramId != null)
+            {
+                achieverCount = achieverCount.Where(_ => _.ProgramId == request.ProgramId);
+            }
+
+            if (request.SystemId != null)
+            {
+                achieverCount = achieverCount.Where(_ => _.SystemId == request.SystemId);
+            }
+
+            if (request.BranchId != null)
+            {
+                achieverCount = achieverCount.Where(_ => _.BranchId == request.BranchId);
+            }
+            if (request.StartDate != null)
+            {
+                achieverCount = achieverCount.Where(_ => _.AchievedAt >= request.StartDate);
+            }
+
+            if (request.EndDate != null)
+            {
+                achieverCount = achieverCount.Where(_ => _.AchievedAt <= request.EndDate);
+            }
 
             int users = await userCount.CountAsync();
-            int achievers = await userCount.CountAsync(_ => _.IsAchiever);
+            int achievers = await achieverCount.CountAsync();
+
             return (users, achievers);
         }
 

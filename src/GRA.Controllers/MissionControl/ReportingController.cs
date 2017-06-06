@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
-using System;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -96,63 +95,57 @@ namespace GRA.Controllers.MissionControl
         {
             try
             {
-                var report = await _reportService.GetReportResultsAsync(id);
+                var storedReport = await _reportService.GetReportResultsAsync(id);
 
-                var result = JsonConvert.DeserializeObject<List<List<object>>>(report.request.ResultJson);
-
-                PageTitle = report.request.Name ?? "Report Results";
+                PageTitle = storedReport.request.Name ?? "Report Results";
 
                 var viewModel = new ReportResultsViewModel
                 {
-                    Title = report.request.Name ?? "Report Results",
+                    Title = storedReport.request.Name ?? "Report Results",
                 };
 
-                var displayRows = new List<List<string>>();
+                viewModel.ReportSet = JsonConvert
+                    .DeserializeObject<StoredReportSet>(storedReport.request.ResultJson);
 
-                int count = 0;
-                int totalRows = result.Count;
-                foreach (var resultRow in result)
+                foreach(var report in viewModel.ReportSet.Reports)
                 {
-                    var displayRow = new List<string>();
+                    int count = 0;
+                    int totalRows = report.Data.Count();
+                    var displayRows = new List<List<string>>();
 
-                    foreach (var resultItem in resultRow)
+                    if(report.HeaderRow != null)
                     {
-                        switch (resultItem)
+                        var display = new List<string>();
+                        foreach(var dataItem in report.HeaderRow)
                         {
-                            case string s:
-                                displayRow.Add(s);
-                                break;
-                            case int i:
-                                displayRow.Add(i.ToString("N0"));
-                                break;
-                            case long l:
-                                displayRow.Add(l.ToString("N0"));
-                                break;
-                            default:
-                                displayRow.Add(resultItem.ToString());
-                                break;
-                            case null:
-                                displayRow.Add(string.Empty);
-                                break;
+                            display.Add(FormatDataItem(dataItem));
                         }
+                        report.HeaderRow = display;
                     }
 
-                    if (count == 0)
+                    foreach (var resultRow in report.Data)
                     {
-                        viewModel.FirstRow = displayRow;
-                    }
-                    else if (count == totalRows - 1)
-                    {
-                        viewModel.LastRow = displayRow;
-                    }
-                    else
-                    {
+                        var displayRow = new List<string>();
+
+                        foreach (var resultItem in resultRow)
+                        {
+                            displayRow.Add(FormatDataItem(resultItem));
+                        }
                         displayRows.Add(displayRow);
+                        count++;
                     }
-                    count++;
-                }
+                    report.Data = displayRows;
 
-                viewModel.Results = displayRows;
+                    if (report.FooterRow != null)
+                    {
+                        var display = new List<string>();
+                        foreach (var dataItem in report.FooterRow)
+                        {
+                            display.Add(FormatDataItem(dataItem));
+                        }
+                        report.FooterRow = display;
+                    }
+                }
 
                 return View(viewModel);
             }
@@ -160,6 +153,21 @@ namespace GRA.Controllers.MissionControl
             {
                 AlertDanger = gex.Message;
                 return RedirectToAction("Index");
+            }
+        }
+
+        private string FormatDataItem(object dataItem)
+        {
+            switch (dataItem)
+            {
+                case int i:
+                    return i.ToString("N0");
+                case long l:
+                    return l.ToString("N0");
+                default:
+                    return dataItem.ToString();
+                case null:
+                    return string.Empty;
             }
         }
     }

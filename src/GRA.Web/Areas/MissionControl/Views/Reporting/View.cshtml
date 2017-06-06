@@ -1,35 +1,49 @@
 ﻿@model GRA.Controllers.ViewModel.MissionControl.Reporting.ReportResultsViewModel
-
-<table class="table table-condensed table-bordered table-striped" style="margin-top: 2rem;">
-    @if (Model.FirstRow != null)
+@{ 
+    bool first = true;
+}
+@foreach (var report in Model.ReportSet.Reports)
+{
+    @if (first)
     {
-        <thead>
+        first = false;
+    }
+    else
+    {
+        <h2>@report.Title</h2>
+    }
+    <table class="table table-condensed table-bordered table-striped" style="margin-top: 2rem; margin-bottom: 0.5rem;">
+        @if (report.HeaderRow != null)
+        {
+            <thead>
+                <tr>
+                    @foreach (var data in report.HeaderRow)
+                    {
+                        <th>@data</th>
+                    }
+                </tr>
+            </thead>
+        }
+        @foreach (var row in report.Data)
+        {
             <tr>
-                @foreach (var data in Model.FirstRow)
-                {
-                    <th>@data</th>
+                @foreach (string data in row)
+                    {
+                    <td>@data</td>
                 }
             </tr>
-        </thead>
-    }
-    @foreach (var row in Model.Results)
-    {
-        <tr>
-            @foreach (string data in row)
-            {
-                <td>@data</td>
-            }
-        </tr>
-    }
-    @if (Model.LastRow != null)
-    {
-        <tfoot>
-            <tr>
-                @foreach (var data in Model.LastRow)
-                {
-                    <th><strong>@data</strong></th>
-                }
-            </tr>
-        </tfoot>
-    }
-</table>
+        }
+        @if (report.FooterRow != null)
+        {
+            <tfoot>
+                <tr>
+                    @foreach (var data in report.FooterRow)
+                    {
+                        <th><strong>@data</strong></th>
+                    }
+                </tr>
+            </tfoot>
+        }
+    </table>
+    <small style="margin-bottom: 2rem;"><em>Report data as-of @report.AsOf.ToString("g").</em></small>
+}
