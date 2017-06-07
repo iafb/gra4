@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GRA.Domain.Model;
 using GRA.Domain.Report.Abstract;
 using GRA.Domain.Report.Attribute;
-using GRA.Domain.Report.ServiceFacade;
 using GRA.Domain.Repository;
 using Microsoft.Extensions.Logging;
 
@@ -15,20 +13,18 @@ namespace GRA.Domain.Report
 {
     [ReportInformation(2,
     "Registrations and Achievers Report",
-    "Registered participants and achievers by branch (filterable by system and date)",
+    "Registered participants and achievers by branch (filterable by system and date).",
     "Program")]
-    class RegistrationsAchieversReport : BaseReport
+    public class RegistrationsAchieversReport : BaseReport
     {
         private readonly IBranchRepository _branchRepository;
         private readonly ISystemRepository _systemRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IUserLogRepository _userLogRepository;
         public RegistrationsAchieversReport(ILogger<RegistrationsAchieversReport> logger, 
             ServiceFacade.Report serviceFacade,
             IBranchRepository branchRepository,
             ISystemRepository systemRepository,
-            IUserRepository userRepository,
-            IUserLogRepository userLogRepository) : base(logger, serviceFacade)
+            IUserRepository userRepository) : base(logger, serviceFacade)
         {
             _branchRepository = branchRepository 
                 ?? throw new ArgumentNullException(nameof(branchRepository));
@@ -36,8 +32,6 @@ namespace GRA.Domain.Report
                 ?? throw new ArgumentNullException(nameof(systemRepository));
             _userRepository = userRepository
                 ?? throw new ArgumentNullException(nameof(userRepository));
-            _userLogRepository = userLogRepository
-                ?? throw new ArgumentNullException(nameof(userLogRepository));
         }
 
         public override async Task ExecuteAsync(ReportRequest request, 
@@ -76,13 +70,14 @@ namespace GRA.Domain.Report
             #endregion Adjust report criteria as needed
 
             #region Collect data
+            UpdateProgress(progress, 1, "Starting report...");
+
             // header row
             var row = new List<object>();
             row.Add("System Name");
             row.Add("Branch Name");
             row.Add("Registered Users");
             row.Add("Achievers");
-            row.Add("Achiever Percentage");
             report.HeaderRow = row.ToArray();
 
             int count = 0;
@@ -107,18 +102,17 @@ namespace GRA.Domain.Report
                     criterion.SystemId = systemId;
                     criterion.BranchId = branch.Id;
 
-                    var users = await _userRepository.GetCountAsync(criterion);
-
-                    totalRegistered += users.users;
-                    totalAchiever += users.achievers;
+                    int users = await _userRepository.GetCountAsync(criterion);
+                    int achievers = await _userRepository.GetAchieverCountAsync(criterion);
+                    totalRegistered += users;
+                    totalAchiever += achievers;
 
                     // add row
                     row = new List<object>();
                     row.Add(branch.SystemName);
                     row.Add(branch.Name);
-                    row.Add(users.users);
-                    row.Add(users.achievers);
-                    row.Add((users.achievers * 100) / users.users);
+                    row.Add(users);
+                    row.Add(achievers);
 
                     reportData.Add(row.ToArray());
 
@@ -137,7 +131,6 @@ namespace GRA.Domain.Report
             row.Add(string.Empty);
             row.Add(totalRegistered);
             row.Add(totalAchiever);
-            row.Add((totalAchiever * 100) / totalRegistered);
             report.FooterRow = row.ToArray();
             report.AsOf = _serviceFacade.DateTimeProvider.Now;
 

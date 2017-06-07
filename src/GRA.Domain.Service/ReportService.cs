@@ -59,11 +59,10 @@ namespace GRA.Domain.Service
             var summary = _memoryCache.Get<StatusSummary>(cacheKey);
             if (summary == null)
             {
-                var users = await _userRepository.GetCountAsync(request);
                 summary = new StatusSummary
                 {
-                    RegisteredUsers = users.users,
-                    Achievers = users.achievers,
+                    RegisteredUsers = await _userRepository.GetCountAsync(request),
+                    Achievers = await _userRepository.GetAchieverCountAsync(request),
                     PointsEarned = await _userLogRepository.PointsEarnedTotalAsync(request),
                     ActivityEarnings = await _userLogRepository.ActivityEarningsTotalAsync(request),
                     CompletedChallenges = await _userLogRepository

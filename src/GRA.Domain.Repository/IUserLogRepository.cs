@@ -13,5 +13,7 @@ namespace GRA.Domain.Repository
         Task<long> PointsEarnedTotalAsync(ReportCriterion request);
         Task<Dictionary<string, long>> ActivityEarningsTotalAsync(ReportCriterion request);
         Task<long> EarnedBadgeCountAsync(ReportCriterion request);
+        Task<long> GetEarningsOverPeriodAsync(int userId, ReportCriterion criterion);
+        Task<long> GetEarningsUpToDateAsync(int userId, DateTime endDate);
     }
 }

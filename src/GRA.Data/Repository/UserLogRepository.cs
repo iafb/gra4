@@ -296,5 +296,26 @@ namespace GRA.Data.Repository
 
             return await badgeCount.CountAsync();
         }
+
+        public async Task<long> GetEarningsOverPeriodAsync(int userId, ReportCriterion criterion)
+        {
+            return await DbSet
+                .AsNoTracking()
+                .Where(_ => _.UserId == userId && _.IsDeleted == false
+                    && _.PointsEarned > 0
+                    && _.CreatedAt >= criterion.StartDate
+                    && _.CreatedAt <= criterion.EndDate)
+                .SumAsync(_ => Convert.ToInt64(_.PointsEarned));
+        }
+
+        public async Task<long> GetEarningsUpToDateAsync(int userId, DateTime endDate)
+        {
+            return await DbSet
+                .AsNoTracking()
+                .Where(_ => _.UserId == userId && _.IsDeleted == false
+                    && _.PointsEarned > 0
+                    && _.CreatedAt < endDate)
+                .SumAsync(_ => Convert.ToInt64(_.PointsEarned));
+        }
     }
 }

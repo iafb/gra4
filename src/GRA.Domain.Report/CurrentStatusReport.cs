@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,7 +56,6 @@ namespace GRA.Domain.Report
 
             var report = new StoredReport();
             var reportData = new List<object[]>();
-            int percentComplete = 0;
             #endregion Reporting initialization
 
             #region Adjust report criteria as needed
@@ -75,6 +73,8 @@ namespace GRA.Domain.Report
             #endregion Adjust report criteria as needed
 
             #region Collect data
+            UpdateProgress(progress, 1, "Starting report...");
+
             // header row
             var row = new List<object>();
             row.Add("System Name");
@@ -101,7 +101,10 @@ namespace GRA.Domain.Report
                 {
                     break;
                 }
-                UpdateProgress(progress, (++count * 100) / systemIds.Count);
+                if (systemIds.Count > 0)
+                {
+                    UpdateProgress(progress, (++count * 100) / systemIds.Count);
+                }
 
                 var branches = await _branchRepository.GetBySystemAsync(systemId);
                 foreach (var branch in branches)
@@ -111,14 +114,15 @@ namespace GRA.Domain.Report
                     criterion.SystemId = systemId;
                     criterion.BranchId = branch.Id;
 
-                    var users = await _userRepository.GetCountAsync(criterion);
+                    int users = await _userRepository.GetCountAsync(criterion);
+                    int achievers = await _userRepository.GetAchieverCountAsync(criterion);
                     long challenge = await _userLogRepository
                         .CompletedChallengeCountAsync(criterion);
                     long badge = await _userLogRepository.EarnedBadgeCountAsync(criterion);
                     long points = await _userLogRepository.PointsEarnedTotalAsync(criterion);
 
-                    totalRegistered += users.users;
-                    totalAchiever += users.achievers;
+                    totalRegistered += users;
+                    totalAchiever += achievers;
                     totalChallenges += challenge;
                     totalBadges += badge;
                     totalPoints += points;
@@ -127,8 +131,8 @@ namespace GRA.Domain.Report
                     row = new List<object>();
                     row.Add(branch.SystemName);
                     row.Add(branch.Name);
-                    row.Add(users.users);
-                    row.Add(users.achievers);
+                    row.Add(users);
+                    row.Add(achievers);
                     row.Add(challenge);
                     row.Add(badge);
                     row.Add(points);

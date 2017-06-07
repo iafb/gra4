@@ -28,7 +28,7 @@ namespace GRA.Domain.Report.Abstract
 
         protected async Task<ReportRequest> StartRequestAsync(ReportRequest request)
         {
-            if(_timer == null)
+            if (_timer == null)
             {
                 _timer = new Stopwatch();
             }
@@ -57,24 +57,34 @@ namespace GRA.Domain.Report.Abstract
 
         protected void UpdateProgress(IProgress<OperationStatus> progress, int percentComplete)
         {
-            if (progress != null)
-            {
-                progress.Report(new OperationStatus
-                {
-                    PercentComplete = percentComplete
-                });
-            }
+            UpdateProgress(progress, percentComplete, null);
         }
 
         protected void UpdateProgress(IProgress<OperationStatus> progress, string message)
         {
+            UpdateProgress(progress, null, message);
+        }
+
+        protected void UpdateProgress(IProgress<OperationStatus> progress,
+            int? percentComplete = null,
+            string message = null)
+        {
             if (progress != null)
             {
-                progress.Report(new OperationStatus
+                var status = new OperationStatus();
+
+                if (percentComplete != null)
                 {
-                    Status = message
-                });
+                    status.PercentComplete = (int)percentComplete;
+                }
+                if (!string.IsNullOrEmpty(message))
+                {
+                    status.Status = message;
+                }
+
+                progress.Report(status);
             }
         }
+
     }
 }

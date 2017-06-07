@@ -236,7 +236,7 @@ namespace GRA.Data.Repository
             return userList;
         }
 
-        public async Task<(int users, int achievers)> GetCountAsync(ReportCriterion request)
+        public async Task<int> GetCountAsync(ReportCriterion request)
         {
             IQueryable<Model.User> userCount = null;
             userCount = DbSet
@@ -266,7 +266,11 @@ namespace GRA.Data.Repository
             {
                 userCount = userCount.Where(_ => _.CreatedAt <= request.EndDate);
             }
+            return await userCount.CountAsync();
+        }
 
+        public async Task<int> GetAchieverCountAsync(ReportCriterion request)
+        {
             IQueryable<Model.User> achieverCount = null;
             achieverCount = DbSet
                 .AsNoTracking()
@@ -298,10 +302,7 @@ namespace GRA.Data.Repository
                 achieverCount = achieverCount.Where(_ => _.AchievedAt <= request.EndDate);
             }
 
-            int users = await userCount.CountAsync();
-            int achievers = await achieverCount.CountAsync();
-
-            return (users, achievers);
+            return await achieverCount.CountAsync();
         }
 
         public async Task<IEnumerable<User>>
@@ -396,6 +397,17 @@ namespace GRA.Data.Repository
             return await DbSet.AsNoTracking()
                 .Where(_ => _.SiteId == siteId && _.Username == username && _.IsDeleted == false)
                 .AnyAsync();
+        }
+
+        public async Task<List<int>> GetUserIdsByBranchProgram(ReportCriterion criterion)
+        {
+            return await DbSet
+                .AsNoTracking()
+                .Where(_ => _.IsDeleted == false
+                    && _.BranchId == criterion.BranchId
+                    && _.ProgramId == criterion.ProgramId)
+                .Select(_ => _.Id)
+                .ToListAsync();
         }
     }
 }
