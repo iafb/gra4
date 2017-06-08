@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using GRA.Domain.Model;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GRA.Controllers.ViewModel.MissionControl.Reporting
@@ -16,5 +18,10 @@ namespace GRA.Controllers.ViewModel.MissionControl.Reporting
         public int? BranchId { get; set; }
         public int? ProgramId { get; set; }
         public SelectList SystemList { get; set; }
+
+        [DisplayName("Badges to Report")]
+        public ICollection<TriggerRequirement> ReportBadges { get; set; }
+        public string BadgeRequiredList { get; set; }
+        public string ChallengeRequiredList { get; set; }
     }
 }

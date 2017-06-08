@@ -78,6 +78,22 @@ namespace GRA.Controllers.MissionControl
                 ProgramId = viewModel.ProgramId,
             };
 
+            if (string.IsNullOrWhiteSpace(viewModel.BadgeRequiredList))
+            {
+                criterion.BadgeRequiredList = viewModel.BadgeRequiredList
+                    .Replace("<", "")
+                    .Replace(",", "")
+                    .TrimEnd(',');
+            }
+
+            if (string.IsNullOrWhiteSpace(viewModel.ChallengeRequiredList))
+            {
+                criterion.ChallengeRequiredList = viewModel.ChallengeRequiredList
+                    .Replace("<", "")
+                    .Replace(",", "")
+                    .TrimEnd(',');
+            }
+
             var reportRequestId = await _reportService
                 .RequestReport(criterion, viewModel.ReportId);
 

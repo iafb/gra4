@@ -17,5 +17,7 @@ namespace GRA.Domain.Model
         public bool Favorite { get; set; }
         [MaxLength(255)]
         public string Name { get; set; }
+        public string BadgeRequiredList { get; set; }
+        public string ChallengeRequiredList { get; set; }
     }
 }

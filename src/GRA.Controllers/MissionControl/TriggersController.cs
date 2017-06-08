@@ -685,6 +685,7 @@ namespace GRA.Controllers.MissionControl
         {
             var filter = new TriggerFilter(page)
             {
+                Take = 10,
                 Search = search
             };
 
