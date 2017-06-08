@@ -117,10 +117,7 @@ namespace GRA.Domain.Report
             {
                 var userCriterion = new ReportCriterion
                 {
-                    EndDate = criterion.EndDate,
-                    ProgramId = criterion.ProgramId,
                     SiteId = criterion.SiteId,
-                    StartDate = criterion.StartDate,
                     SystemId = systemId
                 };
                 reportUserCount += await _userRepository.GetCountAsync(userCriterion);
@@ -182,19 +179,17 @@ namespace GRA.Domain.Report
                                     && pointValue <= pointsUntilPeriodEnd)
                                 {
                                     programCheck[pointValue] += 1;
-                                    if(branch.Id == 1 && program.Id == 2 && pointValue == 500)
-                                    {
-                                        _logger.LogInformation($"User {userId}: {pointsUntilPeriod} < {pointValue} <= {pointsUntilPeriodEnd}");
-                                    }
                                 }
                             }
                         }
+
+                        int userCount = await _userRepository.GetCountAsync(criterion);
                         // add row
                         row = new List<object>();
                         row.Add(branch.SystemName);
                         row.Add(branch.Name);
                         row.Add(program.Name);
-                        row.Add(userIds.Count);
+                        row.Add(userCount);
                         foreach (var pointValue in pointValues)
                         {
                             row.Add(programCheck[pointValue]);
@@ -202,7 +197,7 @@ namespace GRA.Domain.Report
                         }
                         reportData.Add(row.ToArray());
 
-                        totalRegistered += userIds.Count();
+                        totalRegistered += userCount;
                     }
 
                     if (token.IsCancellationRequested)
