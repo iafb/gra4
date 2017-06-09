@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Collections.Generic;
+using GRA.Domain.Report.Attribute;
+using System.Reflection;
 
 namespace GRA.Domain.Report.Abstract
 {
@@ -38,7 +40,7 @@ namespace GRA.Domain.Report.Abstract
             request.Finished = null;
             request.Success = null;
             request.ResultJson = null;
-            request.InstanceName = null;
+            request.InstanceName = _serviceFacade.Config[ConfigurationKey.InstanceName];
             request.Name = request.Name;
             return await _serviceFacade.ReportRequestRepository.UpdateSaveNoAuditAsync(request);
         }
@@ -86,5 +88,13 @@ namespace GRA.Domain.Report.Abstract
             }
         }
 
+        protected ReportInformationAttribute ReportAttribute
+        {
+            get
+            {
+                return GetType().GetTypeInfo().GetCustomAttribute<ReportInformationAttribute>();
+
+            }
+        }
     }
 }

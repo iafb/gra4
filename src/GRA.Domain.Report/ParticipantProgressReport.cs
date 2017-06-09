@@ -61,7 +61,11 @@ namespace GRA.Domain.Report
                 = await _serviceFacade.ReportCriterionRepository.GetByIdAsync(request.ReportCriteriaId)
                 ?? throw new GraException($"Report criteria {request.ReportCriteriaId} for report request id {request.Id} could not be found.");
 
-            var report = new StoredReport();
+            var report = new StoredReport
+            {
+                Title = ReportAttribute?.Name,
+                AsOf = _serviceFacade.DateTimeProvider.Now
+            };
             var reportData = new List<object[]>();
             #endregion Reporting initialization
 
@@ -224,8 +228,6 @@ namespace GRA.Domain.Report
                 row.Add(totalCheck[pointValue]);
             }
             report.FooterRow = row.ToArray();
-            report.AsOf = _serviceFacade.DateTimeProvider.Now;
-
             #endregion Collect data
 
             #region Finish up reporting

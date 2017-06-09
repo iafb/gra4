@@ -10,5 +10,7 @@ namespace GRA.Controllers.ViewModel.MissionControl.Reporting
         public IEnumerable<IEnumerable<string>> Results { get; set; }
         public IEnumerable<string> FirstRow { get; set; }
         public IEnumerable<string> LastRow { get; set; }
+
+        public int ReportResultId { get; set; }
     }
 }

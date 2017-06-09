@@ -1,14 +1,17 @@
-﻿using GRA.Controllers.ViewModel.MissionControl.Reporting;
+﻿using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
+using GRA.Controllers.ViewModel.MissionControl.Reporting;
 using GRA.Domain.Model;
 using GRA.Domain.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GRA.Controllers.MissionControl
 {
@@ -16,6 +19,11 @@ namespace GRA.Controllers.MissionControl
     [Authorize(Policy = Policy.ViewAllReporting)]
     public class ReportingController : Base.MCController
     {
+        private const string ExcelMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        private const string ExcelFileExtension = "xlsx";
+        private const int ExcelStyleIndexBold = 1;
+        private const int ExcelPaddingCharacters = 1;
+
         private readonly ILogger<ReportingController> _logger;
         private readonly ReportService _reportService;
         private readonly SchoolService _schoolService;
@@ -125,22 +133,23 @@ namespace GRA.Controllers.MissionControl
 
                 var viewModel = new ReportResultsViewModel
                 {
-                    Title = storedReport.request.Name ?? "Report Results",
+                    Title = PageTitle,
+                    ReportResultId = id
                 };
 
                 viewModel.ReportSet = JsonConvert
                     .DeserializeObject<StoredReportSet>(storedReport.request.ResultJson);
 
-                foreach(var report in viewModel.ReportSet.Reports)
+                foreach (var report in viewModel.ReportSet.Reports)
                 {
                     int count = 0;
                     int totalRows = report.Data.Count();
                     var displayRows = new List<List<string>>();
 
-                    if(report.HeaderRow != null)
+                    if (report.HeaderRow != null)
                     {
                         var display = new List<string>();
-                        foreach(var dataItem in report.HeaderRow)
+                        foreach (var dataItem in report.HeaderRow)
                         {
                             display.Add(FormatDataItem(dataItem));
                         }
@@ -180,6 +189,189 @@ namespace GRA.Controllers.MissionControl
             }
         }
 
+        [HttpGet]
+        public async Task<FileStreamResult> Download(int id)
+        {
+            //try
+            //{
+            var storedReport = await _reportService.GetReportResultsAsync(id);
+
+            PageTitle = storedReport.request.Name ?? "Report Results";
+
+            var viewModel = new ReportResultsViewModel
+            {
+                Title = PageTitle
+            };
+
+            viewModel.ReportSet = JsonConvert
+                .DeserializeObject<StoredReportSet>(storedReport.request.ResultJson);
+
+            var ms = new System.IO.MemoryStream();
+
+            using (var workbook = SpreadsheetDocument.Create(ms,
+                DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook))
+            {
+                var workbookPart = workbook.AddWorkbookPart();
+                workbook.WorkbookPart.Workbook = new Workbook();
+                workbook.WorkbookPart.Workbook.Sheets = new Sheets();
+
+                var stylesPart = workbook.WorkbookPart.AddNewPart<WorkbookStylesPart>();
+                stylesPart.Stylesheet = GetStylesheet();
+                stylesPart.Stylesheet.Save();
+
+                foreach (var report in viewModel.ReportSet.Reports)
+                {
+                    var sheetPart = workbook.WorkbookPart.AddNewPart<WorksheetPart>();
+                    var sheetData = new SheetData();
+                    sheetPart.Worksheet = new Worksheet(sheetData);
+
+
+                    var sheets = workbook.WorkbookPart.Workbook.GetFirstChild<Sheets>();
+                    var relationshipId = workbook.WorkbookPart.GetIdOfPart(sheetPart);
+
+                    uint sheetId = 1;
+                    if (sheets.Elements<Sheet>().Count() > 0)
+                    {
+                        sheetId = sheets.Elements<Sheet>()
+                            .Select(_ => _.SheetId.Value).Max() + 1;
+                    }
+
+                    string sheetName = report.Title ?? PageTitle ?? "Report Results";
+                    if (sheetName.Length > 31)
+                    {
+                        sheetName = sheetName.Substring(0, 31);
+                    }
+
+                    var sheet = new Sheet
+                    {
+                        Id = relationshipId,
+                        SheetId = sheetId,
+                        Name = sheetName
+                    };
+                    sheets.Append(sheet);
+
+                    var maximumColumnWidth = new Dictionary<int, int>();
+
+                    if (report.HeaderRow != null)
+                    {
+                        var headerRow = new Row();
+                        int columnNumber = 0;
+                        foreach (var dataItem in report.HeaderRow)
+                        {
+                            (var cell, var length) = CreateCell(dataItem);
+                            cell.StyleIndex = ExcelStyleIndexBold;
+                            headerRow.AppendChild(cell);
+                            if (maximumColumnWidth.ContainsKey(columnNumber))
+                            {
+                                maximumColumnWidth[columnNumber]
+                                    = Math.Max(maximumColumnWidth[columnNumber], length);
+                            }
+                            else
+                            {
+                                maximumColumnWidth.Add(columnNumber, length);
+                            }
+                            columnNumber++;
+                        }
+                        sheetData.Append(headerRow);
+                    }
+
+                    foreach (var resultRow in report.Data)
+                    {
+                        var row = new Row();
+                        int columnNumber = 0;
+                        foreach (var resultItem in resultRow)
+                        {
+                            (var cell, var length) = CreateCell(resultItem);
+                            row.AppendChild(cell);
+                            if (maximumColumnWidth.ContainsKey(columnNumber))
+                            {
+                                maximumColumnWidth[columnNumber]
+                                    = Math.Max(maximumColumnWidth[columnNumber], length);
+                            }
+                            else
+                            {
+                                maximumColumnWidth.Add(columnNumber, length);
+                            }
+                            columnNumber++;
+                        }
+                        sheetData.Append(row);
+                    }
+
+                    if (report.FooterRow != null)
+                    {
+                        var footerRow = new Row();
+                        int columnNumber = 0;
+                        foreach (var dataItem in report.FooterRow)
+                        {
+                            (var cell, var length) = CreateCell(dataItem);
+                            cell.StyleIndex = ExcelStyleIndexBold;
+                            footerRow.AppendChild(cell);
+                            if (maximumColumnWidth.ContainsKey(columnNumber))
+                            {
+                                maximumColumnWidth[columnNumber]
+                                    = Math.Max(maximumColumnWidth[columnNumber], length);
+                            }
+                            else
+                            {
+                                maximumColumnWidth.Add(columnNumber, length);
+                            }
+                            columnNumber++;
+                        }
+                        sheetData.Append(footerRow);
+                    }
+
+                    foreach (var value in maximumColumnWidth.Keys.OrderByDescending(_ => _))
+                    {
+                        var columnId = value + 1;
+                        var width = maximumColumnWidth[value] + ExcelPaddingCharacters;
+                        Columns cs = sheet.GetFirstChild<Columns>();
+                        if (cs != null)
+                        {
+                            var columnElements = cs.Elements<Column>()
+                                .Where(_ => _.Min == columnId && _.Max == columnId);
+                            if (columnElements.Count() > 0)
+                            {
+                                var column = columnElements.First();
+                                column.Width = width;
+                                column.CustomWidth = true;
+                            }
+                            else
+                            {
+                                var column = new Column
+                                {
+                                    Min = (uint)columnId,
+                                    Max = (uint)columnId,
+                                    Width = width,
+                                    CustomWidth = true
+                                };
+                                cs.Append(column);
+                            }
+                        }
+                        else
+                        {
+                            cs = new Columns();
+                            cs.Append(new Column
+                            {
+                                Min = (uint)columnId,
+                                Max = (uint)columnId,
+                                Width = width,
+                                CustomWidth = true
+                            });
+                            sheetPart.Worksheet.InsertAfter(cs,
+                                sheetPart.Worksheet.GetFirstChild<SheetFormatProperties>());
+                        }
+                    }
+                }
+                workbook.Save();
+                workbook.Close();
+                ms.Seek(0, System.IO.SeekOrigin.Begin);
+                var fileOutput = new FileStreamResult(ms, ExcelMimeType)
+                {
+                    FileDownloadName = $"{PageTitle}.{ExcelFileExtension}"
+                };
+                return fileOutput;
+            }
+        }
         private string FormatDataItem(object dataItem)
         {
             switch (dataItem)
@@ -193,6 +385,71 @@ namespace GRA.Controllers.MissionControl
                 case null:
                     return string.Empty;
             }
+        }
+
+        private (Cell cell, int length) CreateCell(object dataItem)
+        {
+            var cell = new Cell
+            {
+                CellValue = new CellValue(dataItem.ToString())
+            };
+
+            switch (dataItem)
+            {
+                case int i:
+                case long l:
+                    cell.DataType = CellValues.Number;
+                    break;
+                case DateTime d:
+                    cell.DataType = CellValues.Date;
+                    break;
+                case null:
+                default:
+                    cell.DataType = CellValues.String;
+                    break;
+            }
+
+            return (cell, dataItem.ToString().Length);
+        }
+
+        private Stylesheet GetStylesheet()
+        {
+            var stylesheet = new Stylesheet();
+
+            var font = new Font();
+            var boldFont = new Font();
+            boldFont.Append(new Bold());
+
+            var fonts = new Fonts();
+            fonts.Append(font);
+            fonts.Append(boldFont);
+
+            var fill = new Fill();
+            var fills = new Fills();
+            fills.Append(fill);
+
+            var border = new Border();
+            var borders = new Borders();
+            borders.Append(border);
+
+            var regularFormat = new CellFormat
+            {
+                FontId = 0
+            };
+            var boldFormat = new CellFormat
+            {
+                FontId = 1
+            };
+            var cellFormats = new CellFormats();
+            cellFormats.Append(regularFormat);
+            cellFormats.Append(boldFormat);
+
+            stylesheet.Append(fonts);
+            stylesheet.Append(fills);
+            stylesheet.Append(borders);
+            stylesheet.Append(cellFormats);
+
+            return stylesheet;
         }
     }
 }
