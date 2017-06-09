@@ -18,15 +18,18 @@ namespace GRA.Controllers.MissionControl
     {
         private readonly ILogger<ReportingController> _logger;
         private readonly ReportService _reportService;
+        private readonly SchoolService _schoolService;
         private readonly SiteService _siteService;
 
         public ReportingController(ILogger<ReportingController> logger,
             ServiceFacade.Controller context,
             ReportService reportService,
+            SchoolService schoolService,
             SiteService siteService) : base(context)
         {
             _logger = Require.IsNotNull(logger, nameof(logger));
             _reportService = Require.IsNotNull(reportService, nameof(reportService));
+            _schoolService = Require.IsNotNull(schoolService, nameof(schoolService));
             _siteService = Require.IsNotNull(siteService, nameof(siteService));
             PageTitle = "Reporting";
         }
@@ -55,11 +58,15 @@ namespace GRA.Controllers.MissionControl
             }
 
             var systemList = await _siteService.GetSystemList();
+            var branchList = await _siteService.GetAllBranches(true);
+            var schoolDistrictList = await _schoolService.GetDistrictsAsync();
 
             return View($"{viewName}Criteria", new ReportCriteriaViewModel
             {
                 ReportId = id,
                 SystemList = new SelectList(systemList, "Id", "Name"),
+                BranchList = new SelectList(branchList, "Id", "Name"),
+                SchoolDistrictList = new SelectList(schoolDistrictList, "Id", "Name")
             });
         }
 
@@ -76,6 +83,7 @@ namespace GRA.Controllers.MissionControl
                 SystemId = viewModel.SystemId,
                 BranchId = viewModel.BranchId,
                 ProgramId = viewModel.ProgramId,
+                SchoolDistrictId = viewModel.SchoolDistrictId
             };
 
             if (string.IsNullOrWhiteSpace(viewModel.BadgeRequiredList))

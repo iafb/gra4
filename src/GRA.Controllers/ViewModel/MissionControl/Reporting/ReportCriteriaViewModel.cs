@@ -15,9 +15,14 @@ namespace GRA.Controllers.ViewModel.MissionControl.Reporting
         public DateTime? EndDate { get; set; }
         [DisplayName("Select a system")]
         public int? SystemId { get; set; }
+        [DisplayName("Select a branch")]
         public int? BranchId { get; set; }
         public int? ProgramId { get; set; }
+        [DisplayName("Select a school district")]
+        public int? SchoolDistrictId { get; set; }
         public SelectList SystemList { get; set; }
+        public SelectList BranchList { get; set; }
+        public SelectList SchoolDistrictList { get; set; }
 
         [DisplayName("Badges to Report")]
         public ICollection<TriggerRequirement> ReportBadges { get; set; }
