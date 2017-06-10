@@ -19,7 +19,6 @@ namespace GRA.Domain.Report
     {
         private readonly IBranchRepository _branchRepository;
         private readonly IProgramRepository _programRepository;
-        private readonly ISystemRepository _systemRepository;
         private readonly IUserRepository _userRepository;
         private readonly IUserLogRepository _userLogRepository;
 
@@ -27,7 +26,6 @@ namespace GRA.Domain.Report
             ServiceFacade.Report serviceFacade,
             IBranchRepository branchRepository,
             IProgramRepository programRepository,
-            ISystemRepository systemRepository,
             IUserRepository userRepository,
             IUserLogRepository userLogRepository) : base(logger, serviceFacade)
         {
@@ -35,8 +33,6 @@ namespace GRA.Domain.Report
                 ?? throw new ArgumentNullException(nameof(branchRepository));
             _programRepository = programRepository
                 ?? throw new ArgumentNullException(nameof(programRepository));
-            _systemRepository = systemRepository
-                ?? throw new ArgumentNullException(nameof(systemRepository));
             _userRepository = userRepository
                 ?? throw new ArgumentNullException(nameof(userRepository));
             _userLogRepository = userLogRepository
@@ -61,6 +57,11 @@ namespace GRA.Domain.Report
                 = await _serviceFacade.ReportCriterionRepository.GetByIdAsync(request.ReportCriteriaId)
                 ?? throw new GraException($"Report criteria {request.ReportCriteriaId} for report request id {request.Id} could not be found.");
 
+            if (criterion.SiteId == null)
+            {
+                throw new ArgumentNullException(nameof(criterion.SiteId));
+            }
+
             var report = new StoredReport
             {
                 Title = ReportAttribute?.Name,
@@ -78,19 +79,6 @@ namespace GRA.Domain.Report
             {
                 criterion.EndDate = DateTime.MaxValue;
             }
-
-            // collect systems - all if none is specified
-            ICollection<int> systemIds = null;
-            if (criterion.SystemId == null)
-            {
-                var systems = await _systemRepository.GetAllAsync((int)criterion.SiteId);
-                systemIds = systems.Select(_ => _.Id).ToList();
-            }
-            else
-            {
-                systemIds = new List<int>();
-                systemIds.Add((int)criterion.SystemId);
-            }
             #endregion Adjust report criteria as needed
 
             #region Collect data
@@ -99,11 +87,12 @@ namespace GRA.Domain.Report
             var totalCheck = new Dictionary<long, long>();
 
             // header row
-            var row = new List<object>();
-            row.Add("System Name");
-            row.Add("Branch Name");
-            row.Add("Program");
-            row.Add("Registered Users");
+            var row = new List<object> {
+                "System Name",
+                "Branch Name",
+                "Program",
+                "Registered Users"
+            };
             foreach (var pointValue in pointValues)
             {
                 row.Add($"Achieved {pointValue} points");
@@ -117,6 +106,16 @@ namespace GRA.Domain.Report
             var programIds = await _programRepository.GetAllAsync((int)criterion.SiteId);
 
             long reportUserCount = 0;
+
+            var branches = criterion.SystemId != null
+                ? await _branchRepository.GetBySystemAsync((int)criterion.SystemId)
+                : await _branchRepository.GetAllAsync((int)criterion.SiteId);
+
+            var systemIds = branches
+                .OrderBy(_ => _.SystemName)
+                .GroupBy(_ => _.SystemId)
+                .Select(_ => _.First().SystemId);
+
             foreach (var systemId in systemIds)
             {
                 var userCriterion = new ReportCriterion
@@ -131,8 +130,7 @@ namespace GRA.Domain.Report
 
             foreach (var systemId in systemIds)
             {
-                var branches = await _branchRepository.GetBySystemAsync(systemId);
-                foreach (var branch in branches)
+                foreach (var branch in branches.Where(_ => _.SystemId == systemId))
                 {
                     foreach (var program in programIds)
                     {
@@ -141,7 +139,7 @@ namespace GRA.Domain.Report
                             break;
                         }
 
-                        string processing = systemIds.Count == 1
+                        string processing = systemIds.Count() == 1
                             ? $"Processing: {branch.Name} - {program.Name} -"
                             : $"Processing: {branch.SystemName} - {branch.Name} -";
 
@@ -162,8 +160,7 @@ namespace GRA.Domain.Report
 
                         foreach (var userId in userIds)
                         {
-                            count++;
-                            if (count % 10 == 0)
+                            if (++count % 10 == 0)
                             {
                                 UpdateProgress(progress,
                                     Math.Max((int)((count * 100) / reportUserCount), 1),
@@ -189,11 +186,12 @@ namespace GRA.Domain.Report
 
                         int userCount = await _userRepository.GetCountAsync(criterion);
                         // add row
-                        row = new List<object>();
-                        row.Add(branch.SystemName);
-                        row.Add(branch.Name);
-                        row.Add(program.Name);
-                        row.Add(userCount);
+                        row = new List<object> {
+                            branch.SystemName,
+                            branch.Name,
+                            program.Name,
+                            userCount
+                        };
                         foreach (var pointValue in pointValues)
                         {
                             row.Add(programCheck[pointValue]);
@@ -218,11 +216,13 @@ namespace GRA.Domain.Report
             report.Data = reportData.ToArray();
 
             // total row
-            row = new List<object>();
-            row.Add("Total");
-            row.Add(string.Empty);
-            row.Add(string.Empty);
-            row.Add(totalRegistered);
+            row = new List<object>
+            {
+                "Total",
+                string.Empty,
+                string.Empty,
+                totalRegistered
+            };
             foreach (var pointValue in pointValues)
             {
                 row.Add(totalCheck[pointValue]);

@@ -11,10 +11,10 @@ using Microsoft.Extensions.Logging;
 
 namespace GRA.Domain.Report
 {
-    [ReportInformation(4,
+    [ReportInformation(-3,
         "Badge Report",
-        "Words words words",
-        "Word")]
+        "See participants that have earned a badge or badges over a time period.",
+        "Program")]
     public class BadgeReport : BaseReport
     {
         private readonly IBranchRepository _branchRepository;

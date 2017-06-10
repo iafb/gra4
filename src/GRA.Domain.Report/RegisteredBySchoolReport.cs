@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GRA.Domain.Report
 {
-    [ReportInformation(6,
+    [ReportInformation(-1,
         "Registered By School Report",
         "Words words words",
         "Word")]

@@ -128,7 +128,7 @@ namespace GRA.Domain.Service
 
         public IEnumerable<ReportDetails> GetReportList()
         {
-            return new Catalog().Get();
+            return new Catalog().Get().Where(_ => _.Id >= 0);
         }
 
         public async Task RunReport(int reportRequestId,
@@ -204,7 +204,20 @@ namespace GRA.Domain.Service
                     return;
                 }
 
-                await report.ExecuteAsync(_request, token, progress);
+                try
+                {
+                    await report.ExecuteAsync(_request, token, progress);
+                }
+                catch (Exception ex)
+                {
+                    progress.Report(new OperationStatus
+                    {
+                        PercentComplete = 100,
+                        Status = $"A software error occurred: {ex.Message}.",
+                        Error = true,
+                        Complete = false
+                    });
+                }
 
                 if (!token.IsCancellationRequested)
                 {

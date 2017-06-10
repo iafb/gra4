@@ -94,19 +94,19 @@ namespace GRA.Controllers.MissionControl
                 SchoolDistrictId = viewModel.SchoolDistrictId
             };
 
-            if (string.IsNullOrWhiteSpace(viewModel.BadgeRequiredList))
+            if (!string.IsNullOrWhiteSpace(viewModel.BadgeRequiredList))
             {
                 criterion.BadgeRequiredList = viewModel.BadgeRequiredList
                     .Replace("<", "")
-                    .Replace(",", "")
+                    .Replace(">", "")
                     .TrimEnd(',');
             }
 
-            if (string.IsNullOrWhiteSpace(viewModel.ChallengeRequiredList))
+            if (!string.IsNullOrWhiteSpace(viewModel.ChallengeRequiredList))
             {
                 criterion.ChallengeRequiredList = viewModel.ChallengeRequiredList
                     .Replace("<", "")
-                    .Replace(",", "")
+                    .Replace(">", "")
                     .TrimEnd(',');
             }
 
@@ -192,8 +192,6 @@ namespace GRA.Controllers.MissionControl
         [HttpGet]
         public async Task<FileStreamResult> Download(int id)
         {
-            //try
-            //{
             var storedReport = await _reportService.GetReportResultsAsync(id);
 
             PageTitle = storedReport.request.Name ?? "Report Results";
@@ -318,6 +316,17 @@ namespace GRA.Controllers.MissionControl
                             columnNumber++;
                         }
                         sheetData.Append(footerRow);
+                    }
+
+                    if (report.FooterText != null)
+                    {
+                        foreach (var dataItem in report.FooterText)
+                        {
+                            var footerTextRow = new Row();
+                            (var cell, var length) = CreateCell(dataItem);
+                            footerTextRow.AppendChild(cell);
+                            sheetData.Append(footerTextRow);
+                        }
                     }
 
                     foreach (var value in maximumColumnWidth.Keys.OrderByDescending(_ => _))

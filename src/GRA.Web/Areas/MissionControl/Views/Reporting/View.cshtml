@@ -53,7 +53,19 @@
                     </tfoot>
                 }
             </table>
-            <div style="margin-bottom: 2rem;"><em>Report data as-of @report.AsOf.ToString("g").</em></div>
+            @if (report.FooterText != null)
+            {
+                <div style="margin-bottom: 2rem;">
+                    @foreach (var data in report.FooterText)
+                    {
+                        <p>@data</p>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="margin-bottom: 2rem;">This report was run on @report.AsOf.ToString("g").</div>
+            }
         </div>
     </div>
 }
