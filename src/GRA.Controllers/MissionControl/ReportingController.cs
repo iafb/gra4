@@ -91,24 +91,10 @@ namespace GRA.Controllers.MissionControl
                 SystemId = viewModel.SystemId,
                 BranchId = viewModel.BranchId,
                 ProgramId = viewModel.ProgramId,
-                SchoolDistrictId = viewModel.SchoolDistrictId
+                SchoolDistrictId = viewModel.SchoolDistrictId,
+                BadgeRequiredList = viewModel.BadgeRequiredList,
+                ChallengeRequiredList = viewModel.ChallengeRequiredList
             };
-
-            if (!string.IsNullOrWhiteSpace(viewModel.BadgeRequiredList))
-            {
-                criterion.BadgeRequiredList = viewModel.BadgeRequiredList
-                    .Replace("<", "")
-                    .Replace(">", "")
-                    .TrimEnd(',');
-            }
-
-            if (!string.IsNullOrWhiteSpace(viewModel.ChallengeRequiredList))
-            {
-                criterion.ChallengeRequiredList = viewModel.ChallengeRequiredList
-                    .Replace("<", "")
-                    .Replace(">", "")
-                    .TrimEnd(',');
-            }
 
             var reportRequestId = await _reportService
                 .RequestReport(criterion, viewModel.ReportId);

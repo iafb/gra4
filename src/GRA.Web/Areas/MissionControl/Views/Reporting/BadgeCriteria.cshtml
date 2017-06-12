@@ -177,8 +177,8 @@
 @section scripts
 {
     <script>
-        var badgeIds = $("#BadgeRequiredList").val();
-        var challengeIds = $("#ChallengeRequiredList").val();
+        var badgeIds = $("#BadgeRequiredList").val().split(',').filter(x => x);
+        var challengeIds = $("#ChallengeRequiredList").val().split(',').filter(x => x);
         var requirementsUrl = "@Url.Action("GetRequirementList", "Triggers")";
         var page = 1;
         var scope = "All";
@@ -188,8 +188,8 @@
         function UpdateRequirementsList() {
             $.get(requirementsUrl,
                 {
-                    badgeIds: badgeIds,
-                    challengeIds: challengeIds,
+                    badgeIds: badgeIds.join(','),
+                    challengeIds: challengeIds.join(','),
                     scope: scope,
                     search: search,
                     page: page,
@@ -204,19 +204,17 @@
             UpdateRequirementsList();
         });
 
-        $(document).on("click", "#addRequirementButton", function() {
+        $(document).on("click", "#addRequirementButton", function () {
             var badgeId = $(this).data("badgeid");
             var challengeId = $(this).data("challengeid");
 
-            if (challengeId != "")
-            {
-                $("#ChallengeRequiredList").val($("#ChallengeRequiredList").val() + "<" + challengeId + ">");
-                challengeIds = $("#ChallengeRequiredList").val();
+            if (challengeId != "") {
+                challengeIds.push(challengeId);
+                $("#ChallengeRequiredList").val(challengeIds.join(','));
             }
-            else if (badgeId != "")
-            {
-                $("#BadgeRequiredList").val($("#BadgeRequiredList").val() + "<" + badgeId + ">");
-                badgeIds = $("#BadgeRequiredList").val();
+            else if (badgeId != "") {
+                badgeIds.push(badgeId);
+                $("#BadgeRequiredList").val(badgeIds.join(','));
             }
             $("#noRequirements").addClass("hide");
             var row = $(this).parent().parent();
@@ -228,23 +226,20 @@
             UpdateRequirementsList();
         });
 
-        $(document).on("click", "#removeRequirementButton", function() {
+        $(document).on("click", "#removeRequirementButton", function () {
             var badgeId = $(this).data("badgeid");
             var challengeId = $(this).data("challengeid");
 
-            if (challengeId != "")
-            {
-                $("#ChallengeRequiredList").val($("#ChallengeRequiredList").val().replace("<" + challengeId + ">", ""));
-                challengeIds = $("#ChallengeRequiredList").val();
+            if (challengeId != "") {
+                challengeIds.splice(challengeIds.indexOf(challengeId), 1);
+                $("#ChallengeRequiredList").val(challengeIds.join(','));
             }
-            else if (badgeId != "")
-            {
-                $("#BadgeRequiredList").val($("#BadgeRequiredList").val().replace("<" + badgeId + ">", ""));
-                badgeIds = $("#BadgeRequiredList").val();
+            else if (badgeId != "") {
+                badgeIds.splice(badgeIds.indexOf(badgeId), 1);
+                $("#BadgeRequiredList").val(badgeIds.join(','));
             }
             $(this).parent().parent().remove();
-            if (badgeIds == "" && challengeIds == "")
-            {
+            if (badgeIds == "" && challengeIds == "") {
                 $("#noRequirements").removeClass("hide");
             }
         });
@@ -300,6 +295,13 @@
                 down: "fa fa-arrow-down",
                 previous: "fa fa-arrow-left",
                 next: "fa fa-arrow-right"
+            }
+        });
+
+        $("form").on("submit", function (e) {
+            if (badgeIds.length == 0 && challengeIds.length == 0) {
+                e.preventDefault();
+                alert("Please select which badges to report on.");
             }
         });
     </script>
