@@ -86,7 +86,8 @@ namespace GRA.Domain.Report
                 }
             }
 
-            int totalCount = challengeIds.Count() + badgeIds.Count();
+            int totalCount = challengeIds == null ? 0 : challengeIds.Count();
+            totalCount += badgeIds == null ? 0 : badgeIds.Count();
             #endregion Adjust report criteria as needed
 
             #region Collect data
@@ -101,51 +102,57 @@ namespace GRA.Domain.Report
             // running totals
             long totalEarnedItems = 0;
 
-            foreach (var badgeId in badgeIds)
+            if (badgeIds != null)
             {
-                if (token.IsCancellationRequested)
+                foreach (var badgeId in badgeIds)
                 {
-                    break;
-                }
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
 
-                var badgeName = await _badgeRepository.GetBadgeNameAsync(badgeId);
-                var earned = await _userLogRepository.EarnedBadgeCountAsync(criterion, badgeId);
+                    var badgeName = await _badgeRepository.GetBadgeNameAsync(badgeId);
+                    var earned = await _userLogRepository.EarnedBadgeCountAsync(criterion, badgeId);
 
-                UpdateProgress(progress,
-                    ++count * 100 / totalCount,
-                    $"Processing badge: {badgeName}...");
+                    UpdateProgress(progress,
+                        ++count * 100 / totalCount,
+                        $"Processing badge: {badgeName}...");
 
 
-                reportData.Add(new object[]
-                {
+                    reportData.Add(new object[]
+                    {
                     badgeName,
                     earned
-                });
+                    });
 
-                totalEarnedItems += earned;
+                    totalEarnedItems += earned;
+                }
             }
 
-            foreach (var challengeId in challengeIds)
+            if (challengeIds != null)
             {
-                if (token.IsCancellationRequested)
+                foreach (var challengeId in challengeIds)
                 {
-                    break;
-                }
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
 
-                var challenge = await _challengeRepository.GetByIdAsync(challengeId);
-                var earned = await _userLogRepository.CompletedChallengeCountAsync(criterion, challengeId);
+                    var challenge = await _challengeRepository.GetByIdAsync(challengeId);
+                    var earned = await _userLogRepository.CompletedChallengeCountAsync(criterion, challengeId);
 
-                UpdateProgress(progress,
-                    ++count * 100 / totalCount,
-                    $"Processing challenge: {challenge.Name}...");
+                    UpdateProgress(progress,
+                        ++count * 100 / totalCount,
+                        $"Processing challenge: {challenge.Name}...");
 
-                reportData.Add(new object[]
-                {
+                    reportData.Add(new object[]
+                    {
                     challenge.Name,
                     earned
-                });
+                    });
 
-                totalEarnedItems += earned;
+                    totalEarnedItems += earned;
+                }
             }
 
             report.Data = reportData.OrderByDescending(_ => _.ElementAt(1));

@@ -81,33 +81,58 @@ namespace GRA.Data.Repository
             var trigger = await _context.Triggers
                 .AsNoTracking()
                 .Where(_ => _.AwardBadgeId == badgeId)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (trigger != null)
+            if (trigger.Count > 0)
             {
-                return trigger.Name;
+                return string.Join(", ", trigger.Select(_ => _.Name));
             }
 
-            var program = await _context.Programs
+            var programs = await _context.Programs
                 .AsNoTracking()
                 .Where(_ => _.JoinBadgeId == badgeId || _.AchieverBadgeId == badgeId)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (program != null)
+            if (programs.Count > 0)
             {
-                return program.JoinBadgeId == badgeId
-                    ? $"Joined {program.Name}"
-                    : $"Achiever status in {program.Name}";
+                var joined = new List<string>();
+                var achiever = new List<string>();
+                foreach (var program in programs)
+                {
+                    if (program.JoinBadgeId == badgeId)
+                    {
+                        joined.Add(program.Name);
+                    }
+                    else
+                    {
+                        achiever.Add(program.Name);
+                    }
+                }
+                string name = null;
+                if (joined.Count > 0)
+                {
+                    name = "Joined " + string.Join(", ", joined);
+                    if (achiever.Count > 0)
+                    {
+                        name += "; achiever status in " + string.Join(", ", achiever);
+                    }
+                }
+                else
+                {
+                    name = "Achiever status in " + string.Join(", ", achiever);
+                }
+                return name;
             }
 
             var questionnaire = await _context.Questionnaires
                 .AsNoTracking()
                 .Where(_ => _.BadgeId == badgeId)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (questionnaire != null)
+            if (questionnaire.Count() > 0)
             {
-                return $"Completed questionnaire {questionnaire.Name}";
+                return $"Completed questionnaire(s): " 
+                    + string.Join(", ", questionnaire.Select(_ => _.Name));
             }
 
             return $"Badge id {badgeId}";

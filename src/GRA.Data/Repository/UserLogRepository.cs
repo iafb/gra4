@@ -140,7 +140,9 @@ namespace GRA.Data.Repository
 
             var challengeCount = DbSet
                 .AsNoTracking()
-                .Where(_ => _.ChallengeId != null && _.IsDeleted == false);
+                .Where(_ => _.ChallengeId != null 
+                    && _.IsDeleted == false
+                    && _.User.IsDeleted == false);
 
             if (eligibleUserIds != null)
             {
@@ -162,7 +164,7 @@ namespace GRA.Data.Repository
             if(challengeId != null)
             {
                 challengeCount = challengeCount
-                    .Where(_ => _.Id == challengeId);
+                    .Where(_ => _.ChallengeId == challengeId);
             }
 
             return await challengeCount.CountAsync();
@@ -173,7 +175,7 @@ namespace GRA.Data.Repository
             var eligibleUserIds = await GetEligibleUserIds(request);
 
             var pointCount = DbSet
-                .Where(_ => _.IsDeleted == false)
+                .Where(_ => _.IsDeleted == false && _.User.IsDeleted == false)
                 .AsNoTracking();
 
             if (eligibleUserIds != null)
@@ -209,7 +211,9 @@ namespace GRA.Data.Repository
             // start out with all line items that have a point translation id
             var earnedFilter = DbSet
                 .AsNoTracking()
-                .Where(_ => _.PointTranslationId != null && _.IsDeleted == false);
+                .Where(_ => _.PointTranslationId != null 
+                    && _.IsDeleted == false
+                    && _.User.IsDeleted == false);
 
             // filter by users if necessary
             if (eligibleUserIds != null)
@@ -283,7 +287,9 @@ namespace GRA.Data.Repository
 
             var badgeCount = DbSet
                 .AsNoTracking()
-                .Where(_ => _.BadgeId != null && _.IsDeleted == false);
+                .Where(_ => _.BadgeId != null 
+                    && _.IsDeleted == false
+                    && _.User.IsDeleted == false);
 
             if (eligibleUserIds != null)
             {
@@ -309,7 +315,8 @@ namespace GRA.Data.Repository
         {
             return await DbSet
                 .AsNoTracking()
-                .Where(_ => _.UserId == userId && _.IsDeleted == false
+                .Where(_ => _.UserId == userId 
+                    && _.IsDeleted == false
                     && _.PointsEarned > 0
                     && _.CreatedAt >= criterion.StartDate
                     && _.CreatedAt <= criterion.EndDate)
@@ -320,7 +327,8 @@ namespace GRA.Data.Repository
         {
             return await DbSet
                 .AsNoTracking()
-                .Where(_ => _.UserId == userId && _.IsDeleted == false
+                .Where(_ => _.UserId == userId
+                    && _.IsDeleted == false
                     && _.PointsEarned > 0
                     && _.CreatedAt < endDate)
                 .SumAsync(_ => Convert.ToInt64(_.PointsEarned));
@@ -333,7 +341,9 @@ namespace GRA.Data.Repository
 
             var badgeCount = DbSet
                 .AsNoTracking()
-                .Where(_ => _.BadgeId != null && _.IsDeleted == false);
+                .Where(_ => _.BadgeId != null 
+                    && _.IsDeleted == false
+                    && _.User.IsDeleted == false);
 
             if (eligibleUserIds != null)
             {
@@ -355,7 +365,7 @@ namespace GRA.Data.Repository
             if (badgeId != null)
             {
                 badgeCount = badgeCount
-                    .Where(_ => _.Id == badgeId);
+                    .Where(_ => _.BadgeId == badgeId);
             }
 
             return await badgeCount.CountAsync();
