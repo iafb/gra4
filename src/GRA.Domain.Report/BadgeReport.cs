@@ -11,29 +11,25 @@ using Microsoft.Extensions.Logging;
 
 namespace GRA.Domain.Report
 {
-    [ReportInformation(-3,
+    [ReportInformation(5,
         "Badge Report",
         "See participants that have earned a badge or badges over a time period.",
         "Program")]
     public class BadgeReport : BaseReport
     {
-        private readonly IBranchRepository _branchRepository;
-        private readonly ISystemRepository _systemRepository;
-        private readonly IUserRepository _userRepository;
+        private readonly IBadgeRepository _badgeRepository;
+        private readonly IChallengeRepository _challengeRepository;
         private readonly IUserLogRepository _userLogRepository;
         public BadgeReport(ILogger<CurrentStatusReport> logger,
-            Domain.Report.ServiceFacade.Report serviceFacade,
-            IBranchRepository branchRepository,
-            ISystemRepository systemRepository,
-            IUserRepository userRepository,
+            ServiceFacade.Report serviceFacade,
+            IBadgeRepository badgeRepository,
+            IChallengeRepository challengeRepository,
             IUserLogRepository userLogRepository) : base(logger, serviceFacade)
         {
-            _branchRepository = branchRepository
-                ?? throw new ArgumentNullException(nameof(branchRepository));
-            _systemRepository = systemRepository
-                ?? throw new ArgumentNullException(nameof(systemRepository));
-            _userRepository = userRepository
-                ?? throw new ArgumentNullException(nameof(userRepository));
+            _badgeRepository = badgeRepository 
+                ?? throw new ArgumentNullException(nameof(badgeRepository));
+            _challengeRepository = challengeRepository
+                ?? throw new ArgumentNullException(nameof(challengeRepository));
             _userLogRepository = userLogRepository
                 ?? throw new ArgumentNullException(nameof(userLogRepository));
         }
@@ -56,108 +52,109 @@ namespace GRA.Domain.Report
 
             var report = new StoredReport();
             var reportData = new List<object[]>();
+
+            int count = 0;
             #endregion Reporting initialization
 
             #region Adjust report criteria as needed
-            ICollection<int> systemIds = null;
-            if (criterion.SystemId == null)
+            IEnumerable<int> badgeIds = null;
+            IEnumerable<int> challengeIds = null;
+
+            if (!string.IsNullOrEmpty(criterion.BadgeRequiredList))
             {
-                var systems = await _systemRepository.GetAllAsync((int)criterion.SiteId);
-                systemIds = systems.Select(_ => _.Id).ToList();
+                try
+                {
+                    badgeIds = criterion.BadgeRequiredList.Split(',').Select(int.Parse);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Unable to convert badge id list to numbers: {ex.Message}");
+                    _logger.LogError($"Badge id list: {criterion.BadgeRequiredList}");
+                }
             }
-            else
+
+            if (!string.IsNullOrEmpty(criterion.ChallengeRequiredList))
             {
-                systemIds = new List<int>();
-                systemIds.Add((int)criterion.SystemId);
+                try
+                {
+                    challengeIds = criterion.ChallengeRequiredList.Split(',').Select(int.Parse);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Unable to convert challenge id list to numbers: {ex.Message}");
+                    _logger.LogError($"Challenge id list: {criterion.BadgeRequiredList}");
+                }
             }
+
+            int totalCount = challengeIds.Count() + badgeIds.Count();
             #endregion Adjust report criteria as needed
 
             #region Collect data
             UpdateProgress(progress, 1, "Starting report...");
 
             // header row
-            var row = new List<object>();
-            row.Add("System Name");
-            row.Add("Branch Name");
-            row.Add("Registered Users");
-            row.Add("Achievers");
-            row.Add("Challenges Completed");
-            row.Add("Badges Earned");
-            row.Add("Points Earned");
-            report.HeaderRow = row.ToArray();
-
-            int count = 0;
+            report.HeaderRow = new object[] {
+                "Earned Item",
+                "Participants"
+            };
 
             // running totals
-            long totalRegistered = 0;
-            long totalAchiever = 0;
-            long totalChallenges = 0;
-            long totalBadges = 0;
-            long totalPoints = 0;
+            long totalEarnedItems = 0;
 
-            foreach (var systemId in systemIds)
+            foreach (var badgeId in badgeIds)
             {
                 if (token.IsCancellationRequested)
                 {
                     break;
                 }
-                if (systemIds.Count > 0)
+
+                var badgeName = await _badgeRepository.GetBadgeNameAsync(badgeId);
+                var earned = await _userLogRepository.EarnedBadgeCountAsync(criterion, badgeId);
+
+                UpdateProgress(progress,
+                    ++count * 100 / totalCount,
+                    $"Processing badge: {badgeName}...");
+
+
+                reportData.Add(new object[]
                 {
-                    UpdateProgress(progress, (++count * 100) / systemIds.Count);
-                }
+                    badgeName,
+                    earned
+                });
 
-                var branches = await _branchRepository.GetBySystemAsync(systemId);
-                foreach (var branch in branches)
-                {
-                    UpdateProgress(progress, $"Processing: {branch.SystemName} - {branch.Name}");
-
-                    criterion.SystemId = systemId;
-                    criterion.BranchId = branch.Id;
-
-                    int users = await _userRepository.GetCountAsync(criterion);
-                    int achievers = await _userRepository.GetAchieverCountAsync(criterion);
-                    long challenge = await _userLogRepository
-                        .CompletedChallengeCountAsync(criterion);
-                    long badge = await _userLogRepository.EarnedBadgeCountAsync(criterion);
-                    long points = await _userLogRepository.PointsEarnedTotalAsync(criterion);
-
-                    totalRegistered += users;
-                    totalAchiever += achievers;
-                    totalChallenges += challenge;
-                    totalBadges += badge;
-                    totalPoints += points;
-
-                    // add row
-                    row = new List<object>();
-                    row.Add(branch.SystemName);
-                    row.Add(branch.Name);
-                    row.Add(users);
-                    row.Add(achievers);
-                    row.Add(challenge);
-                    row.Add(badge);
-                    row.Add(points);
-
-                    reportData.Add(row.ToArray());
-
-                    if (token.IsCancellationRequested)
-                    {
-                        break;
-                    }
-                }
+                totalEarnedItems += earned;
             }
 
-            report.Data = reportData.ToArray();
+            foreach (var challengeId in challengeIds)
+            {
+                if (token.IsCancellationRequested)
+                {
+                    break;
+                }
 
-            // total row
-            row = new List<object>();
-            row.Add("Total");
-            row.Add(string.Empty);
-            row.Add(totalRegistered);
-            row.Add(totalAchiever);
-            row.Add(totalChallenges);
-            row.Add(totalBadges);
-            row.Add(totalPoints);
-            report.FooterRow = row.ToArray();
+                var challenge = await _challengeRepository.GetByIdAsync(challengeId);
+                var earned = await _userLogRepository.CompletedChallengeCountAsync(criterion, challengeId);
+
+                UpdateProgress(progress,
+                    ++count * 100 / totalCount,
+                    $"Processing challenge: {challenge.Name}...");
+
+                reportData.Add(new object[]
+                {
+                    challenge.Name,
+                    earned
+                });
+
+                totalEarnedItems += earned;
+            }
+
+            report.Data = reportData.OrderByDescending(_ => _.ElementAt(1));
+
+            report.FooterRow = new object[]
+            {
+                "Total",
+                totalEarnedItems
+            };
             report.AsOf = _serviceFacade.DateTimeProvider.Now;
             #endregion Collect data
 

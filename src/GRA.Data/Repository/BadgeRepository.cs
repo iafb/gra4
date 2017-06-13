@@ -75,5 +75,42 @@ namespace GRA.Data.Repository
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<string> GetBadgeNameAsync(int badgeId)
+        {
+            var trigger = await _context.Triggers
+                .AsNoTracking()
+                .Where(_ => _.AwardBadgeId == badgeId)
+                .FirstOrDefaultAsync();
+
+            if (trigger != null)
+            {
+                return trigger.Name;
+            }
+
+            var program = await _context.Programs
+                .AsNoTracking()
+                .Where(_ => _.JoinBadgeId == badgeId || _.AchieverBadgeId == badgeId)
+                .FirstOrDefaultAsync();
+
+            if (program != null)
+            {
+                return program.JoinBadgeId == badgeId
+                    ? $"Joined {program.Name}"
+                    : $"Achiever status in {program.Name}";
+            }
+
+            var questionnaire = await _context.Questionnaires
+                .AsNoTracking()
+                .Where(_ => _.BadgeId == badgeId)
+                .FirstOrDefaultAsync();
+
+            if (questionnaire != null)
+            {
+                return $"Completed questionnaire {questionnaire.Name}";
+            }
+
+            return $"Badge id {badgeId}";
+        }
     }
 }
