@@ -1,9 +1,7 @@
 ﻿using GRA.Domain.Repository;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GRA.Data.ServiceFacade;
 using Microsoft.Extensions.Logging;
 using GRA.Domain.Model;
 using Microsoft.EntityFrameworkCore;
@@ -111,15 +109,15 @@ namespace GRA.Data.Repository
                 string name = null;
                 if (joined.Count > 0)
                 {
-                    name = "Joined " + string.Join(", ", joined);
+                    name = $"Joined {string.Join(", ", joined)}";
                     if (achiever.Count > 0)
                     {
-                        name += "; achiever status in " + string.Join(", ", achiever);
+                        name += $"; achiever status in {string.Join(", ", achiever)}";
                     }
                 }
                 else
                 {
-                    name = "Achiever status in " + string.Join(", ", achiever);
+                    name = $"Achiever status in {string.Join(", ", achiever)}";
                 }
                 return name;
             }
@@ -131,8 +129,10 @@ namespace GRA.Data.Repository
 
             if (questionnaire.Count() > 0)
             {
-                return $"Completed questionnaire(s): " 
-                    + string.Join(", ", questionnaire.Select(_ => _.Name));
+                string completed = questionnaire.Count() == 1
+                    ? "Completed questionnaire: "
+                    : "Completed questionnaire(s): ";
+                return $"{completed} {string.Join(", ", questionnaire.Select(_ => _.Name))}";
             }
 
             return $"Badge id {badgeId}";
