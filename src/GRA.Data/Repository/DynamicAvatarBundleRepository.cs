@@ -21,12 +21,19 @@ namespace GRA.Data.Repository
         {
         }
 
-        public override async Task<DynamicAvatarBundle> GetByIdAsync(int id)
+        public async Task<DynamicAvatarBundle> GetByIdAsync(int id, bool includeDeleted)
         {
-            return await DbSet.AsNoTracking()
+            var bundles = DbSet.AsNoTracking()
                 .Include(_ => _.DynamicAvatarBundleItems)
                     .ThenInclude(_ => _.DynamicAvatarItem)
-                .Where(_ => _.Id == id)
+                .Where(_ => _.Id == id);
+
+            if (!includeDeleted)
+            {
+                bundles = bundles.Where(_ => _.IsDeleted == false);
+            }
+
+            return await bundles
                 .ProjectTo<DynamicAvatarBundle>()
                 .SingleOrDefaultAsync();
         }
@@ -49,7 +56,7 @@ namespace GRA.Data.Repository
         {
             var bundles = DbSet
                 .AsNoTracking()
-                .Where(_ => _.SiteId == filter.SiteId);
+                .Where(_ => _.SiteId == filter.SiteId && _.IsDeleted == false);
 
             if (filter.Unlockable.HasValue)
             {
@@ -111,10 +118,18 @@ namespace GRA.Data.Repository
 
             if (unlockable.HasValue)
             {
-                bundles = bundles.Where(_ => _.CanBeUnlocked == unlockable.Value);
+                bundles = bundles.Where(_ => _.CanBeUnlocked == unlockable.Value 
+                    && _.IsDeleted == false);
             }
 
             return await bundles.ProjectTo<DynamicAvatarBundle>().ToListAsync();
+        }
+
+        public async Task<bool> HasBeenAwarded(int id)
+        {
+            return await _context.UserLogs
+                .Where(_ => _.AvatarBundleId == id)
+                .AnyAsync();
         }
     }
 }

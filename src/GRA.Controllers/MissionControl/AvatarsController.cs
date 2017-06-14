@@ -99,7 +99,7 @@ namespace GRA.Controllers.MissionControl
                 try
                 {
                     var bundle = await _avatarService.AddBundleAsync(model.Bundle, itemList);
-                    ShowAlertSuccess($"Bundle {bundle.Name} successfully created!");
+                    ShowAlertSuccess($"Bundle '<strong>{bundle.Name}</strong>' successfully created!");
                     return RedirectToAction("Bundles");
                 }
                 catch (GraException gex)
@@ -123,7 +123,16 @@ namespace GRA.Controllers.MissionControl
 
         public async Task<IActionResult> BundleEdit(int id)
         {
-            var bundle = await _avatarService.GetBundleByIdAsync(id);
+            var bundle = new Domain.Model.DynamicAvatarBundle();
+            try
+            {
+                bundle = await _avatarService.GetBundleByIdAsync(id);
+            }
+            catch (GraException gex)
+            {
+                ShowAlertWarning("Unable to view bundle: ", gex);
+                return RedirectToAction("Bundles");
+            }
             foreach (var item in bundle.DynamicAvatarItems)
             {
                 item.Thumbnail = _pathResolver.ResolveContentPath(item.Thumbnail);
@@ -136,6 +145,12 @@ namespace GRA.Controllers.MissionControl
                 ItemsList = string.Join(",", bundle.DynamicAvatarItems.Select(_ => _.Id)),
                 Layers = new SelectList(await _avatarService.GetLayersAsync(), "Id", "Name")
             };
+            if (bundle.CanBeUnlocked)
+            {
+                viewModel.HasBeenAwarded = await _avatarService.BundleHasBeenAwardedAsync(id);
+                viewModel.TriggersAwardingBundle = await _avatarService
+                    .GetTriggersAwardingBundleAsync(id);
+            }
 
             PageTitle = "Edit Bundle";
             return View("BundleDetail", viewModel);
@@ -159,7 +174,7 @@ namespace GRA.Controllers.MissionControl
                 try
                 {
                     var bundle = await _avatarService.EditBundleAsync(model.Bundle, itemList);
-                    ShowAlertSuccess($"Bundle {bundle.Name} successfully edited!");
+                    ShowAlertSuccess($"Bundle '<strong>{bundle.Name}</strong>' successfully edited!");
                     return RedirectToAction("Bundles");
                 }
                 catch (GraException gex)
@@ -179,6 +194,21 @@ namespace GRA.Controllers.MissionControl
             model.Layers = new SelectList(await _avatarService.GetLayersAsync(), "Id", "Name");
             PageTitle = "Edit Bundle";
             return View("BundleDetail", model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BundleDelete(int id)
+        {
+            try
+            {
+                await _avatarService.RemoveBundleAsync(id);
+                ShowAlertSuccess($"Bundle successfully deleted!");
+            }
+            catch (GraException gex)
+            {
+                ShowAlertWarning("Unable to delete bundle: ", gex.Message);
+            }
+            return RedirectToAction("Bundles");
         }
 
         public async Task<IActionResult> GetItemsList(string itemIds,

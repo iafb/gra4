@@ -11,6 +11,7 @@ namespace GRA.Domain.Model
         [MaxLength(255)]
         public string Name { get; set; }
         public bool CanBeUnlocked { get; set; }
+        public bool IsDeleted { get; set; }
 
         public ICollection<DynamicAvatarItem> DynamicAvatarItems { get; set; }
     }

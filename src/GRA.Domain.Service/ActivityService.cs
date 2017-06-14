@@ -1102,7 +1102,7 @@ namespace GRA.Domain.Service
         private async Task AwardUserBundle(int userId, int bundleId,
             bool userIdIsCurrentUser = false)
         {
-            var bundle = await _dynamicAvatarBundleRepository.GetByIdAsync(bundleId);
+            var bundle = await _dynamicAvatarBundleRepository.GetByIdAsync(bundleId, false);
             if (bundle.DynamicAvatarItems.Count > 0)
             {
                 var loggingUser = (userIdIsCurrentUser ? userId : GetActiveUserId());

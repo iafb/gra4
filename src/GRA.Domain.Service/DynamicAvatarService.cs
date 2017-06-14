@@ -19,6 +19,7 @@ namespace GRA.Domain.Service
         private readonly IDynamicAvatarElementRepository _dynamicAvatarElementRepository;
         private readonly IDynamicAvatarItemRepository _dynamicAvatarItemRepository;
         private readonly IDynamicAvatarLayerRepository _dynamicAvatarLayerRepository;
+        private readonly ITriggerRepository _triggerRepository;
         private readonly IPathResolver _pathResolver;
         public DynamicAvatarService(ILogger<DynamicAvatarService> logger,
             GRA.Abstract.IDateTimeProvider dateTimeProvider,
@@ -28,6 +29,7 @@ namespace GRA.Domain.Service
             IDynamicAvatarElementRepository dynamicAvatarElementRepository,
             IDynamicAvatarItemRepository dynamicAvatarItemRepository,
             IDynamicAvatarLayerRepository dynamicAvatarLayerRepository,
+            ITriggerRepository triggerRepository,
             IPathResolver pathResolver)
             : base(logger, dateTimeProvider, userContextProvider)
         {
@@ -41,6 +43,7 @@ namespace GRA.Domain.Service
                 nameof(dynamicAvatarItemRepository));
             _dynamicAvatarLayerRepository = Require.IsNotNull(dynamicAvatarLayerRepository,
                 nameof(dynamicAvatarLayerRepository));
+            _triggerRepository = Require.IsNotNull(triggerRepository, nameof(triggerRepository));
             _pathResolver = Require.IsNotNull(pathResolver, nameof(pathResolver));
 
             SetManagementPermission(Permission.ManageAvatars);
@@ -234,7 +237,16 @@ namespace GRA.Domain.Service
             List<int> itemIds)
         {
             VerifyManagementPermission();
-            var currentBundle = await _dynamicAvatarBundleRepository.GetByIdAsync(bundle.Id);
+
+            var currentBundle = await _dynamicAvatarBundleRepository.GetByIdAsync(bundle.Id, false);
+            if (currentBundle.CanBeUnlocked)
+            {
+                if (await _dynamicAvatarBundleRepository.HasBeenAwarded(bundle.Id))
+                {
+                    throw new GraException($"This bundle has been awarded to a participant and can no longer be edited. ");
+                }
+            }
+
             var items = await _dynamicAvatarItemRepository.GetByIdsAsync(itemIds);
             if (items.Where(_ => _.Unlockable != currentBundle.CanBeUnlocked).Any())
             {
@@ -253,6 +265,20 @@ namespace GRA.Domain.Service
             await _dynamicAvatarBundleRepository.AddItemsAsync(currentBundle.Id, itemsToAdd);
 
             return currentBundle;
+        }
+
+        public async Task RemoveBundleAsync(int id)
+        {
+            VerifyManagementPermission();
+            if (await _triggerRepository.BundleIsInUseAsync(id))
+            {
+                throw new GraException("Bundle is currently being awarded by a trigger");
+            }
+
+            var bundle = await _dynamicAvatarBundleRepository.GetByIdAsync(id, false);
+            bundle.IsDeleted = true;
+            await _dynamicAvatarBundleRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId),
+                bundle);
         }
 
         public async Task<ICollection<DynamicAvatarElement>> GetUserAvatarAsync()
@@ -302,9 +328,14 @@ namespace GRA.Domain.Service
             return await _dynamicAvatarBundleRepository.GetAllAsync(GetCurrentSiteId(), unlockable);
         }
 
-        public async Task<DynamicAvatarBundle> GetBundleByIdAsync(int id)
+        public async Task<DynamicAvatarBundle> GetBundleByIdAsync(int id, bool includeDeleted = false)
         {
-            return await _dynamicAvatarBundleRepository.GetByIdAsync(id);
+            var bundle = await _dynamicAvatarBundleRepository.GetByIdAsync(id, includeDeleted);
+            if (bundle == null)
+            {
+                throw new GraException("The requested bundle could not be accessed or does not exist.");
+            }
+            return bundle;
         }
 
         public async Task<DataWithCount<ICollection<DynamicAvatarBundle>>>
@@ -317,6 +348,11 @@ namespace GRA.Domain.Service
                 Data = await _dynamicAvatarBundleRepository.PageAsync(filter),
                 Count = await _dynamicAvatarBundleRepository.CountAsync(filter)
             };
+        }
+
+        public async Task<bool> BundleHasBeenAwardedAsync(int id)
+        {
+            return await _dynamicAvatarBundleRepository.HasBeenAwarded(id);
         }
 
         public async Task<DataWithCount<ICollection<DynamicAvatarItem>>> PageItemsAsync(
@@ -335,6 +371,12 @@ namespace GRA.Domain.Service
         {
             VerifyManagementPermission();
             return await _dynamicAvatarItemRepository.GetByIdsAsync(ids);
+        }
+
+        public async Task<ICollection<Trigger>> GetTriggersAwardingBundleAsync(int id)
+        {
+            VerifyManagementPermission();
+            return await _triggerRepository.GetTriggersAwardingBundleAsync(id);
         }
     }
 }
