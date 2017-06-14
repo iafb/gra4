@@ -572,8 +572,8 @@
 @section scripts
 {
     <script>
-        var badgeIds = $("#BadgeRequiredList").val().split(',').map(Number);
-        var challengeIds = $("#ChallengeRequiredList").val().split(',').map(Number);
+        var badgeIds = $("#BadgeRequiredList").val().split(',').filter(function (x) { return x }).map(Number);
+        var challengeIds = $("#ChallengeRequiredList").val().split(',').filter(function (x) { return x }).map(Number);
         var requirementsUrl = "@Url.Action("GetRequirementList")";
         var page = 1;
         var scope = "All";
