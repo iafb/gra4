@@ -224,6 +224,12 @@ namespace GRA.Domain.Service
                 throw new GraException($"Not all items are {(bundle.CanBeUnlocked ? "Unlockable" : "Available")}.");
             }
 
+            if (bundle.CanBeUnlocked == false
+                && items.GroupBy(_ => _.DynamicAvatarLayerId).Where(_ => _.Skip(1).Any()).Any())
+            {
+                throw new GraException($"Default bundles cannot have multiple items per layer.");
+            }
+
             bundle.SiteId = GetCurrentSiteId();
             var newBundle = await _dynamicAvatarBundleRepository.AddSaveAsync(
                 GetClaimId(ClaimType.UserId), bundle);
@@ -248,6 +254,12 @@ namespace GRA.Domain.Service
             if (items.Where(_ => _.Unlockable != currentBundle.CanBeUnlocked).Any())
             {
                 throw new GraException($"Not all items are {(bundle.CanBeUnlocked ? "Unlockable" : "Available")}.");
+            }
+
+            if (currentBundle.CanBeUnlocked == false
+                && items.GroupBy(_ => _.DynamicAvatarLayerId).Where(_ => _.Skip(1).Any()).Any())
+            {
+                throw new GraException($"Default bundles cannot have multiple items per layer.");
             }
 
             currentBundle.Name = bundle.Name;
