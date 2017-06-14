@@ -12,7 +12,6 @@ namespace GRA.Controllers.ViewModel.MissionControl.Avatar
         [Required(ErrorMessage = "Please select items for the bundle")]
         public string ItemsList { get; set; }
         public SelectList Layers { get; set; }
-        public bool HasBeenAwarded { get; set; }
         public ICollection<Trigger> TriggersAwardingBundle { get; set; }
     }
 }

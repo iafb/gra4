@@ -13,7 +13,6 @@ namespace GRA.Domain.Repository
         Task RemoveItemsAsync(int bundleId, List<int> itemIds);
         Task<ICollection<DynamicAvatarItem>> GetRandomDefaultBundleAsync(int siteId);
         Task<ICollection<DynamicAvatarBundle>> GetAllAsync(int siteId, bool? unlockable = null);
-        Task<bool> HasBeenAwarded(int id);
         Task<DynamicAvatarBundle> GetByIdAsync(int id, bool includeDeleted);
     }
 }

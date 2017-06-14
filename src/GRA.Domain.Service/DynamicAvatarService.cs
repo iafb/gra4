@@ -239,12 +239,9 @@ namespace GRA.Domain.Service
             VerifyManagementPermission();
 
             var currentBundle = await _dynamicAvatarBundleRepository.GetByIdAsync(bundle.Id, false);
-            if (currentBundle.CanBeUnlocked)
+            if (currentBundle.HasBeenAwarded)
             {
-                if (await _dynamicAvatarBundleRepository.HasBeenAwarded(bundle.Id))
-                {
-                    throw new GraException($"This bundle has been awarded to a participant and can no longer be edited. ");
-                }
+                throw new GraException($"This bundle has been awarded to a participant and can no longer be edited. ");
             }
 
             var items = await _dynamicAvatarItemRepository.GetByIdsAsync(itemIds);
@@ -348,11 +345,6 @@ namespace GRA.Domain.Service
                 Data = await _dynamicAvatarBundleRepository.PageAsync(filter),
                 Count = await _dynamicAvatarBundleRepository.CountAsync(filter)
             };
-        }
-
-        public async Task<bool> BundleHasBeenAwardedAsync(int id)
-        {
-            return await _dynamicAvatarBundleRepository.HasBeenAwarded(id);
         }
 
         public async Task<DataWithCount<ICollection<DynamicAvatarItem>>> PageItemsAsync(

@@ -1138,6 +1138,12 @@ namespace GRA.Domain.Service
                     AvatarBundleId = bundleId,
                     Description = $"You unlocked the <strong>{bundle.Name}</strong> avatar bundle!"
                 });
+
+                if (!bundle.HasBeenAwarded)
+                {
+                    bundle.HasBeenAwarded = true;
+                    await _dynamicAvatarBundleRepository.UpdateSaveAsync(loggingUser, bundle);
+                }
             }
         }
     }

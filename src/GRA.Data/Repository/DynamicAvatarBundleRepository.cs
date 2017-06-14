@@ -124,12 +124,5 @@ namespace GRA.Data.Repository
 
             return await bundles.ProjectTo<DynamicAvatarBundle>().ToListAsync();
         }
-
-        public async Task<bool> HasBeenAwarded(int id)
-        {
-            return await _context.UserLogs
-                .Where(_ => _.AvatarBundleId == id)
-                .AnyAsync();
-        }
     }
 }

@@ -147,7 +147,6 @@ namespace GRA.Controllers.MissionControl
             };
             if (bundle.CanBeUnlocked)
             {
-                viewModel.HasBeenAwarded = await _avatarService.BundleHasBeenAwardedAsync(id);
                 viewModel.TriggersAwardingBundle = await _avatarService
                     .GetTriggersAwardingBundleAsync(id);
             }

@@ -12,6 +12,7 @@ namespace GRA.Data.Model
         public string Name { get; set; }
         public bool CanBeUnlocked { get; set; }
         public bool IsDeleted { get; set; }
+        public bool HasBeenAwarded { get; set; }
 
         public ICollection<DynamicAvatarBundleItem> DynamicAvatarBundleItems { get; set; }
     }
