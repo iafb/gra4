@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
+using GRA.Domain.Model.Filters;
 
 namespace GRA.Domain.Service
 {
@@ -210,18 +211,48 @@ namespace GRA.Domain.Service
                 GetClaimId(ClaimType.UserId), element);
         }
 
-        public async Task<DynamicAvatarBundle> AddBundleAsync(DynamicAvatarBundle bundle)
+        public async Task<DynamicAvatarBundle> AddBundleAsync(DynamicAvatarBundle bundle,
+            List<int> itemIds)
         {
             VerifyManagementPermission();
+            var items = await _dynamicAvatarItemRepository.GetByIdsAsync(itemIds);
+            if (items.Where(_ => _.Unlockable != bundle.CanBeUnlocked).Any())
+            {
+                throw new GraException($"Not all items are {(bundle.CanBeUnlocked ? "Unlockable" : "Available")}.");
+            }
+
             bundle.SiteId = GetCurrentSiteId();
-            return await _dynamicAvatarBundleRepository.AddSaveAsync(
+            var newBundle = await _dynamicAvatarBundleRepository.AddSaveAsync(
                 GetClaimId(ClaimType.UserId), bundle);
+
+            await _dynamicAvatarBundleRepository.AddItemsAsync(newBundle.Id, itemIds);
+
+            return newBundle;
         }
 
-        public async Task AddBundleItemAsync(int bundleId, int itemId)
+        public async Task<DynamicAvatarBundle> EditBundleAsync(DynamicAvatarBundle bundle,
+            List<int> itemIds)
         {
             VerifyManagementPermission();
-            await _dynamicAvatarBundleRepository.AddItemAsync(bundleId, itemId);
+            var currentBundle = await _dynamicAvatarBundleRepository.GetByIdAsync(bundle.Id);
+            var items = await _dynamicAvatarItemRepository.GetByIdsAsync(itemIds);
+            if (items.Where(_ => _.Unlockable != currentBundle.CanBeUnlocked).Any())
+            {
+                throw new GraException($"Not all items are {(bundle.CanBeUnlocked ? "Unlockable" : "Available")}.");
+            }
+
+            currentBundle.Name = bundle.Name;
+            await _dynamicAvatarBundleRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId),
+                currentBundle);
+
+            var currentItemIds = currentBundle.DynamicAvatarItems.Select(_ => _.Id).ToList();
+            var itemsToRemove = currentItemIds.Except(itemIds).ToList();
+            var itemsToAdd = itemIds.Except(currentItemIds).ToList();
+
+            await _dynamicAvatarBundleRepository.RemoveItemsAsync(currentBundle.Id, itemsToRemove);
+            await _dynamicAvatarBundleRepository.AddItemsAsync(currentBundle.Id, itemsToAdd);
+
+            return currentBundle;
         }
 
         public async Task<ICollection<DynamicAvatarElement>> GetUserAvatarAsync()
@@ -274,6 +305,36 @@ namespace GRA.Domain.Service
         public async Task<DynamicAvatarBundle> GetBundleByIdAsync(int id)
         {
             return await _dynamicAvatarBundleRepository.GetByIdAsync(id);
+        }
+
+        public async Task<DataWithCount<ICollection<DynamicAvatarBundle>>>
+            GetPaginatedBundleListAsync(AvatarFilter filter)
+        {
+            VerifyManagementPermission();
+            filter.SiteId = GetCurrentSiteId();
+            return new DataWithCount<ICollection<DynamicAvatarBundle>>
+            {
+                Data = await _dynamicAvatarBundleRepository.PageAsync(filter),
+                Count = await _dynamicAvatarBundleRepository.CountAsync(filter)
+            };
+        }
+
+        public async Task<DataWithCount<ICollection<DynamicAvatarItem>>> PageItemsAsync(
+            AvatarFilter filter)
+        {
+            VerifyManagementPermission();
+            filter.SiteId = GetCurrentSiteId();
+            return new DataWithCount<ICollection<DynamicAvatarItem>>
+            {
+                Data = await _dynamicAvatarItemRepository.PageAsync(filter),
+                Count = await _dynamicAvatarItemRepository.CountAsync(filter)
+            };
+        }
+
+        public async Task<ICollection<DynamicAvatarItem>> GetItemsByIdsAsync(List<int> ids)
+        {
+            VerifyManagementPermission();
+            return await _dynamicAvatarItemRepository.GetByIdsAsync(ids);
         }
     }
 }
