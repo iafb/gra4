@@ -110,7 +110,7 @@ namespace GRA.Domain.Service
             return --count;
         }
 
-        public async Task<string> GetUserVendorCodeAsync(int userId)
+        public async Task<VendorCode> GetUserVendorCodeAsync(int userId)
         {
             var authId = GetClaimId(ClaimType.UserId);
             if (userId == authId || HasPermission(Permission.ViewParticipantDetails))
