@@ -8,5 +8,6 @@ namespace GRA.Domain.Repository
     {
         Task<VendorCode> AssignCodeAsync(int vendorCodeTypeId, int userId);
         Task<string> GetUserVendorCode(int userId);
+        Task<VendorCode> GetByCode(string code);
     }
 }

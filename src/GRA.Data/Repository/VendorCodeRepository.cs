@@ -51,5 +51,14 @@ namespace GRA.Data.Repository
                 .Select(_ => _.Code)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<VendorCode> GetByCode(string code)
+        {
+            var vendorCode = await DbSet.AsNoTracking()
+                .Where(_ => _.Code == code)
+                .OrderByDescending(_ => _.CreatedAt)
+                .FirstOrDefaultAsync();
+            return _mapper.Map<VendorCode>(vendorCode);
+        }
     }
 }
