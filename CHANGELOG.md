@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Fix daily image in IE
 - Fix pressing enter submitting twice on household pages
 - Add max length checking when logging activity with books
+- Disable task add/edit buttons on click
 
 ## [4.0.0-alpha6] 2017-06-02
 ### Added
