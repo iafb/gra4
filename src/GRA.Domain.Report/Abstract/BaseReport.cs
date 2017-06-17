@@ -96,5 +96,17 @@ namespace GRA.Domain.Report.Abstract
 
             }
         }
+
+        public TimeSpan? Elapsed
+        {
+            get
+            {
+                if (_timer == null)
+                {
+                    return null;
+                }
+                return _timer.Elapsed;
+            }
+        }
     }
 }

@@ -137,12 +137,26 @@ namespace GRA.Domain.Service
         {
             if (HasPermission(Permission.ViewAllReporting))
             {
+                BaseReport report = null;
+                ReportRequest _request = null;
+
                 token.Register(() =>
                 {
-                    _logger.LogWarning("Report was cancelled.");
+                    string duration = "";
+                    if (report != null && report.Elapsed != null)
+                    {
+                        duration = $" after {((TimeSpan)report.Elapsed).TotalSeconds.ToString("N2")} seconds";
+                    }
+                    if (_request != null)
+                    {
+                        _logger.LogWarning($"Report {reportRequestId} for user {_request.CreatedBy} was cancelled{duration}.");
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Report {reportRequestId} was cancelled{duration}.");
+                    }
                 });
 
-                ReportRequest _request = null;
                 try
                 {
                     _request = await _reportRequestRepository.GetByIdAsync(reportRequestId)
@@ -185,8 +199,6 @@ namespace GRA.Domain.Service
                         Status = "Starting report processing..."
                     });
                 }
-
-                BaseReport report = null;
 
                 try
                 {
