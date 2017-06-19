@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using GRA.Domain.Service.Abstract;
 
 namespace GRA.Controllers.Filter
 {
@@ -14,11 +15,16 @@ namespace GRA.Controllers.Filter
     {
         private readonly ILogger<SiteFilter> _logger;
         private readonly SiteLookupService _siteLookupService;
-        public SiteFilter(ILogger<SiteFilter> logger, SiteLookupService siteLookupService)
+        private readonly IUserContextProvider _userContextProvider;
+        public SiteFilter(ILogger<SiteFilter> logger,
+            SiteLookupService siteLookupService,
+            IUserContextProvider userContextProvider)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _siteLookupService = siteLookupService
                 ?? throw new ArgumentNullException(nameof(siteLookupService));
+            _userContextProvider = userContextProvider 
+                ?? throw new ArgumentNullException(nameof(userContextProvider));
         }
 
         public async Task OnResourceExecutionAsync(ResourceExecutingContext context,
@@ -33,7 +39,7 @@ namespace GRA.Controllers.Filter
                 // if the user is authenticated, that is their site
                 try
                 {
-                    siteId = new UserClaimLookup(httpContext.User).GetId(ClaimType.SiteId);
+                    siteId = _userContextProvider.GetId(httpContext.User, ClaimType.SiteId);
                 }
                 catch (Exception ex)
                 {

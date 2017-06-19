@@ -140,17 +140,17 @@ namespace GRA.Controllers.Base
 
         protected bool UserHasPermission(Permission permission)
         {
-            return new UserClaimLookup(AuthUser).UserHasPermission(permission.ToString());
+            return _userContextProvider.UserHasPermission(AuthUser, permission.ToString());
         }
 
         protected string UserClaim(string claimType)
         {
-            return new UserClaimLookup(AuthUser).UserClaim(claimType);
+            return _userContextProvider.UserClaim(AuthUser, claimType);
         }
 
         protected int GetId(string claimType)
         {
-            return new UserClaimLookup(AuthUser).GetId(claimType);
+            return _userContextProvider.GetId(AuthUser, claimType);
         }
 
         protected int GetCurrentSiteId()
