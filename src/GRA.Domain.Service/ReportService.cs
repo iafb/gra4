@@ -131,7 +131,7 @@ namespace GRA.Domain.Service
             return new Catalog().Get().Where(_ => _.Id >= 0);
         }
 
-        public async Task RunReport(int reportRequestId,
+        public async Task<OperationStatus> RunReport(string reportRequestIdString,
         CancellationToken token,
         IProgress<OperationStatus> progress = null)
         {
@@ -139,6 +139,19 @@ namespace GRA.Domain.Service
             {
                 BaseReport report = null;
                 ReportRequest _request = null;
+
+                int reportRequestId = 0;
+                if (!int.TryParse(reportRequestIdString, out reportRequestId))
+                {
+                    _logger.LogError($"Couldn't covert report request id {reportRequestIdString} to a number.");
+                    return new OperationStatus
+                    {
+                        PercentComplete = 100,
+                        Status = $"Could not find report request {reportRequestIdString}.",
+                        Error = true,
+                        Complete = false
+                    };
+                }
 
                 token.Register(() =>
                 {
@@ -165,13 +178,12 @@ namespace GRA.Domain.Service
                 catch (Exception ex)
                 {
                     _logger.LogError($"Could not find report request {reportRequestId}: {ex.Message}");
-                    progress.Report(new OperationStatus
+                    return new OperationStatus
                     {
                         PercentComplete = 0,
                         Status = "Could not find the report request.",
                         Error = true
-                    });
-                    return;
+                    };
                 }
 
                 var reportDetails = new Catalog().Get()
@@ -181,13 +193,12 @@ namespace GRA.Domain.Service
                 if (reportDetails == null)
                 {
                     _logger.LogError($"Cannot find report id {_request.ReportId} requested by request {reportRequestId}");
-                    progress.Report(new OperationStatus
+                    return new OperationStatus
                     {
                         PercentComplete = 0,
                         Status = "Could not find the requested report.",
                         Error = true
-                    });
-                    return;
+                    };
                 }
 
                 if (progress != null)
@@ -207,13 +218,12 @@ namespace GRA.Domain.Service
                 catch (Exception ex)
                 {
                     _logger.LogCritical($"Couldn't instantiate report: {ex.Message}");
-                    progress.Report(new OperationStatus
+                    return new OperationStatus
                     {
                         PercentComplete = 100,
                         Status = "Unable to run report.",
                         Error = true
-                    });
-                    return;
+                    };
                 }
 
                 try
@@ -222,35 +232,40 @@ namespace GRA.Domain.Service
                 }
                 catch (Exception ex)
                 {
-                    progress.Report(new OperationStatus
+                    return new OperationStatus
                     {
                         PercentComplete = 100,
                         Status = $"A software error occurred: {ex.Message}.",
-                        Error = true,
-                        Complete = false
-                    });
+                        Error = true
+                    };
                 }
 
                 if (!token.IsCancellationRequested)
                 {
-                    progress.Report(new OperationStatus
+                    return new OperationStatus
                     {
                         PercentComplete = 100,
                         Status = "Report processing complete.",
-                        Complete = true
-                    });
+                    };
+                }
+                else
+                {
+                    return new OperationStatus
+                    {
+                        PercentComplete = 100,
+                    };
                 }
             }
             else
             {
                 var requestingUser = GetClaimId(ClaimType.UserId);
                 _logger.LogError($"User {requestingUser} doesn't have permission to view all reporting.");
-                progress.Report(new OperationStatus
+                return new OperationStatus
                 {
                     PercentComplete = 0,
                     Status = "Permission denied.",
                     Error = true
-                });
+                };
             }
         }
 
