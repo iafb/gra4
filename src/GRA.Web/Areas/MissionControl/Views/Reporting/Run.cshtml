@@ -82,7 +82,7 @@
                         var incoming = JSON.parse(e.data);
                         $('#recvWs').fadeIn(200, function () {
                             $('#recvWs').fadeOut(1);
-                        })
+                        });
                         if (incoming.Title) {
                             $('#wsTitle').html(incoming.Title);
                         }
@@ -100,7 +100,6 @@
                             }
                         }
                         if (incoming.Complete) {
-                            console.log('Task complete');
                             wsFinished = true;
                             if (incoming.Error) {
                                 $('#cancelWs').text('Close window');
@@ -132,7 +131,7 @@
             webSocket.send(String.fromCharCode(6));
             $('#sendWs').fadeIn(200, function () {
                 $('#sendWs').fadeOut(1);
-            })
+            });
         }
     }
 

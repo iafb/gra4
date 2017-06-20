@@ -62,14 +62,17 @@ namespace GRA.Domain.Report.Abstract
             UpdateProgress(progress, percentComplete, null);
         }
 
-        protected void UpdateProgress(IProgress<OperationStatus> progress, string message)
+        protected void UpdateProgress(IProgress<OperationStatus> progress, 
+            string message,
+            string title = null)
         {
-            UpdateProgress(progress, null, message);
+            UpdateProgress(progress, null, message, title);
         }
 
         protected void UpdateProgress(IProgress<OperationStatus> progress,
             int? percentComplete = null,
-            string message = null)
+            string message = null,
+            string title = null)
         {
             if (progress != null)
             {
@@ -82,6 +85,10 @@ namespace GRA.Domain.Report.Abstract
                 if (!string.IsNullOrEmpty(message))
                 {
                     status.Status = message;
+                }
+                if(!string.IsNullOrEmpty(title))
+                {
+                    status.Title = title;
                 }
 
                 progress.Report(status);

@@ -91,7 +91,7 @@ namespace GRA.Domain.Report
             #endregion Adjust report criteria as needed
 
             #region Collect data
-            UpdateProgress(progress, 1, "Starting report...");
+            UpdateProgress(progress, 1, "Starting report...", request.Name);
 
             // header row
             report.HeaderRow = new object[] {
@@ -116,7 +116,8 @@ namespace GRA.Domain.Report
 
                     UpdateProgress(progress,
                         ++count * 100 / totalCount,
-                        $"Processing badge: {badgeName}...");
+                        $"Processing badge: {badgeName}...",
+                        request.Name);
 
 
                     reportData.Add(new object[]
@@ -143,7 +144,8 @@ namespace GRA.Domain.Report
 
                     UpdateProgress(progress,
                         ++count * 100 / totalCount,
-                        $"Processing challenge: {challenge.Name}...");
+                        $"Processing challenge: {challenge.Name}...",
+                        request.Name);
 
                     reportData.Add(new object[]
                     {

@@ -201,16 +201,6 @@ namespace GRA.Domain.Service
                     };
                 }
 
-                if (progress != null)
-                {
-                    progress.Report(new OperationStatus
-                    {
-                        Title = reportDetails.Name,
-                        PercentComplete = 0,
-                        Status = "Starting report processing..."
-                    });
-                }
-
                 try
                 {
                     report = _serviceProvider.GetService(reportDetails.ReportType) as BaseReport;
