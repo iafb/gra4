@@ -13,6 +13,7 @@ using System.Security.Principal;
 using System;
 using System.Text;
 using GRA.Abstract;
+using System.Linq;
 
 namespace GRA.Controllers.Base
 {
@@ -125,7 +126,7 @@ namespace GRA.Controllers.Base
             int? siteId = HttpContext.Session.GetInt32(SessionKey.SiteId);
             HttpContext.Session.Clear();
             await HttpContext.Authentication.SignOutAsync(Authentication.SchemeGRACookie);
-            HttpContext.User = new GenericPrincipal(new GenericIdentity(string.Empty), null);
+            HttpContext.User = null;
             if (siteId != null)
             {
                 HttpContext.Session.SetInt32(SessionKey.SiteId, (int)siteId);

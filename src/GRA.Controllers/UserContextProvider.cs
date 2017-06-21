@@ -78,12 +78,25 @@ namespace GRA.Controllers
                 case 1:
                     return claim.First().Value;
                 default:
-                    throw new Exception(string.Format("Multiple user claims found for {0} under {1}: {2}",
-                        user.Identity?.Name ?? "Unknown",
-                        claimType,
-                        string.Join(",", claim.Select(_ => _.Value))));
+                    string userId = user.Claims
+                        .Where(_ => _.Type == ClaimType.UserId)
+                        .FirstOrDefault()?.Value ?? "Unknown";
+                    var distinct = claim.Distinct();
+                    if (distinct.Count() > 1)
+                    {
+                        throw new Exception(string.Format("User {0} has multiple {1} claims: {2}",
+                            userId,
+                            claimType,
+                            string.Join(",", claim.Select(_ => _.Value))));
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"User {userId} has multiple {claimType} claims with the same value: {distinct.First().Value}");
+                        return distinct.First().Value;
+                    }
             }
         }
+
 
         public int GetId(ClaimsPrincipal user, string claimType)
         {
