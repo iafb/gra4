@@ -371,6 +371,7 @@
         @if (Model.CanEditUsername) {
         <text>
         $("#User_Username").on("blur", function () {
+            $(this).val($(this).val().trim());
             var username = $(this).val();
             if (username != "" && !$(this).hasClass("input-validation-error")) {
                 if (username != "@Html.Raw(Model.Username)") {

@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Identically entered schools will be processed the same way
 - Order events by start date
 - Better handling of adding badges/triggers to lists
+- Trim user input on: card number, email, first name, last name, phone number, postal code, username
+- "Register Member" to "Add Username" in Mission Control to match the public side
 
 ### Fixed
 - Issue where school CSV import fails if two schools have the same name
@@ -36,6 +38,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Fix handling when adding items to a list from modal (#402)
 - Fix household secret code entry permission errors
 - Disable prize redeem/undo buttons on click
+- Fix display of emoji usernames in MC profile page
 
 ## [4.0.0-alpha6] 2017-06-02
 ### Added

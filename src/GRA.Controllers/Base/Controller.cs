@@ -27,6 +27,7 @@ namespace GRA.Controllers.Base
         protected readonly IUserContextProvider _userContextProvider;
         protected readonly SiteLookupService _siteLookupService;
         protected string PageTitle { get; set; }
+        protected string PageTitleHtml { get; set; }
         public Controller(ServiceFacade.Controller context)
         {
             _config = context.Config;
@@ -49,6 +50,7 @@ namespace GRA.Controllers.Base
                 pageTitle = controller.PageTitle;
             }
             ViewData[ViewDataKey.Title] = pageTitle;
+            ViewData[ViewDataKey.TitleHtml] = PageTitleHtml;
         }
 
         protected string AlertDanger
