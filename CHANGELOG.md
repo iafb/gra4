@@ -34,6 +34,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Disable task add/edit buttons on click (#290)
 - Remove html from delete modal text (#201)
 - Fix handling when adding items to a list from modal (#402)
+- Fix household secret code entry permission errors
+- Disable prize redeem/undo buttons on click
 
 ## [4.0.0-alpha6] 2017-06-02
 ### Added
