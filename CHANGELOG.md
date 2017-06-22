@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Mission Control interface for avatar bundles
 - Vendor codes to user detail pages
 - Ability to upload vendor status Excel (.xls) spreadsheets
+- Event DateTime parsing error handling
 
 ### Changed
 - Disable submit buttons on click for challenge and household pages
