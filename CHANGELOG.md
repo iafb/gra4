@@ -40,6 +40,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Fix household secret code entry permission errors
 - Disable prize redeem/undo buttons on click
 - Fix display of emoji usernames in MC profile page
+- Fix Vendor Codes being assigned twice
 
 ## [4.0.0-alpha6] 2017-06-02
 ### Added
