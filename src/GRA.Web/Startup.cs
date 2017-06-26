@@ -201,7 +201,7 @@ namespace GRA.Web
             services.AddTransient<Domain.Report.RegisteredBySchoolReport>();
             services.AddTransient<Domain.Report.RegistrationsAchieversReport>();
             services.AddTransient<Domain.Report.ParticipantProgressReport>();
-            services.AddTransient<Domain.Report.TopPointEarnersReport>();
+            services.AddTransient<Domain.Report.TopScoresReport>();
 
             // service resolution
             services.AddScoped<IInitialSetupService, SetupMultipleProgramService>();
