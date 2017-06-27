@@ -30,20 +30,44 @@ namespace GRA.Data.Repository
                     .Where(_ => _.Id == userId)
                     .SingleOrDefaultAsync();
 
-                var unusedCode = await DbSet
-                    .Where(_ => _.SiteId == user.SiteId
-                        && _.UserId == null)
-                    .FirstOrDefaultAsync();
+                var success = false;
+                int tries = 0;
 
-                if (unusedCode == null)
+                Model.VendorCode unusedCode = null;
+
+                while (!success && tries < 10)
                 {
-                    _logger.LogCritical($"No available vendor codes of type {vendorCodeTypeId} to assign to {userId}.");
-                    throw new Exception("No available vendor code to assign.");
+                    unusedCode = await DbSet
+                        .Where(_ => _.SiteId == user.SiteId
+                            && _.UserId == null
+                            && _.VendorCodeTypeId == vendorCodeTypeId)
+                        .FirstOrDefaultAsync();
+
+                    if (unusedCode == null)
+                    {
+                        _logger.LogCritical($"No available vendor codes of type {vendorCodeTypeId} to assign to {userId}.");
+                        throw new Exception("No available vendor code to assign.");
+                    }
+
+                    unusedCode.UserId = userId;
+
+                    tries++;
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                        success = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Exception trying to update vendor code id {unusedCode.Id}, trying for user {user.Id} again ({tries} tries): {ex.Message}");
+                    }
                 }
 
-                unusedCode.UserId = userId;
-
-                await _context.SaveChangesAsync();
+                if (!success)
+                {
+                    _logger.LogCritical($"Ultimately unsuccessful assigning vendor code type {vendorCodeTypeId} to {user.Id}");
+                    throw new Exception($"Unable to assign vendor code type {vendorCodeTypeId} to user {user.Id}");
+                }
 
                 return await GetByIdAsync(unusedCode.Id);
             }
