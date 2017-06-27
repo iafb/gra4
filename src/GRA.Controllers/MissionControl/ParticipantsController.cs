@@ -77,7 +77,7 @@ namespace GRA.Controllers.MissionControl
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                filter.Search = search;
+                filter.Search = search.Trim();
             }
             if (branchId.HasValue)
             {
