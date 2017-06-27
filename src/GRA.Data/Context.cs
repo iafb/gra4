@@ -74,6 +74,8 @@ namespace GRA.Data
                 .IsUnique();
             modelBuilder.Entity<Model.Mail>()
                 .HasIndex(_ => new { _.ToUserId, _.IsDeleted, _.IsNew });
+            modelBuilder.Entity<Model.Notification>()
+                .HasIndex(_ => _.UserId);
             modelBuilder.Entity<Model.PrizeWinner>()
                 .HasIndex(_ => new { _.DrawingId, _.UserId, _.RedeemedAt })
                 .IsUnique();
