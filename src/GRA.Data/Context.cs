@@ -72,21 +72,20 @@ namespace GRA.Data
             modelBuilder.Entity<Model.EmailReminder>()
                 .HasIndex(_ => new { _.Email, _.SignUpSource })
                 .IsUnique();
+            modelBuilder.Entity<Model.Mail>()
+                .HasIndex(_ => new { _.ToUserId, _.IsDeleted, _.IsNew });
             modelBuilder.Entity<Model.PrizeWinner>()
                 .HasIndex(_ => new { _.DrawingId, _.UserId, _.RedeemedAt })
                 .IsUnique();
-            modelBuilder.Entity<Model.Notification>()
-                .HasIndex(_ => _.UserId);
             modelBuilder.Entity<Model.Page>()
                 .HasIndex(_ => new { _.SiteId, _.Stub })
                 .IsUnique();
             modelBuilder.Entity<Model.User>()
-                .HasIndex(_ => new { _.SiteId, _.Username })
+                .HasIndex(_ => new { _.SiteId, _.IsDeleted, _.Username })
                 .IsUnique();
             modelBuilder.Entity<Model.User>()
-                .HasIndex(_ => new { _.SiteId, _.HouseholdHeadUserId });
-            modelBuilder.Entity<Model.UserLog>()
-                .HasIndex(_ => _.UserId);
+                .HasIndex(_ => new { _.SiteId, _.Id, _.IsDeleted, _.HouseholdHeadUserId })
+                .IsUnique();
 
             // call the base OnModelCreating
             base.OnModelCreating(modelBuilder);
