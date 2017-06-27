@@ -88,6 +88,12 @@ namespace GRA.Data
             modelBuilder.Entity<Model.User>()
                 .HasIndex(_ => new { _.SiteId, _.Id, _.IsDeleted, _.HouseholdHeadUserId })
                 .IsUnique();
+            modelBuilder.Entity<Model.UserLog>()
+                .HasIndex(_ => new { _.UserId, _.IsDeleted, _.ChallengeId });
+            modelBuilder.Entity<Model.UserLog>()
+                .HasIndex(_ => new { _.UserId, _.IsDeleted, _.BadgeId });
+            modelBuilder.Entity<Model.UserLog>()
+                .HasIndex(_ => new { _.UserId, _.IsDeleted, _.PointTranslationId, _.ActivityEarned });
 
             // call the base OnModelCreating
             base.OnModelCreating(modelBuilder);
