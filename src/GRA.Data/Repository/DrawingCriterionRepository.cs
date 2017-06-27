@@ -141,27 +141,17 @@ namespace GRA.Data.Repository
                         UserId = sum.Key,
                         Total = sum.Sum(_ => _.PointsEarned)
                     });
-
+                
                 if (criterion.PointsMinimum != null)
                 {
-                    pointUsers = pointSum
-                        .Where(_ => _.Total >= criterion.PointsMinimum)
-                        .Select(_ => _.UserId);
+                    pointSum = pointSum.Where(_ => _.Total >= criterion.PointsMinimum);
                 }
                 if (criterion.PointsMaximum != null)
                 {
-                    var maxUsers = pointSum
-                        .Where(_ => _.Total <= criterion.PointsMaximum)
-                        .Select(_ => _.UserId);
-                    if (pointUsers == null)
-                    {
-                        pointUsers = maxUsers;
-                    }
-                    else
-                    {
-                        pointUsers = pointUsers.Where(_ => maxUsers.Contains(_));
-                    }
+                    pointSum = pointSum.Where(_ => _.Total <= criterion.PointsMaximum);
                 }
+
+                pointUsers = pointSum.Select(_ => _.UserId);
             }
 
             if (pointUsers != null)
