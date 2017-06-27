@@ -7,6 +7,11 @@ namespace GRA.Domain.Model
     public class DrawingCriterion : Abstract.BaseDomainEntity
     {
         public int SiteId { get; set; }
+        [Required]
+        public int RelatedSystemId { get; set; }
+        [Required]
+        public int RelatedBranchId { get; set; }
+
         [MaxLength(255)]
         [Required]
         public string Name { get; set; }

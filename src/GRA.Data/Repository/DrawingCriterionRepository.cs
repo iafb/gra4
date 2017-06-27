@@ -42,9 +42,27 @@ namespace GRA.Data.Repository
                 .AsNoTracking()
                 .Where(_ => _.SiteId == filter.SiteId);
 
+            if (filter.SystemIds?.Any() == true)
+            {
+                criterionList = criterionList
+                    .Where(_ => filter.SystemIds.Contains(_.RelatedSystemId));
+            }
+
+            if (filter.BranchIds?.Any() == true)
+            {
+                criterionList = criterionList
+                    .Where(_ => filter.BranchIds.Contains(_.RelatedBranchId));
+            }
+
             if (filter.UserIds?.Any() == true)
             {
                 criterionList = criterionList.Where(_ => filter.UserIds.Contains(_.CreatedBy));
+            }
+
+            if (filter.ProgramIds?.Any() == true)
+            {
+                criterionList = criterionList
+                    .Where(_ => filter.ProgramIds.Any(p => p == _.ProgramId));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
