@@ -42,9 +42,49 @@ namespace GRA.Data.Repository
                 .Where(_ => _.DrawingCriterion.SiteId == filter.SiteId
                     && _.IsArchived == filter.Archived);
 
+            if (filter.SystemIds?.Any() == true)
+            {
+                drawingList = drawingList
+                    .Where(_ => filter.SystemIds.Contains(_.RelatedSystemId));
+            }
+
+            if (filter.BranchIds?.Any() == true)
+            {
+                drawingList = drawingList
+                    .Where(_ => filter.BranchIds.Contains(_.RelatedBranchId));
+            }
+
             if (filter.UserIds?.Any() == true)
             {
                 drawingList = drawingList.Where(_ => filter.UserIds.Contains(_.CreatedBy));
+            }
+
+            if (filter.ProgramIds?.Any() == true)
+            {
+                IQueryable<Model.Drawing> nullList = null;
+                IQueryable<Model.Drawing> valueList = null;
+                if (filter.ProgramIds.Any(_ => _.HasValue == false))
+                {
+                    nullList = drawingList.Where(_ => _.DrawingCriterion.ProgramId == null);
+                }
+                if (filter.ProgramIds.Any(_ => _.HasValue))
+                {
+                    var programValues = filter.ProgramIds.Where(_ => _.HasValue);
+                    valueList = drawingList
+                        .Where(_ => programValues.Contains(_.DrawingCriterion.ProgramId));
+                }
+                if (nullList != null && valueList != null)
+                {
+                    drawingList = nullList.Union(valueList);
+                }
+                else if (nullList != null)
+                {
+                    drawingList = nullList;
+                }
+                else if (valueList != null)
+                {
+                    drawingList = valueList;
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Search))

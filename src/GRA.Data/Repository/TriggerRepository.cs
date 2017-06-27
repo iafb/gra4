@@ -114,7 +114,8 @@ namespace GRA.Data.Repository
 
             if (filter.ProgramIds?.Any() == true)
             {
-                triggerList = triggerList.Where(_ => filter.ProgramIds.Contains(_.LimitToProgramId));
+                triggerList = triggerList
+                    .Where(_ => filter.ProgramIds.Any(p => p == _.LimitToProgramId));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Search))

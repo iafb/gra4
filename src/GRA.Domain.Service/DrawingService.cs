@@ -134,6 +134,8 @@ namespace GRA.Domain.Service
             if (HasPermission(Permission.PerformDrawing))
             {
                 criterion.SiteId = GetCurrentSiteId();
+                criterion.RelatedBranchId = GetClaimId(ClaimType.BranchId);
+                criterion.RelatedSystemId = GetClaimId(ClaimType.SystemId);
                 return await _drawingCriterionRepository.AddSaveAsync(authUserId, criterion);
             }
             else
@@ -150,6 +152,8 @@ namespace GRA.Domain.Service
             {
                 var currentCriterion = await _drawingCriterionRepository.GetByIdAsync(criterion.Id);
                 criterion.SiteId = currentCriterion.SiteId;
+                criterion.RelatedBranchId = currentCriterion.RelatedBranchId;
+                criterion.RelatedSystemId = currentCriterion.RelatedSystemId;
                 return await _drawingCriterionRepository.UpdateSaveAsync(authUserId, criterion);
             }
             else
@@ -184,6 +188,8 @@ namespace GRA.Domain.Service
                 // insert drawing
                 drawing.DrawingCriterion = default(DrawingCriterion);
                 drawing.Id = default(int);
+                drawing.RelatedBranchId = GetClaimId(ClaimType.BranchId);
+                drawing.RelatedSystemId = GetClaimId(ClaimType.SystemId);
                 drawing = await _drawingRepository.AddSaveAsync(authUserId, drawing);
 
                 // pull list of eligible users
