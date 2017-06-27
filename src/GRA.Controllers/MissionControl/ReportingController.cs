@@ -67,6 +67,7 @@ namespace GRA.Controllers.MissionControl
 
             var systemList = await _siteService.GetSystemList();
             var branchList = await _siteService.GetAllBranches(true);
+            var programList = await _siteService.GetProgramList();
             var schoolDistrictList = await _schoolService.GetDistrictsAsync();
 
             return View($"{viewName}Criteria", new ReportCriteriaViewModel
@@ -74,6 +75,7 @@ namespace GRA.Controllers.MissionControl
                 ReportId = id,
                 SystemList = new SelectList(systemList, "Id", "Name"),
                 BranchList = new SelectList(branchList, "Id", "Name"),
+                ProgramList = new SelectList(programList, "Id", "Name"),
                 SchoolDistrictList = new SelectList(schoolDistrictList, "Id", "Name")
             });
         }
