@@ -7,6 +7,9 @@ namespace GRA.Controllers.ViewModel.MissionControl.Drawing
     {
         public IEnumerable<GRA.Domain.Model.Drawing> Drawings { get; set; }
         public PaginateViewModel PaginateModel { get; set; }
-        public bool Archived { get; set; }
+
+        public bool? Archived { get; set; }
+        public string Search { get; set; }
+        public bool? Mine { get; set; }
     }
 }

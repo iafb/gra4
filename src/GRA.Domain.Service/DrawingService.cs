@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GRA.Domain.Model.Filters;
 
 namespace GRA.Domain.Service
 {
@@ -42,16 +43,16 @@ namespace GRA.Domain.Service
         }
 
         public async Task<DataWithCount<IEnumerable<Drawing>>>
-            GetPaginatedDrawingListAsync(int skip, int take, bool archived)
+            GetPaginatedDrawingListAsync(DrawingFilter filter)
         {
             int authUserId = GetClaimId(ClaimType.UserId);
             if (HasPermission(Permission.PerformDrawing))
             {
-                int siteId = GetCurrentSiteId();
+                filter.SiteId = GetCurrentSiteId();
                 return new DataWithCount<IEnumerable<Drawing>>
                 {
-                    Data = await _drawingRepository.PageAllAsync(siteId, skip, take, archived),
-                    Count = await _drawingRepository.GetCountAsync(siteId, archived)
+                    Data = await _drawingRepository.PageAllAsync(filter),
+                    Count = await _drawingRepository.GetCountAsync(filter)
                 };
             }
             else
@@ -87,16 +88,16 @@ namespace GRA.Domain.Service
         }
 
         public async Task<DataWithCount<IEnumerable<DrawingCriterion>>>
-            GetPaginatedCriterionListAsync(int skip, int take)
+            GetPaginatedCriterionListAsync(BaseFilter filter)
         {
             int authUserId = GetClaimId(ClaimType.UserId);
             if (HasPermission(Permission.PerformDrawing))
             {
-                int siteId = GetCurrentSiteId();
+                filter.SiteId = GetCurrentSiteId();
                 return new DataWithCount<IEnumerable<DrawingCriterion>>
                 {
-                    Data = await _drawingCriterionRepository.PageAllAsync(siteId, skip, take),
-                    Count = await _drawingCriterionRepository.GetCountAsync(siteId)
+                    Data = await _drawingCriterionRepository.PageAllAsync(filter),
+                    Count = await _drawingCriterionRepository.GetCountAsync(filter)
                 };
             }
             else

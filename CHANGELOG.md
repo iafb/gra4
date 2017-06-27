@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Vendor codes to user detail pages
 - Ability to upload vendor status Excel (.xls) spreadsheets
 - Event DateTime parsing error handling
+- Drawing list filtering
 
 ### Changed
 - Disable submit buttons on click for challenge and household pages

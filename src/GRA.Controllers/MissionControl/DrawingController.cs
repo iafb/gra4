@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using GRA.Domain.Model.Filters;
+using System.Collections.Generic;
 
 namespace GRA.Controllers.MissionControl
 {
@@ -33,24 +35,34 @@ namespace GRA.Controllers.MissionControl
             PageTitle = "Drawing";
         }
 
-        public async Task<IActionResult> Index(string FilterBy, int page = 1)
+        public async Task<IActionResult> Index(string search, bool? mine, bool? archived,
+            int page = 1)
         {
-            int take = 15;
-            int skip = take * (page - 1);
+            var filter = new DrawingFilter(page);
 
-            bool archived = String.Equals(FilterBy, "Archived", StringComparison.OrdinalIgnoreCase);
-            if (archived)
+            if (!string.IsNullOrWhiteSpace(search))
             {
+                filter.Search = search;
+            }
+
+            if (mine == true)
+            {
+                filter.UserIds = new List<int> { GetId(ClaimType.UserId) };
+            }
+
+            if (archived == true)
+            {
+                filter.Archived = true;
                 PageTitle = "Archived Drawings";
             }
 
-            var drawingList = await _drawingService.GetPaginatedDrawingListAsync(skip, take, archived);
+            var drawingList = await _drawingService.GetPaginatedDrawingListAsync(filter);
 
             PaginateViewModel paginateModel = new PaginateViewModel()
             {
                 ItemCount = drawingList.Count,
                 CurrentPage = page,
-                ItemsPerPage = take
+                ItemsPerPage = filter.Take.Value
             };
 
             if (paginateModel.MaxPage > 0 && paginateModel.CurrentPage > paginateModel.MaxPage)
@@ -66,6 +78,8 @@ namespace GRA.Controllers.MissionControl
             {
                 Drawings = drawingList.Data,
                 PaginateModel = paginateModel,
+                Search = search,
+                Mine = mine,
                 Archived = archived
             };
 
@@ -226,20 +240,29 @@ namespace GRA.Controllers.MissionControl
             }
         }
 
-        public async Task<IActionResult> Criteria(int page = 1)
+        public async Task<IActionResult> Criteria(string search, bool? mine, int page = 1)
         {
             PageTitle = "Drawing Criteria";
 
-            int take = 15;
-            int skip = take * (page - 1);
+            var filter = new BaseFilter(page);
 
-            var criterionList = await _drawingService.GetPaginatedCriterionListAsync(skip, take);
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                filter.Search = search;
+            }
+
+            if (mine == true)
+            {
+                filter.UserIds = new List<int> { GetId(ClaimType.UserId) };
+            }
+
+            var criterionList = await _drawingService.GetPaginatedCriterionListAsync(filter);
 
             PaginateViewModel paginateModel = new PaginateViewModel()
             {
                 ItemCount = criterionList.Count,
                 CurrentPage = page,
-                ItemsPerPage = take
+                ItemsPerPage = filter.Take.Value
             };
             if (paginateModel.MaxPage > 0 && paginateModel.CurrentPage > paginateModel.MaxPage)
             {
@@ -253,7 +276,9 @@ namespace GRA.Controllers.MissionControl
             CriterionListViewModel viewModel = new CriterionListViewModel()
             {
                 Criteria = criterionList.Data,
-                PaginateModel = paginateModel
+                PaginateModel = paginateModel,
+                Search = search,
+                Mine = mine
             };
 
             return View(viewModel);

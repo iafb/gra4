@@ -3,16 +3,47 @@
 <div class="row" style="padding: 10px 0;">
     <div class="col-xs-12">
         <a asp-action="Criteria" class="btn btn-default">Drawing Criteria</a>
-        @if (Model.Archived)
+        @if (Model.Archived == true)
         {
             <a asp-action="Index" class="btn btn-default">Drawing List</a>
         }
         else
         {
-            <a asp-action="Index" asp-route-FilterBy="Archived" class="btn btn-default">Archived Drawings</a>
+            <a asp-action="Index" asp-route-Archived="True" class="btn btn-default">Archived Drawings</a>
         }
     </div>
 </div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div style="font-size:large;padding-top:10px;">Created By:</div>
+        <ul class="nav nav-pills" style="padding: 10px 0;">
+            <li class="@(Model.Mine == true ? "" : "active")"><a asp-route-Search="@Model.Search" asp-route-Archived="@Model.Archived">All</a></li>
+            <li class="@(Model.Mine == true ? "active" : "")"><a asp-route-Search="@Model.Search" asp-route-Mine="True" asp-route-Archived="@Model.Archived">Mine</a></li>
+        </ul>
+    </div>
+</div>
+
+<form asp-controller="Drawing" asp-action="Index" method="get" role="form">
+    @if (Model.Mine == true)
+    {
+        <input asp-for="Mine" type="hidden" />
+    }
+    @if (Model.Archived == true)
+    {
+        <input asp-for="Archived" type="hidden" />
+    }
+
+    <div class="row row-spacing">
+        <div class="col-xs-8">
+            <input asp-for="Search" class="form-control" />
+        </div>
+        <div class="col-xs-4">
+            <input type="submit" value="Search" class="btn btn-default" style="margin-right: 8px;" />
+            <a asp-action="Index" asp-route-Mine="@Model.Mine" asp-route-Archived="@Model.Archived" class="btn btn-default">Clear</a>
+        </div>
+    </div>
+</form>
 
 <div class="row" style="padding: 10px 0;">
     <div class="col-xs-12">
