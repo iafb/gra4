@@ -18,63 +18,55 @@ namespace GRA.Data.Repository
         {
         }
 
-        private static SemaphoreSlim AssignCodeSemaphore = new SemaphoreSlim(1, 1);
-
         public async Task<VendorCode> AssignCodeAsync(int vendorCodeTypeId, int userId)
         {
-            await AssignCodeSemaphore.WaitAsync();
-            try
+            var user = await _context.Users
+                .AsNoTracking()
+                .Where(_ => _.Id == userId)
+                .SingleOrDefaultAsync();
+
+            var success = false;
+            int tries = 0;
+
+            Model.VendorCode unusedCode = null;
+
+            while (!success && tries < 10)
             {
-                var user = await _context.Users
-                    .AsNoTracking()
-                    .Where(_ => _.Id == userId)
-                    .SingleOrDefaultAsync();
+                unusedCode = await DbSet
+                    .Where(_ => _.SiteId == user.SiteId
+                        && _.UserId == null
+                        && _.VendorCodeTypeId == vendorCodeTypeId)
+                    .FirstOrDefaultAsync();
 
-                var success = false;
-                int tries = 0;
-
-                Model.VendorCode unusedCode = null;
-
-                while (!success && tries < 10)
+                if (unusedCode == null)
                 {
-                    unusedCode = await DbSet
-                        .Where(_ => _.SiteId == user.SiteId
-                            && _.UserId == null
-                            && _.VendorCodeTypeId == vendorCodeTypeId)
-                        .FirstOrDefaultAsync();
-
-                    if (unusedCode == null)
-                    {
-                        _logger.LogCritical($"No available vendor codes of type {vendorCodeTypeId} to assign to {userId}.");
-                        throw new Exception("No available vendor code to assign.");
-                    }
-
-                    unusedCode.UserId = userId;
-
-                    tries++;
-                    try
-                    {
-                        await _context.SaveChangesAsync();
-                        success = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning($"Exception trying to update vendor code id {unusedCode.Id}, trying for user {user.Id} again ({tries} tries): {ex.Message}");
-                    }
+                    _logger.LogCritical($"No available vendor codes of type {vendorCodeTypeId} to assign to {userId}.");
+                    throw new Exception("No available vendor code to assign.");
                 }
 
-                if (!success)
-                {
-                    _logger.LogCritical($"Ultimately unsuccessful assigning vendor code type {vendorCodeTypeId} to {user.Id}");
-                    throw new Exception($"Unable to assign vendor code type {vendorCodeTypeId} to user {user.Id}");
-                }
+                unusedCode.UserId = userId;
 
-                return await GetByIdAsync(unusedCode.Id);
+                tries++;
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    success = true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Exception trying to update vendor code id {unusedCode.Id}, trying for user {user.Id} again ({tries} tries): {ex.Message}");
+                    await Task.Delay(100);
+                    await _context.Entry(unusedCode).ReloadAsync();
+                }
             }
-            finally
+
+            if (!success)
             {
-                AssignCodeSemaphore.Release();
+                _logger.LogCritical($"Ultimately unsuccessful assigning vendor code type {vendorCodeTypeId} to {user.Id}");
+                throw new Exception($"Unable to assign vendor code type {vendorCodeTypeId} to user {user.Id}");
             }
+
+            return await GetByIdAsync(unusedCode.Id);
         }
 
         public async Task<VendorCode> GetUserVendorCode(int userId)
