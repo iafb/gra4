@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace GRA.Controllers.MissionControl
 {
@@ -378,7 +379,7 @@ namespace GRA.Controllers.MissionControl
                 case long l:
                     return l.ToString("N0");
                 default:
-                    return dataItem.ToString();
+                    return WebUtility.HtmlEncode(dataItem.ToString());
                 case null:
                     return string.Empty;
             }

@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Report: Current Status Report
 - Report: Participant Progress Report
 - Report: Registrations and Achievers Report
+- Report: Top Scores Report
 - Mission Control interface for avatar bundles
 - Vendor codes to user detail pages
 - Ability to upload vendor status Excel (.xls) spreadsheets
@@ -28,6 +29,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Better handling of adding badges/triggers to lists
 - Trim user input on: card number, email, first name, last name, phone number, postal code, username
 - "Register Member" to "Add Username" in Mission Control to match the public side
+- Improve database indexes, remove unused/improper indexing
 
 ### Fixed
 - Issue where school CSV import fails if two schools have the same name
@@ -37,13 +39,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Pressing enter submitting twice on household pages
 - Disable task add/edit buttons on click (#290)
 - Remove html from delete modal text (#201)
-- Fix handling when adding items to a list from modal (#402)
-- Fix household secret code entry permission errors
+- Handling when adding items to a list from modal (#402)
+- Household secret code entry permission errors
 - Disable prize redeem/undo buttons on click
-- Fix display of emoji usernames in MC profile page
-- Fix Vendor Codes being assigned twice
-- Fix Trigger permissions
-- Fix drawing criteria timing out
+- Display of emoji usernames in MC profile page
+- Vendor Codes being assigned twice
+- Trigger permissions
+- Drawing criteria timing out
 
 ## [4.0.0-alpha6] 2017-06-02
 ### Added

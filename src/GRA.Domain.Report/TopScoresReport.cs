@@ -12,31 +12,21 @@ using Microsoft.Extensions.Logging;
 
 namespace GRA.Domain.Report
 {
-    [ReportInformation(-6,
+    [ReportInformation(6,
         "Top Scores Report",
-        "Top 20 scoring participants filterable by program, system, and branch",
+        "Top 30 scoring participants filterable by program, system, and branch",
         "Participants")]
     public class TopScoresReport : BaseReport
     {
-        private readonly IBranchRepository _branchRepository;
-        private readonly ISystemRepository _systemRepository;
+        private const int TopToShow = 30;
         private readonly IUserRepository _userRepository;
-        private readonly IUserLogRepository _userLogRepository;
-        public TopScoresReport(ILogger<CurrentStatusReport> logger,
+
+        public TopScoresReport(ILogger<TopScoresReport> logger,
             Domain.Report.ServiceFacade.Report serviceFacade,
-            IBranchRepository branchRepository,
-            ISystemRepository systemRepository,
-            IUserRepository userRepository,
-            IUserLogRepository userLogRepository) : base(logger, serviceFacade)
+            IUserRepository userRepository) : base(logger, serviceFacade)
         {
-            _branchRepository = branchRepository
-                ?? throw new ArgumentNullException(nameof(branchRepository));
-            _systemRepository = systemRepository
-                ?? throw new ArgumentNullException(nameof(systemRepository));
             _userRepository = userRepository
                 ?? throw new ArgumentNullException(nameof(userRepository));
-            _userLogRepository = userLogRepository
-                ?? throw new ArgumentNullException(nameof(userLogRepository));
         }
 
         public override async Task ExecuteAsync(ReportRequest request,
@@ -82,7 +72,7 @@ namespace GRA.Domain.Report
             };
 
             int count = 0;
-            int total = 20;
+            int total = TopToShow;
 
             IEnumerable<User> users = await _userRepository.GetTopScoresAsync(criterion, total);
 

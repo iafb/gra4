@@ -246,7 +246,8 @@ namespace GRA.Data.Repository
             {
                 userList = userList.Where(_ => criterion.SystemId == _.SystemId);
             }
-            else if (criterion.BranchId != null)
+
+            if (criterion.BranchId != null)
             {
                 userList = userList.Where(_ => criterion.BranchId == _.BranchId);
             }
