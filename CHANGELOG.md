@@ -46,6 +46,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Vendor Codes being assigned twice
 - Trigger permissions
 - Drawing criteria timing out
+- Entered Schools name trimming
 
 ## [4.0.0-alpha6] 2017-06-02
 ### Added
