@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Trim user input on: card number, email, first name, last name, phone number, postal code, username
 - "Register Member" to "Add Username" in Mission Control to match the public side
 - Improve database indexes, remove unused/improper indexing
+- Remove Mission Control participant username autofocus
 
 ### Fixed
 - Issue where school CSV import fails if two schools have the same name
