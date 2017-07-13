@@ -532,7 +532,7 @@ namespace GRA.Controllers
 
                     var newMember = await _userService.AddHouseholdMemberAsync(authUser.Id,
                         model.User, model.SchoolDistrictId);
-                    await _mailService.SendUserBroadcastsAsync(newMember.Id, true);
+                    await _mailService.SendUserBroadcastsAsync(newMember.Id, false, true);
                     HttpContext.Session.SetString(SessionKey.HeadOfHousehold, "True");
                     AlertSuccess = "Added household member";
                     return RedirectToAction("Household");

@@ -305,7 +305,7 @@ namespace GRA.Controllers.MissionControl
                 {
                     var newUser = await _userService.RegisterUserAsync(user, model.Password,
                         model.SchoolDistrictId, true);
-                    await _mailService.SendUserBroadcastsAsync(newUser.Id, true);
+                    await _mailService.SendUserBroadcastsAsync(newUser.Id, false, true);
                     if (UserHasPermission(Permission.EditParticipants))
                     {
                         return RedirectToAction("Detail", "Participants", new { id = newUser.Id });
@@ -697,6 +697,7 @@ namespace GRA.Controllers.MissionControl
                 bool ViewUserPrizes = UserHasPermission(Permission.ViewUserPrizes);
                 if (ReadAllMail)
                 {
+                    await _mailService.SendUserBroadcastsAsync(head.Id, true);
                     head.HasNewMail = await _mailService.UserHasUnreadAsync(head.Id);
                 }
                 if (ViewUserPrizes)
@@ -986,7 +987,7 @@ namespace GRA.Controllers.MissionControl
 
                     var newMember = await _userService.AddHouseholdMemberAsync(headOfHousehold.Id,
                         model.User, model.SchoolDistrictId);
-                    await _mailService.SendUserBroadcastsAsync(newMember.Id, true);
+                    await _mailService.SendUserBroadcastsAsync(newMember.Id, false, true);
                     AlertSuccess = "Added household member";
                     return RedirectToAction("Household", new { id = model.Id });
                 }
@@ -1509,6 +1510,8 @@ namespace GRA.Controllers.MissionControl
         {
             try
             {
+                await _mailService.SendUserBroadcastsAsync(id, false);
+
                 int take = 15;
                 int skip = take * (page - 1);
 

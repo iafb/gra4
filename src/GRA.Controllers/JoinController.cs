@@ -196,7 +196,8 @@ namespace GRA.Controllers
                     var loginAttempt = await _authenticationService
                         .AuthenticateUserAsync(user.Username, model.Password);
                     await LoginUserAsync(loginAttempt);
-                    await _mailService.SendUserBroadcastsAsync(loginAttempt.User.Id, true, true);
+                    await _mailService.SendUserBroadcastsAsync(loginAttempt.User.Id, false, true,
+                        true);
                     var questionnaireId = await _questionnaireService
                             .GetRequiredQuestionnaire(loginAttempt.User.Id, loginAttempt.User.Age);
                     if (questionnaireId.HasValue)
@@ -318,7 +319,7 @@ namespace GRA.Controllers
             }
             else
             {
-                viewModel.BranchList = new SelectList(await _siteService.GetAllBranches(true), 
+                viewModel.BranchList = new SelectList(await _siteService.GetAllBranches(true),
                     "Id", "Name");
             }
 
@@ -339,7 +340,7 @@ namespace GRA.Controllers
             }
             if (model.SystemId.HasValue && model.BranchId.HasValue)
             {
-                if (!await _siteService.ValidateBranch(model.BranchId.Value, model.SystemId.Value)) 
+                if (!await _siteService.ValidateBranch(model.BranchId.Value, model.SystemId.Value))
                 {
                     ModelState.AddModelError("BranchId", "Invalid branch selection for system.");
                 }
@@ -578,7 +579,8 @@ namespace GRA.Controllers
                     var loginAttempt = await _authenticationService
                         .AuthenticateUserAsync(user.Username, model.Password);
                     await LoginUserAsync(loginAttempt);
-                    await _mailService.SendUserBroadcastsAsync(loginAttempt.User.Id, true, true);
+                    await _mailService.SendUserBroadcastsAsync(loginAttempt.User.Id, false, true,
+                        true);
                     var questionnaireId = await _questionnaireService
                             .GetRequiredQuestionnaire(loginAttempt.User.Id, loginAttempt.User.Age);
                     if (questionnaireId.HasValue)

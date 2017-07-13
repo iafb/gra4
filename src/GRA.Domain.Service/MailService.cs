@@ -39,12 +39,7 @@ namespace GRA.Domain.Service
             int unreadCount;
             if (!_memoryCache.TryGetValue(cacheKey, out unreadCount))
             {
-                await SendUserBroadcastsAsync(activeUserId);
-                var householdMembers = await _userRepository.GetHouseholdAsync(activeUserId);
-                foreach (var member in householdMembers)
-                {
-                    await SendUserBroadcastsAsync(member.Id);
-                }
+                await SendUserBroadcastsAsync(activeUserId, true);
 
                 unreadCount = await _mailRepository.GetUserUnreadCountAsync(activeUserId);
                 _memoryCache.Set(cacheKey, unreadCount, new MemoryCacheEntryOptions()
@@ -523,8 +518,8 @@ namespace GRA.Domain.Service
             }
         }
 
-        public async Task SendUserBroadcastsAsync(int userId, bool newUser = false,
-            bool userIdIsCurrentUser = false)
+        public async Task SendUserBroadcastsAsync(int userId, bool includeHousehold,
+            bool newUser = false, bool userIdIsCurrentUser = false)
         {
             var authUserId = userIdIsCurrentUser ? userId : GetClaimId(ClaimType.UserId);
 
@@ -559,6 +554,15 @@ namespace GRA.Domain.Service
                 await _userRepository.UpdateSaveAsync(authUserId, user);
 
                 _memoryCache.Remove($"{CacheKey.UserUnreadMailCount}?u{userId}");
+            }
+
+            if (includeHousehold)
+            {
+                var householdMembers = await _userRepository.GetHouseholdAsync(userId);
+                foreach (var member in householdMembers)
+                {
+                    await SendUserBroadcastsAsync(member.Id, false);
+                }
             }
         }
     }
