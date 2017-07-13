@@ -305,6 +305,7 @@ namespace GRA.Controllers.MissionControl
                 {
                     var newUser = await _userService.RegisterUserAsync(user, model.Password,
                         model.SchoolDistrictId, true);
+                    await _mailService.SendUserBroadcastsAsync(newUser.Id, true);
                     if (UserHasPermission(Permission.EditParticipants))
                     {
                         return RedirectToAction("Detail", "Participants", new { id = newUser.Id });
@@ -983,8 +984,9 @@ namespace GRA.Controllers.MissionControl
                         model.User.EnteredSchoolName = null;
                     }
 
-                    await _userService.AddHouseholdMemberAsync(headOfHousehold.Id, model.User,
-                        model.SchoolDistrictId);
+                    var newMember = await _userService.AddHouseholdMemberAsync(headOfHousehold.Id,
+                        model.User, model.SchoolDistrictId);
+                    await _mailService.SendUserBroadcastsAsync(newMember.Id, true);
                     AlertSuccess = "Added household member";
                     return RedirectToAction("Household", new { id = model.Id });
                 }
