@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 - Questionnaire preview page
 - Activity by Program Report
+- Site Stage household restrictions
 
 ### Changed
 - Show report completion percent in window titlebar
