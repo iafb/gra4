@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 - Questionnaire preview page
 - Activity by Program Report
-- Site Stage household restrictions
+- Restrict household changes to when the site is open for registration or open
 
 ### Changed
 - Show report completion percent in window titlebar
