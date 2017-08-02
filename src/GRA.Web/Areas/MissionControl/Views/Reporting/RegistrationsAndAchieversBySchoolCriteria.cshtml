@@ -14,7 +14,9 @@
     <div class="form-group">
         <div class="col-xs-12">
             <label asp-for="SchoolId" class="control-label"></label>
-            <select asp-for="SchoolId" asp-items="Model.SchoolList" class="form-control"></select>
+            <select asp-for="SchoolId" asp-items="Model.SchoolList" class="form-control">
+                <option></option>
+            </select>
         </div>
     </div>
 
@@ -27,3 +29,22 @@
         </div>
     </div>
 </form>
+
+@section scripts {
+    <script>
+        $("#SchoolDistrictId").on("change", function() {
+            var districtId = $(this).val();
+            var schoolList = $("#SchoolId");
+            var schoolId = schoolList.val();
+            var getSchoolsUrl = "@Url.Action("GetSchools", "Lookup", new { Area = string.Empty })";
+
+            $.getJSON(getSchoolsUrl, { districtId: districtId, schoolId: schoolId }, function(response) {
+                schoolList.empty();
+                schoolList.append(new Option("", ""));
+                $.each(response, function(index, item) {
+                    schoolList.append(new Option(item.text, item.value, item.selected, item.selected))
+                });
+            });
+        });
+    </script>
+}
