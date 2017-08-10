@@ -12,10 +12,6 @@ namespace GRA.Domain.Model
         public string Name { get; set; }
         [Required]
         public int AchieverPointAmount { get; set; }
-        public int? AchieverBadgeId { get; set; }
-        public string AchieverBadgeName { get; set; }
-        public int? JoinBadgeId { get; set; }
-        public string JoinBadgeName { get; set; }
         [Required]
         public bool AskAge { get; set; }
         [Required]
@@ -31,5 +27,8 @@ namespace GRA.Domain.Model
 
         [MaxLength(50)]
         public string DailyImageMessage { get; set; }
+
+        public int PointTranslationId { get; set; }
+        public PointTranslation PointTranslation { get; set; }
     }
 }

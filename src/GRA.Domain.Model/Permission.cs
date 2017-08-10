@@ -25,6 +25,8 @@ namespace GRA.Domain.Model
         ManageDashboardContent,
         ManageEvents,
         ManageLocations,
+        ManagePointTranslations,
+        ManagePrograms,
         ManageQuestionnaires,
         ManageSchools,
         ManageSystems,

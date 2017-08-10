@@ -135,7 +135,6 @@ namespace GRA.Domain.Service
                 _logger.LogError(error);
                 throw new GraException("Activity cannot be logged while there is a pending questionnaire to be taken.");
             }
-
             var translation
                 = await _pointTranslationRepository.GetByProgramIdAsync(userToLog.ProgramId);
 
@@ -661,7 +660,7 @@ namespace GRA.Domain.Service
         public async Task<PointTranslation> GetUserPointTranslationAsync()
         {
             var user = await _userRepository.GetByIdAsync(GetActiveUserId());
-            return await _pointTranslationRepository.GetByIdAsync(user.ProgramId);
+            return await _pointTranslationRepository.GetByProgramIdAsync(user.ProgramId);
         }
 
         private async Task<User>
