@@ -10,7 +10,9 @@ namespace GRA.Data.Profile
             CreateMap<Model.AuthorizationCode, Domain.Model.AuthorizationCode>().ReverseMap();
             CreateMap<Model.Badge, Domain.Model.Badge>().ReverseMap();
             CreateMap<Model.Book, Domain.Model.Book>().ReverseMap();
-            CreateMap<Model.Branch, Domain.Model.Branch>().ReverseMap();
+            CreateMap<Model.Branch, Domain.Model.Branch>()
+                .ForMember(dest => dest.SiteId, opt => opt.MapFrom(src => src.System.SiteId))
+                .ReverseMap();
             CreateMap<Model.Broadcast, Domain.Model.Broadcast>().ReverseMap();
             CreateMap<Model.Category, Domain.Model.Category>().ReverseMap();
             CreateMap<Model.Challenge, Domain.Model.Challenge>().ReverseMap();
