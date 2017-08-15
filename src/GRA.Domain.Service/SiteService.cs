@@ -216,10 +216,13 @@ namespace GRA.Domain.Service
         public async Task UpdateProgramAsync(Program program)
         {
             VerifyPermission(Permission.ManagePrograms);
+            var authId = GetClaimId(ClaimType.UserId);
+            var siteId = GetCurrentSiteId();
             var currentProgram = await _programRepository.GetByIdAsync(program.Id);
-            if (currentProgram.SiteId != GetCurrentSiteId())
+            if (currentProgram.SiteId != siteId)
             {
-                throw new GraException($"Permission denied - system belongs to site id {currentProgram.SiteId}.");
+                _logger.LogError($"User {authId} cannot remove program {currentProgram.Id} for site {siteId}.");
+                throw new GraException($"Permission denied - program belongs to site id {currentProgram.SiteId}.");
             }
             
             currentProgram.AchieverPointAmount = program.AchieverPointAmount;
@@ -228,7 +231,7 @@ namespace GRA.Domain.Service
             currentProgram.AgeRequired = program.AgeRequired;
             currentProgram.AskAge = program.AskAge;
             currentProgram.AskSchool = program.AskSchool;
-            currentProgram.DailyImageMessage = program.DailyImageMessage;
+            currentProgram.DailyLiteracyTipId = program.DailyLiteracyTipId;
             currentProgram.Name = program.Name;
             currentProgram.PointTranslationId = program.PointTranslationId;
             currentProgram.SchoolRequired = program.SchoolRequired;
@@ -239,19 +242,22 @@ namespace GRA.Domain.Service
         public async Task RemoveProgramAsync(int programId)
         {
             VerifyPermission(Permission.ManagePrograms);
+            var authId = GetClaimId(ClaimType.UserId);
+            var siteId = GetCurrentSiteId();
             var program = await _programRepository.GetByIdAsync(programId);
-            if (program.SiteId != GetCurrentSiteId())
+            if (program.SiteId != siteId)
             {
+                _logger.LogError($"User {authId} cannot remove program {programId} for site {siteId}.");
                 throw new GraException($"Permission denied - program belongs to site id {program.SiteId}.");
             }
             if (await _programRepository.IsInUseAsync(programId))
             {
                 throw new GraException($"Users currently belong to program {program.Name}.");
             }
-            await _programRepository.RemoveSaveAsync(GetActiveUserId(), programId);
+            await _programRepository.RemoveSaveAsync(GetClaimId(ClaimType.UserId), programId);
         }
 
-        public async Task UpdateProgramListAsync(List<int> programOrderList)
+        public async Task UpdateProgramListOrderAsync(List<int> programOrderList)
         {
             VerifyPermission(Permission.ManagePrograms);
             var authId = GetClaimId(ClaimType.UserId);

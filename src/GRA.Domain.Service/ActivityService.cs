@@ -618,23 +618,6 @@ namespace GRA.Domain.Service
                     IsAchiever = true
                 };
 
-                var badge = await AwardBadgeAsync(activeUserId, program.AchieverBadgeId);
-
-                if (badge != null)
-                {
-                    await _userLogRepository.AddAsync(activeUserId, new UserLog
-                    {
-                        UserId = whoEarnedUserId,
-                        PointsEarned = 0,
-                        IsDeleted = false,
-                        BadgeId = badge.Id,
-                        Description = $"You reached the goal of {program.AchieverPointAmount} points!"
-                    });
-                    notification.Text += " You've also earned a badge!";
-                    notification.BadgeId = badge.Id;
-                    notification.BadgeFilename = badge.Filename;
-                }
-
                 await _notificationRepository.AddSaveAsync(authUserId, notification);
             }
 

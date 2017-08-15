@@ -89,14 +89,15 @@ namespace GRA.Domain.Service
             IPointTranslationRepository pointTranslationRepository)
             : base(logger, dateTimeProvider, userContextProvider)
         {
+            SetManagementPermission(Permission.ManagePrograms);
             _pointTranslationRepository = Require.IsNotNull(pointTranslationRepository,
                 nameof(pointTranslationRepository));
         }
 
         public async Task<DataWithCount<ICollection<PointTranslation>>>
-            GetPaginatedPointTranslationListAsync(BaseFilter filter)
+            GetPaginatedListAsync(BaseFilter filter)
         {
-            VerifyPermission(Permission.ManagePointTranslations);
+            VerifyManagementPermission();
             filter.SiteId = GetCurrentSiteId();
             return new DataWithCount<ICollection<PointTranslation>>
             {
@@ -105,21 +106,24 @@ namespace GRA.Domain.Service
             };
         }
 
-        public async Task<PointTranslation> AddPointTranslationAsync(PointTranslation pointTranslation)
+        public async Task<PointTranslation> AddAsync(PointTranslation pointTranslation)
         {
-            VerifyPermission(Permission.ManagePointTranslations);
+            VerifyManagementPermission();
             pointTranslation.SiteId = GetCurrentSiteId();
             return await _pointTranslationRepository.AddSaveAsync(GetClaimId(ClaimType.UserId),
                 pointTranslation);
         }
 
-        public async Task UpdateProgramAsync(PointTranslation pointTranslation)
+        public async Task UpdateAsync(PointTranslation pointTranslation)
         {
-            VerifyPermission(Permission.ManagePointTranslations);
+            VerifyManagementPermission();
+            var authId = GetClaimId(ClaimType.UserId);
+            var siteId = GetCurrentSiteId();
             var currentPointTranslation = await _pointTranslationRepository.GetByIdAsync(
                 pointTranslation.Id);
-            if (currentPointTranslation.SiteId != GetCurrentSiteId())
+            if (currentPointTranslation.SiteId != siteId)
             {
+                _logger.LogError($"User {authId} cannot update point translation {currentPointTranslation.Id} for site {siteId}.");
                 throw new GraException($"Permission denied - point translation belongs to site id {currentPointTranslation.SiteId}.");
             }
 
@@ -132,23 +136,25 @@ namespace GRA.Domain.Service
             currentPointTranslation.TranslationDescriptionPresentTense = pointTranslation.TranslationDescriptionPresentTense;
             currentPointTranslation.TranslationName = pointTranslation.TranslationName;
 
-            await _pointTranslationRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId),
-                currentPointTranslation);
+            await _pointTranslationRepository.UpdateSaveAsync(authId, currentPointTranslation);
         }
 
-        public async Task RemovePointTranslationAsync(int pointTranslationId)
+        public async Task RemoveAsync(int pointTranslationId)
         {
-            VerifyPermission(Permission.ManagePointTranslations);
+            VerifyManagementPermission();
+            var authId = GetClaimId(ClaimType.UserId);
+            var siteId = GetCurrentSiteId();
             var pointTranslation = await _pointTranslationRepository.GetByIdAsync(pointTranslationId);
-            if (pointTranslation.SiteId != GetCurrentSiteId())
+            if (pointTranslation.SiteId != siteId)
             {
+                _logger.LogError($"User {authId} cannot delete point translation {pointTranslationId} for site {siteId}.");
                 throw new GraException($"Permission denied - point translation belongs to site id {pointTranslation.SiteId}.");
             }
             if (await _pointTranslationRepository.IsInUseAsync(pointTranslationId))
             {
                 throw new GraException($"{pointTranslation.TranslationName} is in use by programs and/or challenge tasks.");
             }
-            await _pointTranslationRepository.RemoveSaveAsync(GetActiveUserId(), pointTranslationId);
+            await _pointTranslationRepository.RemoveSaveAsync(authId, pointTranslationId);
         }
     }
 }
