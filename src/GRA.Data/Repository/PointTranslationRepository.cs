@@ -19,6 +19,15 @@ namespace GRA.Data.Repository
             ILogger<PointTranslationRepository> logger) : base(repositoryFacade, logger)
         { }
 
+        public async Task<IEnumerable<PointTranslation>> GetAllAsync(int siteId)
+        {
+            return await DbSet.AsNoTracking()
+                .Where(_ => _.SiteId == siteId)
+                .OrderBy(_ => _.TranslationName)
+                .ProjectTo<PointTranslation>()
+                .ToListAsync();
+        }
+
         public async Task<int> CountAsync(BaseFilter filter)
         {
             return await ApplyFilters(filter)
@@ -51,11 +60,11 @@ namespace GRA.Data.Repository
 
         public async Task<bool> IsInUseAsync(int pointTranslationId)
         {
-            return await _context.Programs
+            return await _context.Programs.AsNoTracking()
                 .Where(_ => _.PointTranslationId == pointTranslationId)
                 .Select(_ => _.Id)
                 .Concat(
-                    _context.ChallengeTaskTypes
+                    _context.ChallengeTaskTypes.AsNoTracking()
                     .Where(_ => _.PointTranslationId == pointTranslationId)
                     .Select(_ => _.Id)
                 ).AnyAsync();

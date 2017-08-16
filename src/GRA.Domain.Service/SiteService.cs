@@ -209,7 +209,14 @@ namespace GRA.Domain.Service
         public async Task<Program> AddProgramAsync(Program program)
         {
             VerifyPermission(Permission.ManagePrograms);
-            program.SiteId = GetCurrentSiteId();
+            var siteId = GetCurrentSiteId();
+            var filter = new BaseFilter()
+            {
+                SiteId = siteId
+            };
+            program.Position = await _programRepository.CountAsync(filter);
+            program.SiteId = siteId;
+            
             return await _programRepository.AddSaveAsync(GetClaimId(ClaimType.UserId), program);
         }
 
@@ -221,7 +228,7 @@ namespace GRA.Domain.Service
             var currentProgram = await _programRepository.GetByIdAsync(program.Id);
             if (currentProgram.SiteId != siteId)
             {
-                _logger.LogError($"User {authId} cannot remove program {currentProgram.Id} for site {siteId}.");
+                _logger.LogError($"User {authId} cannot remove program {currentProgram.Id} for site {currentProgram.SiteId}.");
                 throw new GraException($"Permission denied - program belongs to site id {currentProgram.SiteId}.");
             }
             
@@ -247,7 +254,7 @@ namespace GRA.Domain.Service
             var program = await _programRepository.GetByIdAsync(programId);
             if (program.SiteId != siteId)
             {
-                _logger.LogError($"User {authId} cannot remove program {programId} for site {siteId}.");
+                _logger.LogError($"User {authId} cannot remove program {programId} for site {program.SiteId}.");
                 throw new GraException($"Permission denied - program belongs to site id {program.SiteId}.");
             }
             if (await _programRepository.IsInUseAsync(programId))
@@ -267,7 +274,7 @@ namespace GRA.Domain.Service
             var programIdList = programs.Select(_ => _.Id);
             if (programOrderList.All(programIdList.Contains) && programOrderList.Count == programIdList.Count())
             {
-                _logger.LogError($"User {authId} cannot update programs {string.Join(", " ,programOrderList)} for site {siteId}.");
+                _logger.LogError($"User {authId} cannot update programs {string.Join(", " ,programOrderList)} belonging to another site.");
                 throw new GraException("Invalid program selection.");
             }
             foreach (var program in programs)

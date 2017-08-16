@@ -18,6 +18,6 @@ namespace GRA.Domain.Model
         [Required]
         public string Extension { get; set; }
 
-        public int SortOrder { get; set; }
+        public int Day { get; set; }
     }
 }

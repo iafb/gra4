@@ -94,6 +94,11 @@ namespace GRA.Domain.Service
                 nameof(pointTranslationRepository));
         }
 
+        public async Task<IEnumerable<PointTranslation>> GetList()
+        {
+            return await _pointTranslationRepository.GetAllAsync(GetCurrentSiteId());
+        }
+
         public async Task<DataWithCount<ICollection<PointTranslation>>>
             GetPaginatedListAsync(BaseFilter filter)
         {
@@ -123,7 +128,7 @@ namespace GRA.Domain.Service
                 pointTranslation.Id);
             if (currentPointTranslation.SiteId != siteId)
             {
-                _logger.LogError($"User {authId} cannot update point translation {currentPointTranslation.Id} for site {siteId}.");
+                _logger.LogError($"User {authId} cannot update point translation {currentPointTranslation.Id} for site {currentPointTranslation.SiteId}.");
                 throw new GraException($"Permission denied - point translation belongs to site id {currentPointTranslation.SiteId}.");
             }
 
@@ -147,7 +152,7 @@ namespace GRA.Domain.Service
             var pointTranslation = await _pointTranslationRepository.GetByIdAsync(pointTranslationId);
             if (pointTranslation.SiteId != siteId)
             {
-                _logger.LogError($"User {authId} cannot delete point translation {pointTranslationId} for site {siteId}.");
+                _logger.LogError($"User {authId} cannot delete point translation {pointTranslationId} for site {pointTranslation.SiteId}.");
                 throw new GraException($"Permission denied - point translation belongs to site id {pointTranslation.SiteId}.");
             }
             if (await _pointTranslationRepository.IsInUseAsync(pointTranslationId))

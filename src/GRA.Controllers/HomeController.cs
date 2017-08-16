@@ -92,7 +92,8 @@ namespace GRA.Controllers
                     var day = _siteLookupService.GetSiteDay(site);
                     if (day.HasValue)
                     {
-                        var image = await _dailyLiteracyTipService.GetImageByDayAsync(day.Value);
+                        var image = await _dailyLiteracyTipService.GetImageByDayAsync(
+                            program.DailyLiteracyTipId.Value, day.Value);
                         if (image != null)
                         {
                             var imagePath = _pathResolver.ResolveContentFilePath(

@@ -13,6 +13,11 @@ namespace GRA.Data.Model
         [MaxLength(255)]
         [Required]
         public string Name { get; set; }
-        public int SortOrder { get; set; }
+
+        [MaxLength(10)]
+        [Required]
+        public string Extension { get; set; }
+
+        public int Day { get; set; }
     }
 }
