@@ -14,13 +14,11 @@ using GRA.Controllers.ViewModel.Shared;
 namespace GRA.Controllers.MissionControl
 {
     [Area("MissionControl")]
-    [Authorize(Policy = Policy.ManageSystems)] 
+    [Authorize(Policy = Policy.ManageSystems)]
     public class SystemsController : Base.MCController
     {
         private readonly ILogger<SystemsController> _logger;
         private readonly SiteService _siteService;
-      
-
         public SystemsController(ILogger<SystemsController> logger,
             ServiceFacade.Controller context,
             SiteService siteService) : base(context)
@@ -32,8 +30,6 @@ namespace GRA.Controllers.MissionControl
 
         public async Task<IActionResult> Index(string search, int page = 1)
         {
-          
-
             var filter = new BaseFilter(page)
             {
                 Search = search
@@ -47,6 +43,7 @@ namespace GRA.Controllers.MissionControl
                 CurrentPage = page,
                 ItemsPerPage = filter.Take.Value
             };
+
             if (paginateModel.MaxPage > 0 && paginateModel.CurrentPage > paginateModel.MaxPage)
             {
                 return RedirectToRoute(
@@ -109,10 +106,9 @@ namespace GRA.Controllers.MissionControl
             }
             return RedirectToAction("Index", new { search = search });
         }
+
         public async Task<IActionResult> Branches(string search, int page = 1)
         {
-
-
             var filter = new BaseFilter(page)
             {
                 Search = search
