@@ -66,6 +66,7 @@
     <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel">
         <div class="modal-dialog" role="document">
             <form asp-controller="Systems" asp-action="EditBranch" method="post" role="form" style="display:inline">
+                <input asp-for="Branch.Id" type="hidden" />
                 <input asp-for="Search" type="hidden" />
                 <div class="modal-content">
                     <div class="modal-header">
@@ -73,19 +74,10 @@
                         <h4 class="modal-title" id="editModalLabel">Edit branch</h4>
                     </div>
                     <div class="modal-body">
-                        
                         <div class="form-group">
                             <label asp-for="Branch.Name" class="control-label"></label>
                             <input asp-for="Branch.Name" class="form-control" />
                             <span asp-validation-for="Branch.Name" class="text-danger"></span>
-                        </div>
-                        <div class="form-group">
-                       
-                            <label asp-for="Branch.SystemId" class="control-label"></label>
-                            <select asp-for="Branch.SystemId" asp-items="Model.SystemList" class="form-control">
-                                <option></option>
-                            </select>
-                            <span asp-validation-for="Branch.SystemId" class="text-danger"></span>
                         </div>
                         <div class="form-group">
                             <label asp-for="Branch.Url" class="control-label"></label>
@@ -199,7 +191,6 @@
                                             data-target="#editModal"
                                             data-id="@branch.Id"
                                             data-name="@branch.Name"
-                                            data-system="@branch.SystemId"
                                             data-url="@branch.Url"
                                             data-address="@branch.Address"
                                             data-telephone="@branch.Telephone">
@@ -211,11 +202,7 @@
                                             data-toggle="modal"
                                             data-target="#deleteModal"
                                             data-id="@branch.Id"
-                                            data-name="@branch.Name"
-                                            data-system="@branch.SystemId"
-                                            data-url="@branch.Url"
-                                            data-address="@branch.Address"
-                                            data-telephone="@branch.Telephone">
+                                            data-name="@branch.Name">
                                         <span class="fa fa-remove" aria-hidden="true"></span>
                                     </button>
                                 </td>
@@ -239,36 +226,26 @@
             var button = $(event.relatedTarget);
             var id = button.data('id');
             var name = button.data('name');
-            var system = button.data('system');
-            var Url = button.data('url');
+            var url = button.data('url');
             var address = button.data('address');
-            var telephone = button.data('telephone')
-            var type = button.data('type');
+            var telephone = button.data('telephone') 
             var modal = $(this);
 
             modal.find('#editModalLabel').text('Edit branch - "' + name + '"');
             modal.find('#Branch_Id').val(id);
             modal.find('#Branch_Name').val(name);
-            modal.find('#Branch_System').val(system);
-            modal.find('#Branch_Url').val(Url);
+            modal.find('#Branch_Url').val(url);
             modal.find('#Branch_Address').val(address);
             modal.find('#Branch_Telephone').val(telephone);
-            modal.find('#Branch_SystemId option[value="' + system + '"]').attr("selected", "selected");
-
-        })
+        });
 
         $('#deleteModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
             var id = button.data('id');
             var name = button.data('name');
-            var Url = button.data('url');
-            var address = button.data('address');
-            var telephone = button.data('telephone')
-            var system = button.data('system');
-            var type = button.data('type');
             var modal = $(this);
-            modal.find('#modal-text').text('Are you sure you wish to delete the branch: "' + name + '" ?');
+            modal.find('#modal-text').text('Are you sure you wish to delete the branch "' + name + '" ?');
             modal.find('#Id').val(id);
-        })
+        });
     </script>
 }

@@ -5,8 +5,6 @@ namespace GRA.Domain.Model
 {
     public class Branch : Abstract.BaseDomainEntity
     {
-        [Required]
-        public int SiteId { get; set; }
         [DisplayName("System")]
         [Required]
         public int SystemId { get; set; }

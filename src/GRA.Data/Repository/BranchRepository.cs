@@ -64,7 +64,8 @@ namespace GRA.Data.Repository
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
             {
-                branchList = branchList.Where(_ => _.Name.Contains(filter.Search));
+                branchList = branchList.Where(_ => _.Name.Contains(filter.Search)
+                || _.System.Name.Contains(filter.Search));
             }
 
             return branchList;

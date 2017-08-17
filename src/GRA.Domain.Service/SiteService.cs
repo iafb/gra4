@@ -133,7 +133,6 @@ namespace GRA.Domain.Service
         public async Task<Branch> AddBranchAsync(Branch branch)
         {
             VerifyPermission(Permission.ManageSystems);
-            branch.SiteId = GetCurrentSiteId();
             return await _branchRepository.AddSaveAsync(GetClaimId(ClaimType.UserId), branch);
         }
 
@@ -141,14 +140,13 @@ namespace GRA.Domain.Service
         {
             VerifyPermission(Permission.ManageSystems);
             var currentBranch = await _branchRepository.GetByIdAsync(branch.Id);
-            if (currentBranch.SiteId != GetCurrentSiteId())
+            if (await _branchRepository.ValidateBySiteAsync(currentBranch.Id, GetCurrentSiteId()) == false)
             {
-                throw new GraException($"Permission denied - branch belongs to site id {currentBranch.SiteId}.");
+                throw new GraException($"Permission denied - branch belongs to a different site.");
             }
 
             currentBranch.Address = branch.Address;
             currentBranch.Name = branch.Name;
-            currentBranch.SystemId = branch.SystemId;
             currentBranch.Telephone = branch.Telephone;
             currentBranch.Url = branch.Url;
             await _branchRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), currentBranch);
@@ -157,11 +155,11 @@ namespace GRA.Domain.Service
         public async Task RemoveBranchAsync(int branchId)
         {
             VerifyPermission(Permission.ManageSystems);
-            var branch = await _branchRepository.GetByIdAsync(branchId);
-            if (branch.SiteId != GetCurrentSiteId())
+            if (await _branchRepository.ValidateBySiteAsync(branchId, GetCurrentSiteId()) == false)
             {
-                throw new GraException($"Permission denied - branch belongs to site id {branch.SiteId}.");
+                throw new GraException($"Permission denied - branch belongs to a different site.");
             }
+            var branch = await _branchRepository.GetByIdAsync(branchId);
             if (await _branchRepository.IsInUseAsync(branchId))
             {
                 throw new GraException($"Users currently have branch {branch.Name} selected.");
