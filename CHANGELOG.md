@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Allow searching in Mission Control school lists
 - Registrations and Achievers by School Report
 - Award vendor code button
+- Add prize reports
+- Add book code report
 
 ### Changed
 - Show report completion percent in window titlebar
