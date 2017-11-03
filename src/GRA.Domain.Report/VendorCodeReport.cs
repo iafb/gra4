@@ -1,27 +1,27 @@
-﻿using GRA.Domain.Model;
-using GRA.Domain.Report.Abstract;
-using GRA.Domain.Report.Attribute;
-using GRA.Domain.Repository;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using GRA.Domain.Model;
+using GRA.Domain.Report.Abstract;
+using GRA.Domain.Report.Attribute;
+using GRA.Domain.Repository;
+using Microsoft.Extensions.Logging;
 
 namespace GRA.Domain.Report
 {
     [ReportInformation(13,
-        "Book Code Report",
-        "Books earned and ordered by partcipants filterable by system.",
+        "Vendor Code Report",
+        "Vendor prizes earned and ordered by partcipants filterable by system.",
         "Participants")]
-    public class BookCodeReport : BaseReport
+    public class VendorCodeReport : BaseReport
     {
         private readonly IBranchRepository _branchRepository;
         private readonly ISystemRepository _systemRepository;
         private readonly IVendorCodeRepository _vendorCodeRepository;
 
-        public BookCodeReport(ILogger<TopScoresReport> logger,
+        public VendorCodeReport(ILogger<TopScoresReport> logger,
             Domain.Report.ServiceFacade.Report serviceFacade,
             IBranchRepository branchRepository,
             ISystemRepository systemRepository,

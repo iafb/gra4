@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Award vendor code button
 - Add prize redemption report
 - Add participant prize report
-- Add book code report
+- Add vendor code report
 
 ### Changed
 - Show report completion percent in window titlebar
