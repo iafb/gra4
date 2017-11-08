@@ -4,7 +4,6 @@ namespace GRA.Domain.Model
 {
     public class System : Abstract.BaseDomainEntity
     {
-        
         public int SiteId { get; set; }
 
         [Required]
