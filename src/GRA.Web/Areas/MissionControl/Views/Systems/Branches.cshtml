@@ -5,7 +5,6 @@
         <ul class="nav nav-pills" style="padding: 10px 0;">
             <li ActiveBy routeKey="Action" value="Index"><a asp-action="Index">System</a></li>
             <li ActiveBy routeKey="Action" value="Branches"><a asp-action="Branches">Branches</a></li>
-
         </ul>
     </div>
 </div>
@@ -160,7 +159,7 @@
 <div class="row" style="padding: 10px 0;">
     <div class="col-xs-12">
         @if (Model.Branches.Count() == 0)
-            {
+        {
             <div class="alert alert-warning">No Branches</div>
         }
         else
@@ -212,15 +211,14 @@
                 </table>
             </div>
             @if (Model.PaginateModel.MaxPage > 1)
-                {
+            {
                 <paginate paginateModel="@Model.PaginateModel"></paginate>
             }
         }
     </div>
 </div>
 
-@section scripts
-{
+@section scripts {
     <script>
         $('#editModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
@@ -228,7 +226,7 @@
             var name = button.data('name');
             var url = button.data('url');
             var address = button.data('address');
-            var telephone = button.data('telephone') 
+            var telephone = button.data('telephone')
             var modal = $(this);
 
             modal.find('#editModalLabel').text('Edit branch - "' + name + '"');
