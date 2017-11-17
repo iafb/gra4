@@ -242,6 +242,7 @@
 
 @section scripts{
     <script>
+        var categoriesAdded = false;
         var search = $("#Search").val();
         var categoryIds = $("#CategoryIds option:selected")
             .map(function (a, item) { return item.value; })
@@ -269,12 +270,13 @@
         });
 
         $("#searchForm").on("submit", function () {
-            if (categoryIds.length > 0) {
+            if (categoryIds.length > 0 && categoriesAdded == false) {
                 $("<input />")
                     .attr("type", "hidden")
                     .attr("name", "Categories")
                     .attr("value", categoryIds.join(","))
                     .appendTo($(this));
+                categoriesAdded = true;
             }
         });
 

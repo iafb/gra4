@@ -2,7 +2,7 @@
 
 <noscript>
     <style>
-        #Category {
+        #CategoryPlaceholder {
             display: none;
         }
     </style>
@@ -15,26 +15,31 @@
                 <span class="lead">Challenges</span>
             </div>
             <div class="panel-body">
-                @if (Model.CategoryList?.Count() > 0)
-                {
-                    <div id="Category" class="row row-spacing">
-                        <div class="col-xs-12">
-                            <table>
-                                <tr>
-                                    <td>
-                                        <span style="font-size:large;padding-top:10px;">Category:</span>
-                                    </td>
-                                    <td style="padding-left:10px;width:100%;">
-                                        <input id="CategoryPlaceholder" class="form-control" />
-                                        <select asp-for="CategoryIds" asp-items="Model.CategoryList" class="form-control hidden" multiple="multiple"></select>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                }
-
                 <form id="searchForm" asp-controller="Challenges" asp-action="Index" method="get" role="form">
+                    @if (Model.CategoryList?.Count() > 0)
+                    {
+                        <div id="Category" class="row row-spacing">
+                            <div class="col-xs-12">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <span style="font-size:large;padding-top:10px;">Category:</span>
+                                        </td>
+                                        <td style="padding-left:10px;width:100%;">
+                                            <noscript id="noscript">
+                                                <select asp-for="Categories" asp-items="Model.CategoryList" class="form-control">
+                                                    <option></option>
+                                                </select>
+                                            </noscript>
+                                            <input id="CategoryPlaceholder" class="form-control" />
+                                            <select asp-for="CategoryIds" asp-items="Model.CategoryList" class="form-control hidden" disabled="disabled" multiple="multiple"></select>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
                     <div class="row row-spacing">
                         <div class="col-sm-8 gra-search-container">
                             <input asp-for="Search"
@@ -128,6 +133,7 @@
 
 @section scripts {
     <script>
+        var categoriesAdded = false;
         var search = $("#Search").val();
         var categoryIds = $("#CategoryIds option:selected")
             .map(function (a, item) { return item.value; })
@@ -145,6 +151,7 @@
             }
         }
 
+        $("#CategoryIds").removeAttr("disabled");
         $("#CategoryPlaceholder").remove();
         $("#CategoryIds").multiselect({
             nonSelectedText: "",
@@ -153,14 +160,17 @@
             disableIfEmpty: true,
             onDropdownHide: UpdateCategories
         });
+        
 
         $("#searchForm").on("submit", function () {
-            if (categoryIds.length > 0) {
+            if (categoryIds.length > 0 && categoriesAdded == false) {
+                $("#CategoryIds").attr("disabled", "disabled");
                 $("<input />")
                     .attr("type", "hidden")
                     .attr("name", "Categories")
                     .attr("value", categoryIds.join(","))
                     .appendTo($(this));
+                categoriesAdded = true;
             }
         });
     </script>

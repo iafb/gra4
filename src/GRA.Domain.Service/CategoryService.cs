@@ -45,7 +45,7 @@ namespace GRA.Domain.Service
             category.SiteId = GetCurrentSiteId();
             if (string.IsNullOrWhiteSpace(category.Color))
             {
-                category.Color = "#7777";
+                category.Color = "#777";
             }
             return await _categoryRepository.AddSaveAsync(GetClaimId(ClaimType.UserId), category);
         }
