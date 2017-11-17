@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using GRA.Domain.Service.Models;
 
 namespace GRA.Controllers.MissionControl
 {
@@ -25,28 +26,31 @@ namespace GRA.Controllers.MissionControl
 
         private readonly ILogger<ChallengesController> _logger;
         private readonly BadgeService _badgeService;
+        private readonly CategoryService _categoryService;
         private readonly ChallengeService _challengeService;
         private readonly SiteService _siteService;
         public ChallengesController(ILogger<ChallengesController> logger,
             ServiceFacade.Controller context,
             BadgeService badgeService,
+            CategoryService categoryService,
             ChallengeService challengeService,
             SiteService siteService)
             : base(context)
         {
             _logger = Require.IsNotNull(logger, nameof(logger));
             _badgeService = Require.IsNotNull(badgeService, nameof(badgeService));
+            _categoryService = Require.IsNotNull(categoryService, nameof(categoryService));
             _challengeService = Require.IsNotNull(challengeService, nameof(challengeService));
             _siteService = Require.IsNotNull(siteService, nameof(SiteService));
             PageTitle = "Challenges";
         }
 
-        public async Task<IActionResult> Index(string Search, int? Program, int? System, int? Branch,
+        public async Task<IActionResult> Index(string Search, string Categories, int? Program, int? System, int? Branch,
             bool? Mine, int page = 1)
         {
             try
             {
-                var viewModel = await GetChallengeList(Search, Program, System, Branch, Mine, page);
+                var viewModel = await GetChallengeList(Search, Categories, Program, System, Branch, Mine, page);
                 viewModel.ShowSystem = true;
 
                 if (viewModel.PaginateModel.MaxPage > 0
@@ -60,7 +64,7 @@ namespace GRA.Controllers.MissionControl
                 }
                 return View("Index", viewModel);
             }
-            catch (Exception ex)
+            catch (GraException ex)
             {
                 _logger.LogError($"Invalid challenge filter by User {GetId(ClaimType.UserId)}: {ex}");
                 ShowAlertDanger("Invalid filter parameters.");
@@ -69,7 +73,7 @@ namespace GRA.Controllers.MissionControl
         }
 
         [Authorize(Policy = Policy.ActivateChallenges)]
-        public async Task<IActionResult> Pending(string Search, int? System, int? Branch,
+        public async Task<IActionResult> Pending(string Search, string Categories, int? System, int? Branch,
             int? Program, bool? Mine, int page = 1)
         {
             try
@@ -85,7 +89,7 @@ namespace GRA.Controllers.MissionControl
                         Branch = GetId(ClaimType.BranchId);
                     }
                 }
-                var viewModel = await GetChallengeList(Search, Program, System, Branch, Mine, page, true);
+                var viewModel = await GetChallengeList(Search, Categories, Program, System, Branch, Mine, page, true);
 
                 viewModel.ShowSystem = UserHasPermission(Permission.ActivateAllChallenges);
                 if (viewModel.PaginateModel.MaxPage > 0
@@ -108,13 +112,26 @@ namespace GRA.Controllers.MissionControl
             }
         }
 
-        private async Task<ChallengesListViewModel> GetChallengeList(string Search, int? Program,
+        private async Task<ChallengesListViewModel> GetChallengeList(string Search, string Categories, int? Program,
             int? System, int? Branch, bool? Mine, int page = 1, bool pending = false)
         {
             BaseFilter filter = new BaseFilter(page);
             if (!string.IsNullOrWhiteSpace(Search))
             {
                 filter.Search = Search;
+            }
+            if (!string.IsNullOrWhiteSpace(Categories))
+            {
+                var categoryIds = new List<int>();
+                foreach (var category in Categories.Split(','))
+                {
+                    int result;
+                    if (int.TryParse(category, out result))
+                    {
+                        categoryIds.Add(result);
+                    }
+                }
+                filter.CategoryIds = categoryIds;
             }
             if (System.HasValue)
             {
@@ -163,11 +180,14 @@ namespace GRA.Controllers.MissionControl
 
             var systemList = (await _siteService.GetSystemList())
                 .OrderByDescending(_ => _.Id == GetId(ClaimType.SystemId)).ThenBy(_ => _.Name);
+
+            var categoryList = await _categoryService.GetListAsync();
             ChallengesListViewModel viewModel = new ChallengesListViewModel()
             {
                 Challenges = challengeList.Data,
                 PaginateModel = paginateModel,
                 Search = filter.Search,
+                Categories = Categories,
                 System = System,
                 Branch = Branch,
                 Program = Program,
@@ -176,7 +196,9 @@ namespace GRA.Controllers.MissionControl
                 CanDeleteChallenges = UserHasPermission(Permission.RemoveChallenges),
                 CanEditChallenges = UserHasPermission(Permission.EditChallenges),
                 SystemList = systemList,
-                ProgramList = await _siteService.GetProgramList()
+                ProgramList = await _siteService.GetProgramList(),
+                CategoryIds = filter.CategoryIds,
+                CategoryList = new SelectList(categoryList, "Id", "Name")
             };
             if (Mine == true)
             {
@@ -317,9 +339,14 @@ namespace GRA.Controllers.MissionControl
                         var badge = await _badgeService.AddBadgeAsync(newBadge, badgeBytes);
                         challenge.BadgeId = badge.Id;
                     }
-                    challenge = await _challengeService.AddChallengeAsync(challenge);
-                    AlertSuccess = $"Challenge '<strong>{challenge.Name}</strong>' was successfully created";
-                    return RedirectToAction("Edit", new { id = challenge.Id });
+                    var serviceResult = await _challengeService.AddChallengeAsync(challenge);
+                    if (serviceResult.Status == ServiceResultStatus.Warning
+                        && !string.IsNullOrWhiteSpace(serviceResult.Message))
+                    {
+                        ShowAlertWarning(serviceResult.Message);
+                    }
+                    AlertSuccess = $"Challenge '<strong>{serviceResult.Data.Name}</strong>' was successfully created";
+                    return RedirectToAction("Edit", new { id = serviceResult.Data.Id });
                 }
                 catch (GraException gex)
                 {
@@ -353,6 +380,11 @@ namespace GRA.Controllers.MissionControl
                     challenge.LimitToSystemId = storedChallenge.LimitToSystemId;
                     challenge.LimitToBranchId = storedChallenge.LimitToBranchId;
                     challenge.LimitToProgramId = storedChallenge.LimitToProgramId;
+                    challenge.CategoryIds = storedChallenge.CategoryIds;
+                }
+                else
+                {
+                    challenge.CategoryIds = challenge.Categories.Select(_ => _.Id).ToList();
                 }
             }
             catch (GraException gex)
@@ -484,16 +516,21 @@ namespace GRA.Controllers.MissionControl
                 }
                 try
                 {
-                    var savedChallenge = await _challengeService.EditChallengeAsync(challenge);
+                    var serviceResult = await _challengeService.EditChallengeAsync(challenge);
+                    if (serviceResult.Status == ServiceResultStatus.Warning
+                        && !string.IsNullOrWhiteSpace(serviceResult.Message))
+                    {
+                        ShowAlertWarning(serviceResult.Message);
+                    }
                     AlertSuccess = $"Challenge '<strong>{challenge.Name}</strong>' was successfully modified";
                     if (Submit == "Activate"
                         && (UserHasPermission(Permission.ActivateAllChallenges)
                             || (UserHasPermission(Permission.ActivateSystemChallenges)
                                 && challenge.RelatedSystemId == GetId(ClaimType.SystemId))))
                     {
-                        if (savedChallenge.IsValid)
+                        if (serviceResult.Data.IsValid)
                         {
-                            await _challengeService.ActivateChallengeAsync(savedChallenge);
+                            await _challengeService.ActivateChallengeAsync(serviceResult.Data);
                             AlertSuccess = $"Challenge '<strong>{challenge.Name}</strong>' was successfully modified and activated";
                         }
                     }
@@ -542,6 +579,9 @@ namespace GRA.Controllers.MissionControl
                     .ThenBy(_ => _.Name);
                 model.BranchList = new SelectList(branchList, "Id", "Name");
             }
+
+            var categoryList = await _categoryService.GetListAsync();
+            model.CategoryList = new SelectList(categoryList, "Id", "Name");
 
             return model;
         }

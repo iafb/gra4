@@ -12,12 +12,7 @@ namespace GRA.Domain.Repository
         new Task<Challenge> GetByIdAsync(int id);
         Task<Challenge> GetActiveByIdAsync(int id, int? userId = default(int));
         Task<ICollection<Challenge>> PageAllAsync(BaseFilter filter);
-        Task<DataWithCount<IEnumerable<int>>> PageIdsAsync(
-            int siteId,
-            int skip,
-            int take,
-            int userId,
-            string search = default(string));
+        Task<DataWithCount<IEnumerable<int>>> PageIdsAsync(BaseFilter filter, int userId);
         Task<IEnumerable<ChallengeTaskUpdateStatus>>
             UpdateUserChallengeTasksAsync(int userId, IEnumerable<ChallengeTask> challengeTasks);
         Task UpdateUserChallengeTaskAsync(
@@ -28,5 +23,7 @@ namespace GRA.Domain.Repository
         Task<ActivityLogResult> GetUserChallengeTaskResultAsync(int userId, int challengeTaskId);
         Task SetValidationAsync(int userId, int challengeId, bool valid);
         Task<bool> HasDependentsAsync(int challengeId);
+        Task<Challenge> UpdateSaveAsync(int currentUserId, Challenge challenge, 
+            List<int> categoriesToAdd, List<int> categoriesToRemove);
     }
 }

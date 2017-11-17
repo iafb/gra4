@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-using GRA.Domain.Repository;
-using GRA.Domain.Model;
-using System.Threading.Tasks;
-using GRA.Domain.Service.Abstract;
 using System.Linq;
+using System.Threading.Tasks;
+using GRA.Domain.Model;
 using GRA.Domain.Model.Filters;
+using GRA.Domain.Repository;
+using GRA.Domain.Service.Abstract;
+using GRA.Domain.Service.Models;
+using Microsoft.Extensions.Logging;
 
 namespace GRA.Domain.Service
 {
@@ -14,6 +15,7 @@ namespace GRA.Domain.Service
     {
         private readonly IBadgeRepository _badgeRepository;
         private readonly IBranchRepository _branchRepository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IChallengeRepository _challengeRepository;
         private readonly IChallengeTaskRepository _challengeTaskRepository;
         private readonly ITriggerRepository _triggerRepository;
@@ -24,6 +26,7 @@ namespace GRA.Domain.Service
             IUserContextProvider userContextProvider,
             IBadgeRepository badgeRepository,
             IBranchRepository branchRepository,
+            ICategoryRepository categoryRepository,
             IChallengeRepository challengeRepository,
             IChallengeTaskRepository challengeTaskRepository,
             ITriggerRepository triggerRepository,
@@ -31,6 +34,7 @@ namespace GRA.Domain.Service
         {
             _badgeRepository = Require.IsNotNull(badgeRepository, nameof(badgeRepository));
             _branchRepository = Require.IsNotNull(branchRepository, nameof(branchRepository));
+            _categoryRepository = Require.IsNotNull(categoryRepository, nameof(categoryRepository));
             _challengeRepository = Require.IsNotNull(challengeRepository,
                 nameof(challengeRepository));
             _challengeTaskRepository = Require.IsNotNull(challengeTaskRepository,
@@ -40,18 +44,18 @@ namespace GRA.Domain.Service
         }
 
         public async Task<DataWithCount<IEnumerable<Challenge>>>
-            GetPaginatedChallengeListAsync(int skip,
-            int take,
-            string search = null)
+            GetPaginatedChallengeListAsync(BaseFilter filter)
         {
             ICollection<Challenge> challenges = null;
             int challengeCount;
-            int siteId = GetCurrentSiteId();
+
+            filter.IsActive = true;
+            filter.SiteId = GetCurrentSiteId();
             if (GetAuthUser().Identity.IsAuthenticated)
             {
                 var userLookupChallenges = new List<Challenge>();
                 int userId = GetActiveUserId();
-                var challengeIds = await _challengeRepository.PageIdsAsync(siteId, skip, take, userId, search);
+                var challengeIds = await _challengeRepository.PageIdsAsync(filter, userId);
                 foreach (var challengeId in challengeIds.Data)
                 {
                     var challengeStatus = await _challengeRepository.GetActiveByIdAsync(challengeId, userId);
@@ -70,14 +74,6 @@ namespace GRA.Domain.Service
             }
             else
             {
-                BaseFilter filter = new BaseFilter()
-                {
-                    SiteId = siteId,
-                    Skip = skip,
-                    Take = take,
-                    Search = search,
-                    IsActive = true
-                };
                 challenges = await _challengeRepository.PageAllAsync(filter);
                 challengeCount = await _challengeRepository.GetChallengeCountAsync(filter);
             }
@@ -158,7 +154,7 @@ namespace GRA.Domain.Service
             throw new Exception("Permission denied.");
         }
 
-        public async Task<Challenge> AddChallengeAsync(Challenge challenge)
+        public async Task<ServiceResult<Challenge>> AddChallengeAsync(Challenge challenge)
         {
             int authUserId = GetClaimId(ClaimType.UserId);
             if (HasPermission(Permission.AddChallenges))
@@ -173,20 +169,41 @@ namespace GRA.Domain.Service
                         throw new GraException("Invalid branch limitation.");
                     }
                 }
+                var serviceResult = new ServiceResult<Challenge>();
+                var siteId = GetCurrentSiteId();
+
                 challenge.IsActive = false;
                 challenge.IsDeleted = false;
                 challenge.IsValid = false;
-                challenge.SiteId = GetCurrentSiteId();
+                challenge.SiteId = siteId;
                 challenge.RelatedBranchId = GetClaimId(ClaimType.BranchId);
                 challenge.RelatedSystemId = GetClaimId(ClaimType.SystemId);
-                return await _challengeRepository
+
+                if (challenge.CategoryIds?.Count > 0)
+                {
+                    var validCategoryIds = (await _categoryRepository.GetAllAsync(siteId))
+                        .Select(_ => _.Id);
+                    var invalidSelectedIds = challenge.CategoryIds.Except(validCategoryIds);
+
+                    if (invalidSelectedIds.Count() > 0)
+                    {
+                        challenge.CategoryIds = challenge.CategoryIds.Except(invalidSelectedIds)
+                            .ToList();
+                        serviceResult.Status = ServiceResultStatus.Warning;
+                        serviceResult.Message = "One or more of the selected categories could not be added to this challenge.";
+                    }
+                }
+
+                serviceResult.Data = await _challengeRepository
                     .AddSaveAsync(GetClaimId(ClaimType.UserId), challenge);
+
+                return serviceResult;
             }
             _logger.LogError($"User {authUserId} doesn't have permission to add a challenge.");
             throw new Exception("Permission denied.");
         }
 
-        public async Task<Challenge> EditChallengeAsync(Challenge challenge)
+        public async Task<ServiceResult<Challenge>> EditChallengeAsync(Challenge challenge)
         {
             int authUserId = GetClaimId(ClaimType.UserId);
             if (HasPermission(Permission.EditChallenges))
@@ -202,6 +219,8 @@ namespace GRA.Domain.Service
                     }
                 }
                 var currentChallenge = await _challengeRepository.GetByIdAsync(challenge.Id);
+                var serviceResult = new ServiceResult<Challenge>();
+
                 challenge.SiteId = currentChallenge.SiteId;
                 challenge.RelatedBranchId = currentChallenge.RelatedBranchId;
                 challenge.RelatedSystemId = currentChallenge.RelatedSystemId;
@@ -215,8 +234,34 @@ namespace GRA.Domain.Service
                     challenge.IsActive = false;
                     challenge.IsValid = false;
                 }
-                return await _challengeRepository
-                    .UpdateSaveAsync(authUserId, challenge);
+
+                if (challenge.CategoryIds?.Count > 0)
+                {
+                    var validCategoryIds = (await _categoryRepository.GetAllAsync(GetCurrentSiteId()))
+                        .Select(_ => _.Id);
+                    var invalidSelectedIds = challenge.CategoryIds.Except(validCategoryIds);
+
+                    if (invalidSelectedIds.Count() > 0)
+                    {
+                        challenge.CategoryIds = challenge.CategoryIds.Except(invalidSelectedIds)
+                            .ToList();
+                        serviceResult.Status = ServiceResultStatus.Warning;
+                        serviceResult.Message = "One or more of the selected categories could not be added to this challenge.";
+                    }
+                }
+                else
+                {
+                    challenge.CategoryIds = new List<int>();
+                }
+
+                var currentCategoryIds = currentChallenge.Categories.Select(_ => _.Id);
+                var categoriesToAdd = challenge.CategoryIds.Except(currentCategoryIds).ToList();
+                var categoriesToRemove = currentCategoryIds.Except(challenge.CategoryIds).ToList();
+
+                serviceResult.Data = await _challengeRepository
+                    .UpdateSaveAsync(authUserId, challenge, categoriesToAdd, categoriesToRemove);
+
+                return serviceResult;
             }
             _logger.LogError($"User {authUserId} doesn't have permission to edit challenge {challenge.Id}.");
             throw new GraException("Permission denied.");

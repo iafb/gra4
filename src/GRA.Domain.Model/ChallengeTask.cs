@@ -8,6 +8,7 @@ namespace GRA.Domain.Model
     {
         [Required]
         public int ChallengeId { get; set; }
+        public Challenge Challenge { get; set; }
         [Required]
         public int Position { get; set; }
 

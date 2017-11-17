@@ -1,14 +1,16 @@
-﻿using GRA.Controllers.ViewModel.Challenges;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using GRA.Controllers.ViewModel.Challenges;
 using GRA.Controllers.ViewModel.Shared;
 using GRA.Domain.Model;
+using GRA.Domain.Model.Filters;
 using GRA.Domain.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace GRA.Controllers
 {
@@ -17,33 +19,51 @@ namespace GRA.Controllers
         private readonly ILogger<ChallengesController> _logger;
         private readonly AutoMapper.IMapper _mapper;
         public readonly ActivityService _activityService;
+        private readonly CategoryService _categoryService;
         private readonly ChallengeService _challengeService;
         public ChallengesController(ILogger<ChallengesController> logger,
             ServiceFacade.Controller context,
             ActivityService activityService,
+            CategoryService categoryService,
             ChallengeService challengeService) : base(context)
         {
             _logger = Require.IsNotNull(logger, nameof(logger));
             _mapper = context.Mapper;
             _activityService = Require.IsNotNull(activityService, nameof(activityService));
+            _categoryService = Require.IsNotNull(categoryService, nameof(categoryService));
             _challengeService = Require.IsNotNull(challengeService, nameof(challengeService));
             PageTitle = "Challenges";
         }
 
-        public async Task<IActionResult> Index(string Search, int page = 1)
+        public async Task<IActionResult> Index(string Search, string Categories, int page = 1)
         {
             int siteId = GetCurrentSiteId();
-            int take = 15;
-            int skip = take * (page - 1);
 
-            var challengeList = await _challengeService
-                .GetPaginatedChallengeListAsync(skip, take, Search);
+            BaseFilter filter = new BaseFilter(page);
+            if (!string.IsNullOrWhiteSpace(Search))
+            {
+                filter.Search = Search;
+            }
+            if (!string.IsNullOrWhiteSpace(Categories))
+            {
+                var categoryIds = new List<int>();
+                foreach (var category in Categories.Split(','))
+                {
+                    int result;
+                    if (int.TryParse(category, out result))
+                    {
+                        categoryIds.Add(result);
+                    }
+                }
+                filter.CategoryIds = categoryIds;
+            }
+            var challengeList = await _challengeService.GetPaginatedChallengeListAsync(filter);
 
             PaginateViewModel paginateModel = new PaginateViewModel()
             {
                 ItemCount = challengeList.Count,
                 CurrentPage = page,
-                ItemsPerPage = take
+                ItemsPerPage = filter.Take.Value
             };
 
             if (paginateModel.MaxPage > 0 && paginateModel.CurrentPage > paginateModel.MaxPage)
@@ -72,12 +92,17 @@ namespace GRA.Controllers
             var isActive = AuthUser.Identity.IsAuthenticated && (siteStage == SiteStage.ProgramOpen
                 || siteStage == SiteStage.ProgramEnded);
 
+            var categoryList = await _categoryService.GetListAsync(true);
+
             ChallengesListViewModel viewModel = new ChallengesListViewModel()
             {
                 Challenges = challengeList.Data,
                 PaginateModel = paginateModel,
                 Search = Search,
-                IsActive = isActive
+                Categories = Categories,
+                IsActive = isActive,
+                CategoryIds = filter.CategoryIds,
+                CategoryList = new SelectList(categoryList, "Id", "Name")
             };
 
             if (!string.IsNullOrWhiteSpace(Search))

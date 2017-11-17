@@ -22,6 +22,11 @@ namespace GRA.Domain.Service
                 nameof(categoryRepository));
         }
 
+        public async Task<IEnumerable<Category>> GetListAsync(bool hideEmpty = false)
+        {
+            return await _categoryRepository.GetAllAsync(GetCurrentSiteId(), hideEmpty);
+        }
+
         public async Task<DataWithCount<IEnumerable<Category>>> GetPaginatedListAsync(
             BaseFilter filter)
         {
@@ -38,6 +43,10 @@ namespace GRA.Domain.Service
         {
             VerifyManagementPermission();
             category.SiteId = GetCurrentSiteId();
+            if (string.IsNullOrWhiteSpace(category.Color))
+            {
+                category.Color = "#7777";
+            }
             return await _categoryRepository.AddSaveAsync(GetClaimId(ClaimType.UserId), category);
         }
 
