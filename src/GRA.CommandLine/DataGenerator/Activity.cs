@@ -45,7 +45,7 @@ namespace GRA.CommandLine.DataGenerator
                 SecretCodesOnly = true
             });
             var challengeList = await _challengeService
-                .GetPaginatedChallengeListAsync(new BaseFilter());
+                .GetPaginatedChallengeListAsync(new ChallengeFilter());
 
             var activities = new List<GeneratedActivity>();
 
@@ -84,7 +84,7 @@ namespace GRA.CommandLine.DataGenerator
                         while (!isValid)
                         {
                             challengeLookupCount++;
-                            var filter = new BaseFilter()
+                            var filter = new ChallengeFilter()
                             {
                                 Take = rand.Int(0, challengeList.Count - 1),
                                 Skip = 1
