@@ -44,7 +44,7 @@ namespace GRA.Domain.Service
         }
 
         public async Task<DataWithCount<IEnumerable<Challenge>>>
-            GetPaginatedChallengeListAsync(BaseFilter filter)
+            GetPaginatedChallengeListAsync(ChallengeFilter filter)
         {
             ICollection<Challenge> challenges = null;
             int challengeCount;
@@ -55,6 +55,7 @@ namespace GRA.Domain.Service
             {
                 var userLookupChallenges = new List<Challenge>();
                 int userId = GetActiveUserId();
+                filter.UserIds = new List<int>() { userId };
                 var challengeIds = await _challengeRepository.PageIdsAsync(filter, userId);
                 foreach (var challengeId in challengeIds.Data)
                 {
@@ -86,7 +87,7 @@ namespace GRA.Domain.Service
         }
 
         public async Task<DataWithCount<IEnumerable<Challenge>>>
-            MCGetPaginatedChallengeListAsync(BaseFilter filter)
+            MCGetPaginatedChallengeListAsync(ChallengeFilter filter)
         {
             int authUserId = GetClaimId(ClaimType.UserId);
             if (HasPermission(Permission.ViewAllChallenges))

@@ -6,6 +6,7 @@ using GRA.Controllers.ViewModel.Shared;
 using GRA.Domain.Model;
 using GRA.Domain.Model.Filters;
 using GRA.Domain.Service;
+using GRA.Domain.Service.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -35,11 +36,11 @@ namespace GRA.Controllers
             PageTitle = "Challenges";
         }
 
-        public async Task<IActionResult> Index(string Search, string Categories, int page = 1)
+        public async Task<IActionResult> Index(string Search, string Categories, bool Favorites = false, int page = 1)
         {
             int siteId = GetCurrentSiteId();
 
-            BaseFilter filter = new BaseFilter(page);
+            ChallengeFilter filter = new ChallengeFilter(page);
             if (!string.IsNullOrWhiteSpace(Search))
             {
                 filter.Search = Search;
@@ -56,6 +57,10 @@ namespace GRA.Controllers
                     }
                 }
                 filter.CategoryIds = categoryIds;
+            }
+            if (Favorites == true && AuthUser.Identity.IsAuthenticated)
+            {
+                filter.Favorites = true;
             }
             var challengeList = await _challengeService.GetPaginatedChallengeListAsync(filter);
 
@@ -89,18 +94,20 @@ namespace GRA.Controllers
 
             var siteStage = GetSiteStage();
 
-            var isActive = AuthUser.Identity.IsAuthenticated && (siteStage == SiteStage.ProgramOpen
+            var isActive = (siteStage == SiteStage.ProgramOpen
                 || siteStage == SiteStage.ProgramEnded);
 
             var categoryList = await _categoryService.GetListAsync(true);
 
             ChallengesListViewModel viewModel = new ChallengesListViewModel()
             {
-                Challenges = challengeList.Data,
+                Challenges = challengeList.Data.ToList(),
                 PaginateModel = paginateModel,
                 Search = Search,
                 Categories = Categories,
+                Favorites = Favorites,
                 IsActive = isActive,
+                IsLoggedIn = AuthUser.Identity.IsAuthenticated,
                 CategoryIds = filter.CategoryIds,
                 CategoryList = new SelectList(categoryList, "Id", "Name")
             };
@@ -116,6 +123,51 @@ namespace GRA.Controllers
             HttpContext.Session.SetInt32(SessionKey.ChallengePage, page);
 
             return View(viewModel);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> UpdateSingleFavorite(int challengeId, bool favorite)
+        {
+            var challengeList = new List<Challenge>()
+            {
+                new Challenge()
+                {
+                    Id = challengeId,
+                    IsFavorited = favorite
+                }
+            };
+            var serviceResult = await _activityService.UpdateFavoriteChallenges(challengeList);
+
+            return Json(new
+            {
+                success = serviceResult.Status == ServiceResultStatus.Success,
+                message = serviceResult.Message,
+                favorite = favorite
+            });
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> UpdateFavorites(ChallengesListViewModel model)
+        {
+            var serviceResult = await _activityService.UpdateFavoriteChallenges(model.Challenges);
+            if (serviceResult.Status == ServiceResultStatus.Warning
+                        && !string.IsNullOrWhiteSpace(serviceResult.Message))
+            {
+                ShowAlertWarning(serviceResult.Message);
+            }
+            int? page = null;
+            if (model.PaginateModel.CurrentPage > 1)
+            {
+                page = model.PaginateModel.CurrentPage;
+            }
+            return RedirectToAction("Index", new
+            {
+                page = page,
+                Search = model.Search,
+                Categories = model.Categories
+            });
         }
 
         public async Task<IActionResult> Detail(int id)
@@ -172,7 +224,7 @@ namespace GRA.Controllers
                 var title = task.Title;
                 if (!string.IsNullOrWhiteSpace(task.Url))
                 {
-                     title = $"<a href=\"{task.Url}\" target=\"_blank\">{title}</a>";
+                    title = $"<a href=\"{task.Url}\" target=\"_blank\">{title}</a>";
                 }
                 if (task.ChallengeTaskType.ToString() == "Book")
                 {

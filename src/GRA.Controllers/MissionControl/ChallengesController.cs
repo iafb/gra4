@@ -115,7 +115,7 @@ namespace GRA.Controllers.MissionControl
         private async Task<ChallengesListViewModel> GetChallengeList(string Search, string Categories, int? Program,
             int? System, int? Branch, bool? Mine, int page = 1, bool pending = false)
         {
-            BaseFilter filter = new BaseFilter(page);
+            ChallengeFilter filter = new ChallengeFilter(page);
             if (!string.IsNullOrWhiteSpace(Search))
             {
                 filter.Search = Search;

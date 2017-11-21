@@ -1,14 +1,14 @@
-﻿using System.Linq;
-using Microsoft.Extensions.Logging;
-using GRA.Domain.Repository;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper.QueryableExtensions;
-using System.Threading.Tasks;
+﻿using System;
 using System.Collections.Generic;
-using System;
+using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper.QueryableExtensions;
 using GRA.Domain.Model;
-using GRA.Domain.Repository.Extensions;
 using GRA.Domain.Model.Filters;
+using GRA.Domain.Repository;
+using GRA.Domain.Repository.Extensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace GRA.Data.Repository
 {
@@ -21,7 +21,7 @@ namespace GRA.Data.Repository
         }
 
         public async Task<ICollection<Challenge>>
-            PageAllAsync(BaseFilter filter)
+            PageAllAsync(ChallengeFilter filter)
         {
             var challengeList = await ApplyFilters(filter)
                 .Include(_ => _.ChallengeCategories)
@@ -40,12 +40,12 @@ namespace GRA.Data.Repository
             return challengeList;
         }
 
-        public async Task<int> GetChallengeCountAsync(BaseFilter filter)
+        public async Task<int> GetChallengeCountAsync(ChallengeFilter filter)
         {
             return await ApplyFilters(filter).CountAsync();
         }
 
-        private IQueryable<Data.Model.Challenge> ApplyFilters(BaseFilter filter)
+        private IQueryable<Data.Model.Challenge> ApplyFilters(ChallengeFilter filter)
         {
             var challenges = _context.Challenges.AsNoTracking()
                     .Where(_ => _.IsDeleted == false
@@ -64,7 +64,7 @@ namespace GRA.Data.Repository
                 challenges = challenges
                     .Where(_ => filter.ProgramIds.Any(p => p == _.LimitToProgramId));
             }
-            if (filter.UserIds?.Any() == true)
+            if (filter.UserIds?.Any() == true && filter.Favorites != true)
             {
                 challenges = challenges.Where(_ => filter.UserIds.Contains(_.CreatedBy));
             }
@@ -76,6 +76,18 @@ namespace GRA.Data.Repository
                     .Where(_ => _.ChallengeCategories
                         .Select(c => c.CategoryId)
                         .Any(c => filter.CategoryIds.Contains(c)));
+            }
+            
+            if (filter.Favorites == true && filter.UserIds?.FirstOrDefault() != null)
+            {
+                var userFavoriteChallenges = _context.UserFavoriteChallenges
+                    .AsNoTracking()
+                    .Where(_ => _.UserId == filter.UserIds.First());
+
+                challenges = from challengeList in challenges
+                             join userFavorites in userFavoriteChallenges
+                             on challengeList.Id equals userFavorites.ChallengeId
+                             select challengeList;
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -193,6 +205,11 @@ namespace GRA.Data.Repository
                             task.CompletedAt = userChallengeTask.CreatedAt;
                         }
                     }
+
+                    challenge.IsFavorited = await _context.UserFavoriteChallenges
+                        .AsNoTracking()
+                        .Where(_ => _.ChallengeId == id && _.UserId == userId)
+                        .AnyAsync();
                 }
             }
             return challenge;
@@ -383,7 +400,7 @@ namespace GRA.Data.Repository
             }
         }
 
-        public async Task<DataWithCount<IEnumerable<int>>> PageIdsAsync(BaseFilter filter,
+        public async Task<DataWithCount<IEnumerable<int>>> PageIdsAsync(ChallengeFilter filter,
             int userId)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -430,6 +447,63 @@ namespace GRA.Data.Repository
                 .AsNoTracking()
                 .Where(_ => _.ChallengeId == challengeId)
                 .AnyAsync();
+        }
+
+        public async Task<IEnumerable<int>> GetUserFavoriteChallenges(int userId,
+            IEnumerable<int> challengeIds = null)
+        {
+            var favoriteChallenges = _context.UserFavoriteChallenges
+                .AsNoTracking()
+                .Where(_ => _.UserId == userId);
+
+            if (challengeIds?.Count() > 0)
+            {
+                favoriteChallenges = favoriteChallenges
+                    .Where(_ => challengeIds.Contains(_.ChallengeId));
+            }
+
+            return await favoriteChallenges
+                .Select(_ => _.ChallengeId)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<int>> ValidateChallengeIds(int siteId,
+            IEnumerable<int> challengeIds)
+        {
+            return await DbSet
+                .AsNoTracking()
+                .Where(_ => _.SiteId == siteId && challengeIds.Contains(_.Id))
+                .Select(_ => _.Id)
+                .ToListAsync();
+        }
+
+        public async Task UpdateUserFavoritesAsync(int authUserId, int userId,
+            IEnumerable<int> favoritesToAdd, IEnumerable<int> favoritesToRemove)
+        {
+            if (favoritesToAdd.Count() > 0)
+            {
+                var time = _dateTimeProvider.Now;
+                var userFavoriteList = new List<Model.UserFavoriteChallenge>();
+                foreach (var challengeId in favoritesToAdd)
+                {
+                    userFavoriteList.Add(new Model.UserFavoriteChallenge()
+                    {
+                        UserId = userId,
+                        ChallengeId = challengeId,
+                        CreatedAt = time,
+                        CreatedBy = authUserId
+                    });
+                }
+                await _context.UserFavoriteChallenges.AddRangeAsync(userFavoriteList);
+            }
+            if (favoritesToRemove.Count() > 0)
+            {
+                var removeList = _context.UserFavoriteChallenges
+                    .Where(_ => _.UserId == userId && favoritesToRemove
+                    .Contains(_.ChallengeId));
+                _context.UserFavoriteChallenges.RemoveRange(removeList);
+            }
+            await SaveAsync();
         }
     }
 }
