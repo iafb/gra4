@@ -368,6 +368,14 @@ namespace GRA.Controllers.MissionControl
             try
             {
                 challenge = await _challengeService.MCGetChallengeDetailsAsync(id);
+
+                foreach (var task in challenge.Tasks)
+                {
+                    if (task.ChallengeTaskType == ChallengeTaskType.Action)
+                    {
+                        task.Description = CommonMark.CommonMarkConverter.Convert(task.Title);
+                    }
+                }
                 if (TempData.ContainsKey(TempEditChallenge))
                 {
                     var storedChallenge = Newtonsoft.Json.JsonConvert

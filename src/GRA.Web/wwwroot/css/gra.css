@@ -558,3 +558,7 @@ input.form-checkbox {
     .favorite-button.fa-star-o {
         color: #DDB500;
     }
+
+.task-description p {
+    margin-bottom: 0px;
+}

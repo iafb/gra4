@@ -237,7 +237,7 @@ namespace GRA.Controllers
                 }
                 else
                 {
-                    taskModel.Description = title;
+                    taskModel.Description = CommonMark.CommonMarkConverter.Convert(task.Title);
                 }
                 viewModel.Tasks.Add(taskModel);
             }
