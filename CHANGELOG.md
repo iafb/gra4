@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Add vendor code report
 - System and branch configuration
 - Dockerfile and .dockerignore to support Docker builds
+- Challenge Categories
+- Favoriting Challenges
+- Markdown text entry and images to Challenge Tasks
 
 ### Changed
 - Show report completion percent in window titlebar
