@@ -28,47 +28,48 @@
                     {
                         <div class="row row-spacing">
                             <div class="col-xs-12">
-                                <a asp-action="Index" asp-route-Search="@Model.Search" asp-route-Categories="@Model.Categories" asp-route-Favorites="@(Model.Favorites == true ? null : "True")" class="btn pull-right @(Model.Favorites == true ? "btn-primary" : "btn-default")">
-                                    <span class="fa @(Model.Favorites == true ? "fa-star" : "fa-star-o")"></span> Favorites
+                                <a asp-action="Index" asp-route-Search="@Model.Search" asp-route-Categories="@Model.Categories" asp-route-Favorites="@(Model.Favorites == true ? null : "True")" class="btn pull-right @(Model.Favorites == true ? "btn-success" : "btn-default")">
+                                    <span class="fa @(Model.Favorites == true ? "fa-star" : "fa-star-o")"></span> My Favorites
                                 </a>
                             </div>
                         </div>
                     }
-                    @if (Model.CategoryList?.Count() > 0)
-                    {
-                        <div id="Category" class="row row-spacing">
-                            <div class="col-xs-12">
-                                <table>
-                                    <tr>
-                                        <td>
-                                            <span style="font-size:large;padding-top:10px;">Category:</span>
-                                        </td>
-                                        <td style="padding-left:10px;width:100%;">
-                                            <noscript id="noscript">
-                                                <select asp-for="Categories" asp-items="Model.CategoryList" class="form-control">
-                                                    <option></option>
-                                                </select>
-                                            </noscript>
-                                            <input id="CategoryPlaceholder" class="form-control" />
-                                            <select asp-for="CategoryIds" asp-items="Model.CategoryList" class="form-control hidden" disabled="disabled" multiple="multiple"></select>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    }
+                   
 
                     <div class="row row-spacing">
-                        <div class="col-sm-8 gra-search-container">
+                        <div class="col-xs-12 col-sm-2" style="margin-bottom:5px;">
+                            <span style="font-size:large;">Search:</span>
+                        </div>
+                        <div class="col-xs-12 col-sm-10 gra-search-container">
                             <input asp-for="Search"
                                    class="form-control"
                                    placeholder="Enter text to search for a challenge here" />
                         </div>
-                        <div class="col-xs-6 col-sm-2">
-                            <a asp-action="Index" asp-route-Categories="@Model.Categories" asp-route-Favorites="@(Model.Favorites == true ? "True" : null)" class="btn btn-default btn-block"><span class="hidden-sm fa fa-minus-circle"></span> Clear</a>
+                        
+                    </div>
+                    @if (Model.CategoryList?.Count() > 0)
+                    {
+                        <div id="Category" class="row row-spacing">
+                            <div class="col-xs-12 col-sm-2" style="margin-bottom:5px;">
+                                <span style="font-size:large;">Category:</span>
+                            </div>
+                            <div class="col-xs-12 col-sm-10">
+                                <noscript id="noscript">
+                                    <select asp-for="Categories" asp-items="Model.CategoryList" class="form-control">
+                                        <option></option>
+                                    </select>
+                                </noscript>
+                                <input id="CategoryPlaceholder" class="form-control" />
+                                <select asp-for="CategoryIds" asp-items="Model.CategoryList" class="form-control hidden" disabled="disabled" multiple="multiple"></select>
+                            </div>
+                        </div>
+                    }
+                    <div class="row row-spacing">
+                        <div class="col-xs-6 col-sm-offset-8 col-sm-2">
+                            <a asp-action="Index" class="btn btn-default btn-block"><span class="hidden-sm fa fa-minus-circle"></span> Clear</a>
                         </div>
                         <div class="col-xs-6 col-sm-2">
-                            <button type="submit" class="btn btn-primary btn-block"><span class="hidden-sm fa fa-search"></span> Search</button>
+                            <button type="submit" class="btn btn-primary btn-block"><span class="hidden-sm fa fa-search"></span> Find</button>
                         </div>
                     </div>
                 </form>
@@ -161,7 +162,7 @@
                                 @if (Model.IsLoggedIn)
                                 {
                                     <noscript>
-                                        <button type="submit" class="btn btn-primary">Save Favorites</button>
+                                        <button type="submit" class="btn btn-primary">Save My Favorites</button>
                                     </noscript>
                                 }
                                 @if (Model.PaginateModel.MaxPage > 1)
@@ -179,25 +180,8 @@
 
 @section scripts {
     <script>
-        var categoriesAdded = false;
-        var search = $("#Search").val();
-        var categoryIds = $("#CategoryIds option:selected")
-            .map(function (a, item) { return item.value; })
-            .get();
         var favoriteUrl = "@(Url.Action("UpdateSingleFavorite"))";
         var showFavorites = "@Model.Favorites" == "True";
-
-        function UpdateCategories() {
-            var currentCategories = $("#CategoryIds option:selected")
-                .map(function (a, item) { return item.value; })
-                .get();
-
-            if ($(categoryIds).not(currentCategories).length != 0 || $(currentCategories).not(categoryIds).length != 0) {
-                categoryIds = currentCategories;
-                $("#Search").val(search);
-                $("#searchForm").submit();
-            }
-        }
 
         $("#CategoryIds").removeAttr("disabled");
         $("#CategoryPlaceholder").remove();
@@ -205,19 +189,21 @@
             nonSelectedText: "",
             buttonClass: "form-control",
             buttonWidth: "100%",
-            disableIfEmpty: true,
-            onDropdownHide: UpdateCategories
+            disableIfEmpty: true
         });
 
         $("#searchForm").on("submit", function () {
-            if (categoryIds.length > 0 && categoriesAdded == false) {
+            var categoryIds = $("#CategoryIds option:selected")
+                .map(function (a, item) { return item.value; })
+                .get();
+
+            if (categoryIds.length > 0) {
                 $("#CategoryIds").attr("disabled", "disabled");
                 $("<input />")
                     .attr("type", "hidden")
                     .attr("name", "Categories")
                     .attr("value", categoryIds.join(","))
                     .appendTo($(this));
-                categoriesAdded = true;
             }
         });
 

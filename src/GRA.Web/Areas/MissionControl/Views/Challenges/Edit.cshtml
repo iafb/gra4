@@ -473,6 +473,13 @@
                             <a class="rowlink"></a>
                             <div class="task-description">
                                 @Html.Raw(task.Description)
+                                @if (!string.IsNullOrWhiteSpace(task.Filename))
+                                {
+                                    <a href="@task.Filename" target="_blank" class="btn btn-xs btn-default on-top" style="margin-top:5px;">
+                                        <span class="fa fa-file-o"></span>
+                                        View Attachment
+                                    </a>
+                                }
                             </div>
                         }
                         else

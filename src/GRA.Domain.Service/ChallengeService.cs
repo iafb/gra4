@@ -14,7 +14,7 @@ namespace GRA.Domain.Service
 {
     public class ChallengeService : Abstract.BaseUserService<ChallengeService>
     {
-        private const string TaskFilesPath = "task_files";
+        private const string TaskFilesPath = "tasks";
         private readonly IBadgeRepository _badgeRepository;
         private readonly IBranchRepository _branchRepository;
         private readonly ICategoryRepository _categoryRepository;

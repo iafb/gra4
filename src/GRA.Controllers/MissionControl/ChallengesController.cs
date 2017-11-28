@@ -375,6 +375,11 @@ namespace GRA.Controllers.MissionControl
                     {
                         task.Description = CommonMark.CommonMarkConverter.Convert(task.Title);
                     }
+                    if (!string.IsNullOrWhiteSpace(task.Filename))
+                    {
+                        var contentPath = _pathResolver.ResolveContentPath(task.Filename);
+                        task.Filename = $"{siteUrl}/{contentPath}";
+                    }
                 }
                 if (TempData.ContainsKey(TempEditChallenge))
                 {
