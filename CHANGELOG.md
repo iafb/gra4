@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Challenge Categories
 - Favoriting Challenges
 - Markdown text entry and images to Challenge Tasks
+- Participant Book list sorting
 
 ### Changed
 - Show report completion percent in window titlebar
