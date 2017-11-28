@@ -22,17 +22,20 @@ namespace GRA.Controllers
         public readonly ActivityService _activityService;
         private readonly CategoryService _categoryService;
         private readonly ChallengeService _challengeService;
+        private readonly SiteService _siteService;
         public ChallengesController(ILogger<ChallengesController> logger,
             ServiceFacade.Controller context,
             ActivityService activityService,
             CategoryService categoryService,
-            ChallengeService challengeService) : base(context)
+            ChallengeService challengeService,
+            SiteService siteService) : base(context)
         {
             _logger = Require.IsNotNull(logger, nameof(logger));
             _mapper = context.Mapper;
             _activityService = Require.IsNotNull(activityService, nameof(activityService));
             _categoryService = Require.IsNotNull(categoryService, nameof(categoryService));
             _challengeService = Require.IsNotNull(challengeService, nameof(challengeService));
+            _siteService = Require.IsNotNull(siteService, nameof(siteService));
             PageTitle = "Challenges";
         }
 
@@ -212,6 +215,7 @@ namespace GRA.Controllers
                 viewModel.Details += " and <strong>a badge</strong>.";
             }
 
+            var siteUrl = await _siteService.GetBaseUrl(Request.Scheme, Request.Host.Value);
             foreach (var task in challenge.Tasks)
             {
                 TaskDetailViewModel taskModel = new TaskDetailViewModel()
@@ -238,6 +242,11 @@ namespace GRA.Controllers
                 else
                 {
                     taskModel.Description = CommonMark.CommonMarkConverter.Convert(task.Title);
+                }
+                if (!string.IsNullOrWhiteSpace(task.Filename))
+                {
+                    var contentPath = _pathResolver.ResolveContentPath(task.Filename);
+                    taskModel.FilePath = $"{siteUrl}/{contentPath}";
                 }
                 viewModel.Tasks.Add(taskModel);
             }
