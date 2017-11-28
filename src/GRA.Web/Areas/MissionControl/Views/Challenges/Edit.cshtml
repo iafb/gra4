@@ -31,7 +31,7 @@
                         </div>
                         <div class="modal-body">
                             <input asp-for="Task.ChallengeTaskType" value="@ChallengeTaskType.Action" type="hidden" />
-
+                            <input asp-for="TaskUploadFile" type="file" accept=".png,.jpg,.jpeg,.png" style="display:none;" />
                             <ul class="nav nav-tabs gra-nav-tabs" role="tablist">
                                 <li role="presentation" class="active">
                                     <a id="actionTab" href="#action" aria-controls="action" role="tab" data-toggle="tab">Action</a>
@@ -48,6 +48,19 @@
                                         <div id="wmd-button-bar"></div>
                                         <textarea asp-for="Task.Title" id="wmd-input" class="form-control wmd-input actionTitle" data-val-required="The Description field is required."></textarea>
                                         <div id="preview"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label">Add a file</label>
+                                        <div class="input-group">
+                                            <label class="input-group-btn">
+                                                <button type="button" class="btn btn-default btn-file taskFileButton">
+                                                    <span class="fa fa-file-o"></span> Select a file
+                                                </button>
+                                            </label>
+                                            <input type="text" class="form-control selectedTaskFile" readonly>
+                                        </div>
+                                        <span asp-validation-for="TaskUploadFile" class="text-danger"></span>
+                                        <button class="btn btn-default clearTaskFile" type="button" style="margin-top: 0.5em;"><span class="fa fa-ban"></span> Clear file selection</button>
                                     </div>
                                 </div>
                                 <div role="tabpanel" class="tab-pane gra-tab-pane" id="book">
@@ -67,7 +80,20 @@
                                     </div>
                                     <div class="form-group">
                                         <label asp-for="Task.Url" class="control-label"></label>
-                                        <input asp-for="Task.Url" id="bookUrl" class="form-control" disabled />
+                                        <input asp-for="Task.Url" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label">Add a file</label>
+                                        <div class="input-group">
+                                            <label class="input-group-btn">
+                                                <button type="button" class="btn btn-default btn-file taskFileButton">
+                                                    <span class="fa fa-file-o"></span> Select a file
+                                                </button>
+                                            </label>
+                                            <input type="text" class="form-control selectedTaskFile" readonly>
+                                        </div>
+                                        <span asp-validation-for="TaskUploadFile" class="text-danger"></span>
+                                        <button class="btn btn-default clearTaskFile" type="button" style="margin-top: 0.5em;"><span class="fa fa-ban"></span> Clear file selection</button>
                                     </div>
                                 </div>
                             </div>
@@ -100,6 +126,8 @@
                             <input asp-for="Task.Position" type="hidden" />
                             <input asp-for="Task.ChallengeId" type="hidden" />
                             <input asp-for="Task.ChallengeTaskType" type="hidden" />
+                            <input asp-for="Task.Filename" type="hidden" />
+                            <input asp-for="TaskUploadFile" type="file" accept=".png,.jpg,.jpeg,.png" style="display:none;" />
 
                             <ul class="nav nav-tabs gra-nav-tabs" role="tablist">
                                 <li role="presentation" class="@(Model.Task.ChallengeTaskType == ChallengeTaskType.Action ? " active" : "" )">
@@ -115,8 +143,28 @@
                                     <div class="form-group">
                                         <label asp-for="Task.Title" class="control-label">Description</label>
                                         <div id="wmd-button-bar"></div>
-                                        <textarea asp-for="Task.Title" id="wmd-input" class="form-control wmd-input actionTitle" data-val-required="The Description field is required."></textarea>
+                                        <textarea asp-for="Task.Title" id="wmd-input" class="form-control wmd-input actionTitle" data-val-required="The Description field is required." disabled="@(Model.Task.ChallengeTaskType == ChallengeTaskType.Action ? null : "disabled")"></textarea>
                                         <div id="preview"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        @if (string.IsNullOrWhiteSpace(Model.Task.Filename))
+                                        {
+                                            <label class="control-label">Add a file</label>
+                                        }
+                                        else
+                                        {
+                                            <label class="control-label">Edit File &ndash; <a href="@Model.TaskFilePath" target="_blank">Link</a></label>
+                                        }
+                                        <div class="input-group">
+                                            <label class="input-group-btn">
+                                                <button type="button" class="btn btn-default btn-file taskFileButton">
+                                                    <span class="fa fa-file-o"></span> Select a file
+                                                </button>
+                                            </label>
+                                            <input type="text" value="@Model.Task.Filename" class="form-control selectedTaskFile" readonly>
+                                        </div>
+                                        <span asp-validation-for="TaskUploadFile" class="text-danger"></span>
+                                        <button class="btn btn-default clearTaskFile" type="button" style="margin-top: 0.5em;"><span class="fa fa-ban"></span> Clear file selection</button>
                                     </div>
                                 </div>
                                 <div role="tabpanel" class="tab-pane gra-tab-pane @(Model.Task.ChallengeTaskType == ChallengeTaskType.Book ? " active" : "" )" id="book">
@@ -136,7 +184,27 @@
                                     </div>
                                     <div class="form-group">
                                         <label asp-for="Task.Url" class="control-label"></label>
-                                        <input asp-for="Task.Url" id="bookUrl" class="form-control" disabled="@(Model.Task.ChallengeTaskType == ChallengeTaskType.Book ? null : " disabled")" />
+                                        <input asp-for="Task.Url" class="form-control" />
+                                    </div>
+                                    <div class="form-group">
+                                        @if (string.IsNullOrWhiteSpace(Model.Task.Filename))
+                                        {
+                                            <label class="control-label">Add a file</label>
+                                        }
+                                        else
+                                        {
+                                            <label class="control-label">Edit file</label>
+                                        }
+                                        <div class="input-group">
+                                            <label class="input-group-btn">
+                                                <button type="button" class="btn btn-default btn-file taskFileButton">
+                                                    <span class="fa fa-file-o"></span> Select a file
+                                                </button>
+                                            </label>
+                                            <input type="text" value="@Model.Task.Filename" class="form-control selectedTaskFile" readonly>
+                                        </div>
+                                        <span asp-validation-for="TaskUploadFile" class="text-danger"></span>
+                                        <button class="btn btn-default clearTaskFile" type="button" style="margin-top: 0.5em;"><span class="fa fa-ban"></span> Clear file selection</button>
                                     </div>
                                 </div>
                             </div>
@@ -347,7 +415,7 @@
                 <div role="tabpanel" class="tab-pane gra-tab-pane @(Model.UseBadgeMaker ? " " : " active")" id="upload">
                     <div class="input-group">
                         <label class="input-group-btn">
-                            <span class="btn btn-default btn-file">
+                            <span class="btn btn-default badgeFile">
                                 <span class="fa fa-file-image-o"></span> Select an image<input type="file" name="BadgeUploadImage" id="BadgeUploadImage" accept=".png,.jpg,.jpeg" style="display: none;" />
                             </span>
                         </label>
@@ -510,15 +578,15 @@
                 $(this).children('a.rowlink').height($(this).height() + 11);
             });
 
-            $(':file').on('fileselect', function(event, numFiles, label) {
+            $('#BadgeUploadImage:file').on('fileselect', function (event, numFiles, label) {
                 var input = $(this).parents('.input-group').find(':text'),
                 log = numFiles > 1 ? numFiles = ' files selected' : label;
 
                 if (input.length)
                 {
                     input.val(log);
-                    $('.btn-file').removeClass('btn-default');
-                    $('.btn-file').addClass('btn-success');
+                    $('.badgeFile').removeClass('btn-default');
+                    $('.badgeFile').addClass('btn-success');
                     $("#badgeImage").removeAttr("src");
                     $("#badgeImage").height(200);
                     $("#BadgeMakerImage").val("");
@@ -526,15 +594,15 @@
                 else
                 {
                     input.val('');
-                    $('.btn-file').addClass('btn-default');
-                    $('.btn-file').removeClass('btn-success');
+                    $('.badgeFile').addClass('btn-default');
+                    $('.badgeFile').removeClass('btn-success');
                 }
             });
 
             $('#clearFile').on("click", function() {
                 $('#BadgeUploadImage').val('');
-                $('.btn-file').addClass('btn-default');
-                $('.btn-file').removeClass('btn-success');
+                $('.badgeFile').addClass('btn-default');
+                $('.badgeFile').removeClass('btn-success');
                 $('#selectedFile').val('');
             });
 
@@ -621,14 +689,43 @@
             $("#Task_ChallengeTaskType").val("@ChallengeTaskType.Action");
             $(".actionTitle").removeAttr("disabled");
             $("#bookTitle").attr("disabled", "disabled");
-            $("#bookUrl").attr("disabled", "disabled");
+            $("#bookFile").attr("disabled", "disabled");
         });
 
         $("#bookTab").on('show.bs.tab', function () {
             $("#Task_ChallengeTaskType").val("@ChallengeTaskType.Book");
             $("#bookTitle").removeAttr("disabled");
-            $("#bookUrl").removeAttr("disabled");
+            $("#bookFile").removeAttr("disabled");
             $(".actionTitle").attr("disabled", "disabled");
+            $("#actionFile").attr("disabled", "disabled");
+        });
+
+        $(".taskFileButton").on("click", function () {
+            $("#TaskUploadFile").trigger("click");
+        });
+
+        $("#TaskUploadFile:file").on("fileselect", function (event, numFiles, label) {
+            var input = $(this).parent().find(".selectedTaskFile"),
+                log = numFiles > 1 ? numFiles = " files selected" : label;
+
+            if (input.length) {
+                input.val(log);
+                $(".taskFileButton").removeClass("btn-default");
+                $(".taskFileButton").addClass("btn-success");
+            }
+            else {
+                input.val("");
+                $(".taskFileButton").addClass("btn-default");
+                $(".taskFileButton").removeClass("btn-success");
+            }
+        });
+
+        $(".clearTaskFile").on("click", function () {
+            $("#Task_Filename").val("");
+            $("#TaskUploadFile").val("");
+            $(".taskFileButton").addClass("btn-default");
+            $(".taskFileButton").removeClass("btn-success");
+            $(".selectedTaskFile").val("");
         });
 
     </script>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GRA.Abstract;
 using GRA.Domain.Model;
 using GRA.Domain.Model.Filters;
 using GRA.Domain.Repository;
@@ -13,11 +14,13 @@ namespace GRA.Domain.Service
 {
     public class ChallengeService : Abstract.BaseUserService<ChallengeService>
     {
+        private const string TaskFilesPath = "task_files";
         private readonly IBadgeRepository _badgeRepository;
         private readonly IBranchRepository _branchRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IChallengeRepository _challengeRepository;
         private readonly IChallengeTaskRepository _challengeTaskRepository;
+        private readonly IPathResolver _pathResolver;
         private readonly ITriggerRepository _triggerRepository;
         private readonly IUserRepository _userRepository;
 
@@ -29,6 +32,7 @@ namespace GRA.Domain.Service
             ICategoryRepository categoryRepository,
             IChallengeRepository challengeRepository,
             IChallengeTaskRepository challengeTaskRepository,
+            IPathResolver pathResolver,
             ITriggerRepository triggerRepository,
             IUserRepository userRepository) : base(logger, dateTimeProvider, userContextProvider)
         {
@@ -39,6 +43,7 @@ namespace GRA.Domain.Service
                 nameof(challengeRepository));
             _challengeTaskRepository = Require.IsNotNull(challengeTaskRepository,
                 nameof(challengeTaskRepository));
+            _pathResolver = Require.IsNotNull(pathResolver, nameof(pathResolver));
             _triggerRepository = Require.IsNotNull(triggerRepository, nameof(triggerRepository));
             _userRepository = Require.IsNotNull(userRepository, nameof(userRepository));
         }
@@ -311,28 +316,56 @@ namespace GRA.Domain.Service
                 throw new Exception("Permission denied.");
             }
         }
-        public async Task<ChallengeTask> AddTaskAsync(ChallengeTask task)
+        public async Task<ChallengeTask> AddTaskAsync(ChallengeTask task, byte[] fileBytes = null)
         {
             int authUserId = GetClaimId(ClaimType.UserId);
             if (HasPermission(Permission.EditChallenges))
             {
                 var newTask = await _challengeTaskRepository.AddSaveAsync(GetClaimId(ClaimType.UserId), task);
+                if (fileBytes != null)
+                {
+                    newTask.Filename = WriteTaskFile(newTask, fileBytes);
+                    newTask = await _challengeTaskRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), newTask);
+                }
 
                 var challenge = await _challengeRepository.GetByIdAsync(task.ChallengeId);
                 if (challenge.TasksToComplete <= challenge.Tasks.Count() && !challenge.IsValid)
                 {
                     await _challengeRepository.SetValidationAsync(authUserId, challenge.Id, true);
                 }
+
                 return newTask;
             }
             _logger.LogError($"User {authUserId} doesn't have permission to add a task to challenge {task.ChallengeId}.");
             throw new Exception("Permission denied.");
         }
 
-        public async Task<ChallengeTask> EditTaskAsync(ChallengeTask task)
+        public async Task<ChallengeTask> EditTaskAsync(ChallengeTask task, byte[] fileBytes = null)
         {
             if (HasPermission(Permission.EditChallenges))
             {
+                var originalTask = await _challengeTaskRepository.GetByIdAsync(task.Id);
+                task.ChallengeId = originalTask.ChallengeId;
+
+                if (fileBytes != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(originalTask.Filename))
+                    {
+                        RemoveTaskFile(originalTask);
+                    }
+                    task.Filename = WriteTaskFile(task, fileBytes);
+                }
+                else if (!string.IsNullOrWhiteSpace(originalTask.Filename)
+                    && string.IsNullOrWhiteSpace(task.Filename))
+                {
+                    RemoveTaskFile(originalTask);
+                    task.Filename = null;
+
+                }
+                else
+                {
+                    task.Filename = originalTask.Filename;
+                }
                 return await _challengeTaskRepository
                     .UpdateSaveAsync(GetClaimId(ClaimType.UserId), task);
             }
@@ -356,6 +389,10 @@ namespace GRA.Domain.Service
                     throw new GraException("Challenge has been started by a participant.");
                 }
                 var task = await _challengeTaskRepository.GetByIdAsync(taskId);
+                if (!string.IsNullOrWhiteSpace(task.Filename))
+                {
+                    RemoveTaskFile(task);
+                }
                 await _challengeTaskRepository
                     .RemoveSaveAsync(GetClaimId(ClaimType.UserId), taskId);
 
@@ -433,6 +470,44 @@ namespace GRA.Domain.Service
             foreach (var challenge in challenges)
             {
                 await AddBadgeFilename(challenge);
+            }
+        }
+
+        private string GetTaskFilePath(string filename)
+        {
+            string contentDir = _pathResolver.ResolveContentFilePath();
+            contentDir = System.IO.Path.Combine(contentDir,
+                    $"site{GetCurrentSiteId()}",
+                    TaskFilesPath);
+
+            if (!System.IO.Directory.Exists(contentDir))
+            {
+                System.IO.Directory.CreateDirectory(contentDir);
+            }
+            return System.IO.Path.Combine(contentDir, filename);
+        }
+
+        private string GetTaskUrlPath(string filename)
+        {
+            return $"site{GetCurrentSiteId()}/{TaskFilesPath}/{filename}";
+        }
+
+        private string WriteTaskFile(ChallengeTask task, byte[] taskFile)
+        {
+            string extension = System.IO.Path.GetExtension(task.Filename).ToLower();
+            string filename = $"task{task.Id}{extension}";
+            string fullFilePath = GetTaskFilePath(filename);
+            _logger.LogInformation($"Writing out task file {fullFilePath}...");
+            System.IO.File.WriteAllBytes(fullFilePath, taskFile);
+            return GetTaskUrlPath(filename);
+        }
+
+        private void RemoveTaskFile(ChallengeTask task)
+        {
+            var filePath = _pathResolver.ResolveContentFilePath(task.Filename);
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
             }
         }
     }

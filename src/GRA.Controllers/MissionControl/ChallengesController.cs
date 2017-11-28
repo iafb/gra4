@@ -446,6 +446,11 @@ namespace GRA.Controllers.MissionControl
             {
                 viewModel.Task = await _challengeService
                     .GetTaskAsync((int)TempData[EditTask]);
+                if (!string.IsNullOrWhiteSpace(viewModel.Task.Filename))
+                {
+                    var contentPath = _pathResolver.ResolveContentPath(viewModel.Task.Filename);
+                    viewModel.TaskFilePath = $"{siteUrl}/{contentPath}";
+                }
             }
             PageTitle = $"Edit Challenge - {viewModel.Challenge.Name}";
 
@@ -653,15 +658,41 @@ namespace GRA.Controllers.MissionControl
                 ModelState.Remove(key);
             }
 
+            if (viewModel.TaskUploadFile != null)
+            {
+                if (Path.GetExtension(viewModel.TaskUploadFile.FileName).ToLower() != ".jpg"
+                    && Path.GetExtension(viewModel.TaskUploadFile.FileName).ToLower() != ".jpeg"
+                    && Path.GetExtension(viewModel.TaskUploadFile.FileName).ToLower() != ".png"
+                    && Path.GetExtension(viewModel.TaskUploadFile.FileName).ToLower() != ".pdf")
+                {
+                    ModelState.AddModelError("BadgeUploadImage", "Only .jpg, .png and .pdf files are allowed.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
+                byte[] fileBytes = null;
                 if (viewModel.Task.ChallengeTaskType == ChallengeTaskType.Action)
                 {
                     viewModel.Task.Author = null;
                     viewModel.Task.Isbn = null;
+                    viewModel.Task.Url = null;
+                }
+                if (viewModel.TaskUploadFile != null)
+                {
+                    viewModel.Task.Filename = viewModel.TaskUploadFile.FileName;
+                    using (var fileStream = viewModel.TaskUploadFile.OpenReadStream())
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            fileStream.CopyTo(ms);
+                            fileBytes = ms.ToArray();
+                        }
+                    }
                 }
                 viewModel.Task.ChallengeId = viewModel.Challenge.Id;
-                await _challengeService.AddTaskAsync(viewModel.Task);
+                await _challengeService.AddTaskAsync(viewModel.Task, fileBytes);
+
             }
             else
             {
@@ -705,14 +736,39 @@ namespace GRA.Controllers.MissionControl
             {
                 ModelState.Remove(key);
             }
+
+            if (viewModel.TaskUploadFile != null)
+            {
+                if (Path.GetExtension(viewModel.TaskUploadFile.FileName).ToLower() != ".jpg"
+                    && Path.GetExtension(viewModel.TaskUploadFile.FileName).ToLower() != ".jpeg"
+                    && Path.GetExtension(viewModel.TaskUploadFile.FileName).ToLower() != ".png"
+                    && Path.GetExtension(viewModel.TaskUploadFile.FileName).ToLower() != ".pdf")
+                {
+                    ModelState.AddModelError("BadgeUploadImage", "Only .jpg, .png and .pdf files are allowed.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
+                byte[] fileBytes = null;
                 if (viewModel.Task.ChallengeTaskType == ChallengeTaskType.Action)
                 {
                     viewModel.Task.Author = null;
                     viewModel.Task.Isbn = null;
                 }
-                await _challengeService.EditTaskAsync(viewModel.Task);
+                if (viewModel.TaskUploadFile != null)
+                {
+                    viewModel.Task.Filename = viewModel.TaskUploadFile.FileName;
+                    using (var fileStream = viewModel.TaskUploadFile.OpenReadStream())
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            fileStream.CopyTo(ms);
+                            fileBytes = ms.ToArray();
+                        }
+                    }
+                }
+                await _challengeService.EditTaskAsync(viewModel.Task, fileBytes);
             }
             else
             {
