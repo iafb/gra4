@@ -457,7 +457,7 @@
             <tr>
                 <th>Title</th>
                 <th>Type</th>
-                <th width="103">&nbsp;</th>
+                <th width="107">&nbsp;</th>
             </tr>
         </thead>
         @if (Model.Challenge.Tasks != null)
@@ -491,10 +491,10 @@
                     </td>
                     <td>@task.ChallengeTaskType</td>
                     <td class="on-top" style="white-space:nowrap;">
-                        <button asp-action="DecreaseTaskSort" asp-route-id="@task.Id" class="btn btn-default btn-xs" disabled="@(task == Model.Challenge.Tasks.First() ? " disabled" : null)">
+                        <button type="button" data-id="@task.Id" class="btn btn-default btn-xs decreaseTaskSort" style="width:25px;" disabled="@(task == Model.Challenge.Tasks.First() ? " disabled" : null)">
                             <span class="fa fa-arrow-up"></span>
                         </button>
-                        <button asp-action="IncreaseTaskSort" asp-route-id="@task.Id" class="btn btn-default btn-xs" disabled="@(task == Model.Challenge.Tasks.Last() ? " disabled" : null)">
+                        <button type="button" data-id="@task.Id" class="btn btn-default btn-xs increaseTaskSort" style="width:25px;" disabled="@(task == Model.Challenge.Tasks.Last() ? " disabled" : null)">
                             <span class="fa fa-arrow-down"></span>
                         </button>
                         <button type="button"
@@ -526,6 +526,9 @@
     }
 
     <script>
+        var decreaseTaskUrl = "@Url.Action("DecreaseTaskSort")";
+        var increaseTaskUrl = "@Url.Action("IncreaseTaskSort")";
+
         $("#CategoryPlaceholder").remove();
         $("#Challenge_CategoryIds").multiselect({
             nonSelectedText: "",
@@ -734,6 +737,68 @@
             $(".taskFileButton").removeClass("btn-success");
             $(".selectedTaskFile").val("");
         });
+
+        $(".decreaseTaskSort").on("click", function () {
+            var taskButton = $(this);
+            var taskId = taskButton.data("id");
+            var child = taskButton.children("span");
+            if (child.hasClass("fa-spinner") == false) {
+                child.removeClass("fa-arrow-up").addClass("fa-spinner fa-pulse");
+                $.post(decreaseTaskUrl, { id: taskId }, function (response) {
+                    setTimeout(function () {
+                        child.removeClass("fa-spinner fa-pulse").addClass("fa-arrow-up");
+                        if (response == true) {
+                            var taskDiv = taskButton.parent().parent();
+                            var prevDiv = taskDiv.prev();
+                            taskDiv.insertBefore(prevDiv);
+                            if (taskDiv.prev().length == 0) {
+                                taskDiv.find(".decreaseTaskSort").attr("disabled", "disabled");
+                            }
+                            taskDiv.find(".increaseTaskSort").removeAttr("disabled");
+                            if (prevDiv.next().length == 0) {
+                                prevDiv.find(".increaseTaskSort").attr("disabled", "disabled");
+                            }
+                            prevDiv.find(".decreaseTaskSort").removeAttr("disabled");
+                        }
+                        else {
+                            alert("Error changing task position.");
+                        }
+                    }, 200);
+                });
+            }
+        })
+
+        $(".increaseTaskSort").on("click", function () {
+            var taskButton = $(this);
+            var taskId = taskButton.data("id");
+            var child = taskButton.children("span");
+            if (child.hasClass("fa-spinner") == false) {
+                child.removeClass("fa-arrow-down").addClass("fa-spinner fa-pulse");
+                $.post(increaseTaskUrl, { id: taskId }, function (response) {
+                    setTimeout(function () {
+                        child.removeClass("fa-spinner fa-pulse").addClass("fa-arrow-down");
+                        if (response == true) {
+                            var taskDiv = taskButton.parent().parent();
+                            var nextDiv = taskDiv.next();
+                            taskDiv.insertAfter(nextDiv);
+                            if (taskDiv.next().length == 0) {
+                                taskDiv.find(".increaseTaskSort").attr("disabled", "disabled");
+                            }
+                            taskDiv.find(".decreaseTaskSort").removeAttr("disabled");
+                            if (nextDiv.prev().length == 0) {
+                                nextDiv.find(".decreaseTaskSort").attr("disabled", "disabled");
+                            }
+                            nextDiv.find(".increaseTaskSort").removeAttr("disabled");
+
+                            
+                        }
+                        else {
+                            alert("Error changing task position.");
+                        }
+                    }, 200);
+                });
+            }
+        })
 
     </script>
 }

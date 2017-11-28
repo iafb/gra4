@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Moved content into top-level shared folder for better Docker support
 - Change rolling log configuration to support instances
 - Travis CI automated build now uses Docker
+- Challenge task sorting to now uses Ajax
 
 ### Fixed
 - Remove Entered School type restriction

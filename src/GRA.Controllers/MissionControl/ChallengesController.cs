@@ -806,26 +806,34 @@ namespace GRA.Controllers.MissionControl
 
         [Authorize(Policy = Policy.EditChallenges)]
         [HttpPost]
-        public async Task<IActionResult>
-            DecreaseTaskSort(ChallengesDetailViewModel viewModel, int id)
+        public async Task<IActionResult> DecreaseTaskSort(int id)
         {
-            await _challengeService.DecreaseTaskPositionAsync(id);
-            TempData[TempEditChallenge] = Newtonsoft.Json.JsonConvert
-                .SerializeObject(viewModel.Challenge);
-
-            return RedirectToAction("Edit", new { id = viewModel.Challenge.Id });
+            try
+            {
+                await _challengeService.DecreaseTaskPositionAsync(id);
+                return Json(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error decreasing task sort for task {id} : {ex}", ex);
+                return Json(false);
+            }
         }
 
         [Authorize(Policy = Policy.EditChallenges)]
         [HttpPost]
-        public async Task<IActionResult>
-            IncreaseTaskSort(ChallengesDetailViewModel viewModel, int id)
+        public async Task<IActionResult> IncreaseTaskSort(int id)
         {
-            await _challengeService.IncreaseTaskPositionAsync(id);
-            TempData[TempEditChallenge] = Newtonsoft.Json.JsonConvert
-                .SerializeObject(viewModel.Challenge);
-
-            return RedirectToAction("Edit", new { id = viewModel.Challenge.Id });
+            try
+            {
+                await _challengeService.IncreaseTaskPositionAsync(id);
+                return Json(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error increasing task sort for task {id} : {ex}", ex);
+                return Json(false);
+            }
         }
         #endregion
     }
