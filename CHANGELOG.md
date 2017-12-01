@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Challenge task sorting to now uses Ajax
 - Use configured site-level SiteLogoUrl instead of the GRA logo
 - Household and Mission control activity logging to now use Point Translation values
+- User profile headers to all say "My Profile"
 
 ### Fixed
 - Remove Entered School type restriction
