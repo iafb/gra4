@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Allow "Events" to link to an external site rather than using built-in event system
 - Garbage collection technical details to the system information page
 - Nav link option to pages
+- Scheduling dashboard content
 
 ### Changed
 - Show report completion percent in window titlebar
