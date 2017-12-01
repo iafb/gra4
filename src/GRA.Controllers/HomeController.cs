@@ -104,14 +104,14 @@ namespace GRA.Controllers
                     }
                     viewModel.DynamicAvatarElements = dynamicAvatarElements;
                 }
-
+                /*
                 var dashboardPage = await _pageService.GetDashboardPageAsync();
                 if (dashboardPage != null)
                 {
                     viewModel.DashboardPageContent = CommonMark.CommonMarkConverter
                         .Convert(dashboardPage.Content);
                 }
-
+                */
                 if (TempData.ContainsKey(ModelData))
                 {
                     var model = Newtonsoft.Json.JsonConvert
