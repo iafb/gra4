@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GRA.Domain.Model;
@@ -21,86 +22,13 @@ namespace GRA.Domain.Service
                 ?? throw new ArgumentNullException(nameof(pointTranslationRepository));
         }
 
-        public async Task<PointTranslation> GetByProgramIdAsync(int id, bool titleCase = false)
-        {
-            var pointTranslation = await _pointTranslationRepository.GetByProgramIdAsync(id);
-
-            if (titleCase)
-            {
-                if (!string.IsNullOrWhiteSpace(pointTranslation.ActivityDescription))
-                {
-                    pointTranslation.ActivityDescription = pointTranslation.ActivityDescription
-                        .First()
-                        .ToString()
-                        .ToUpper() 
-                        + pointTranslation.ActivityDescription.Substring(1);
-                }
-                if (!string.IsNullOrWhiteSpace(pointTranslation.ActivityDescriptionPlural))
-                {
-                    pointTranslation.ActivityDescriptionPlural = 
-                        pointTranslation.ActivityDescriptionPlural
-                        .First()
-                        .ToString()
-                        .ToUpper()
-                        + pointTranslation.ActivityDescriptionPlural.Substring(1);
-                }
-                if (!string.IsNullOrWhiteSpace(pointTranslation.TranslationDescriptionPastTense))
-                {
-                    pointTranslation.TranslationDescriptionPastTense =
-                        pointTranslation.TranslationDescriptionPastTense
-                        .First()
-                        .ToString()
-                        .ToUpper()
-                        + pointTranslation.TranslationDescriptionPastTense.Substring(1);
-                }
-                if (!string.IsNullOrWhiteSpace(pointTranslation.TranslationDescriptionPresentTense))
-                {
-                    pointTranslation.TranslationDescriptionPresentTense =
-                        pointTranslation.TranslationDescriptionPresentTense
-                        .First()
-                        .ToString()
-                        .ToUpper()
-                        + pointTranslation.TranslationDescriptionPresentTense.Substring(1);
-                }
-            }
-            return pointTranslation;
-        }
-    }
-}
-
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using GRA.Domain.Model;
-using GRA.Domain.Model.Filters;
-using GRA.Domain.Repository;
-using GRA.Domain.Service.Abstract;
-using Microsoft.Extensions.Logging;
-
-namespace GRA.Domain.Service
-{
-    public class PointTranslationService : BaseUserService<PointTranslationService>
-    {
-        private readonly IPointTranslationRepository _pointTranslationRepository;
-        public PointTranslationService(ILogger<PointTranslationService> logger,
-            GRA.Abstract.IDateTimeProvider dateTimeProvider,
-            IUserContextProvider userContextProvider,
-            IPointTranslationRepository pointTranslationRepository)
-            : base(logger, dateTimeProvider, userContextProvider)
-        {
-            SetManagementPermission(Permission.ManagePrograms);
-            _pointTranslationRepository = Require.IsNotNull(pointTranslationRepository,
-                nameof(pointTranslationRepository));
-        }
-
         public async Task<IEnumerable<PointTranslation>> GetList()
         {
             return await _pointTranslationRepository.GetAllAsync(GetCurrentSiteId());
         }
 
         public async Task<DataWithCount<ICollection<PointTranslation>>>
-            GetPaginatedListAsync(BaseFilter filter)
+            GetPaginatedListAsync(Model.Filters.BaseFilter filter)
         {
             VerifyManagementPermission();
             filter.SiteId = GetCurrentSiteId();
@@ -160,6 +88,51 @@ namespace GRA.Domain.Service
                 throw new GraException($"{pointTranslation.TranslationName} is in use by programs and/or challenge tasks.");
             }
             await _pointTranslationRepository.RemoveSaveAsync(authId, pointTranslationId);
+        }
+
+        public async Task<PointTranslation> GetByProgramIdAsync(int id, bool titleCase = false)
+        {
+            var pointTranslation = await _pointTranslationRepository.GetByProgramIdAsync(id);
+
+            if (titleCase)
+            {
+                if (!string.IsNullOrWhiteSpace(pointTranslation.ActivityDescription))
+                {
+                    pointTranslation.ActivityDescription = pointTranslation.ActivityDescription
+                        .First()
+                        .ToString()
+                        .ToUpper() 
+                        + pointTranslation.ActivityDescription.Substring(1);
+                }
+                if (!string.IsNullOrWhiteSpace(pointTranslation.ActivityDescriptionPlural))
+                {
+                    pointTranslation.ActivityDescriptionPlural = 
+                        pointTranslation.ActivityDescriptionPlural
+                        .First()
+                        .ToString()
+                        .ToUpper()
+                        + pointTranslation.ActivityDescriptionPlural.Substring(1);
+                }
+                if (!string.IsNullOrWhiteSpace(pointTranslation.TranslationDescriptionPastTense))
+                {
+                    pointTranslation.TranslationDescriptionPastTense =
+                        pointTranslation.TranslationDescriptionPastTense
+                        .First()
+                        .ToString()
+                        .ToUpper()
+                        + pointTranslation.TranslationDescriptionPastTense.Substring(1);
+                }
+                if (!string.IsNullOrWhiteSpace(pointTranslation.TranslationDescriptionPresentTense))
+                {
+                    pointTranslation.TranslationDescriptionPresentTense =
+                        pointTranslation.TranslationDescriptionPresentTense
+                        .First()
+                        .ToString()
+                        .ToUpper()
+                        + pointTranslation.TranslationDescriptionPresentTense.Substring(1);
+                }
+            }
+            return pointTranslation;
         }
     }
 }
