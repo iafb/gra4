@@ -120,7 +120,6 @@ namespace GRA.Controllers.MissionControl
                         page = paginateModel.LastPage ?? 1
                     });
             }
-            var branch = await _siteService.GetBranchByIdAsync(branchId.Value);
             var systemList = (await _siteService.GetSystemList())
                 .OrderByDescending(_ => _.Id == GetId(ClaimType.SystemId)).ThenBy(_ => _.Name);
 
@@ -143,7 +142,7 @@ namespace GRA.Controllers.MissionControl
 
             if (branchId.HasValue)
             {
-                //var branch = await _siteService.GetBranchByIdAsync(branchId.Value);
+                var branch = await _siteService.GetBranchByIdAsync(branchId.Value);
                 viewModel.BranchName = branch.Name;
                 viewModel.SystemName = systemList
                     .Where(_ => _.Id == branch.SystemId).SingleOrDefault().Name;
