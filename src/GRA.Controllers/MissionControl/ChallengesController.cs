@@ -421,8 +421,10 @@ namespace GRA.Controllers.MissionControl
             {
                 Challenge = challenge,
                 CanActivate = canActivate,
+                CanEditGroups = UserHasPermission(Permission.EditChallengeGroups),
                 CanViewTriggers = UserHasPermission(Permission.ManageTriggers),
                 DependentTriggers = await _challengeService.GetDependentsAsync(challenge.Id),
+                Groups = await _challengeService.GetGroupsByChallengeId(challenge.Id),
                 BadgeMakerUrl = GetBadgeMakerUrl(siteUrl, site.FromEmailAddress),
                 UseBadgeMaker = true
             };
@@ -567,6 +569,7 @@ namespace GRA.Controllers.MissionControl
                 model = await GetDetailLists(model);
                 model.DependentTriggers = await _challengeService
                     .GetDependentsAsync(model.Challenge.Id);
+                model.Groups = await _challengeService.GetGroupsByChallengeId(model.Challenge.Id);
 
                 return View(model);
             }
@@ -834,6 +837,262 @@ namespace GRA.Controllers.MissionControl
                 _logger.LogError($"Error increasing task sort for task {id} : {ex}", ex);
                 return Json(false);
             }
+        }
+        #endregion
+
+        #region Challenge Group methods
+        public async Task<IActionResult> Groups(string search, int page = 1)
+        {
+            PageTitle = "Challenge Groups";
+            var filter = new BaseFilter(page)
+            {
+                Search = search
+            };
+
+            var groupList = await _challengeService.GetPaginatedGroupListAsync(filter);
+
+            PaginateViewModel paginateModel = new PaginateViewModel()
+            {
+                ItemCount = groupList.Count,
+                CurrentPage = page,
+                ItemsPerPage = filter.Take.Value
+            };
+            if (paginateModel.MaxPage > 0 && paginateModel.CurrentPage > paginateModel.MaxPage)
+            {
+                return RedirectToRoute(
+                    new
+                    {
+                        page = paginateModel.LastPage ?? 1
+                    });
+            }
+
+            var viewModel = new ChallengeGroupListViewModel()
+            {
+                ChallengeGroups = groupList.Data,
+                PaginateModel = paginateModel,
+                Search = search,
+                CanAddGroups = UserHasPermission(Permission.AddChallengeGroups),
+                CanEditGroups = UserHasPermission(Permission.EditChallengeGroups)
+            };
+
+            return View(viewModel);
+        }
+
+        [Authorize(Policy = Policy.AddChallengeGroups)]
+        public IActionResult CreateGroup()
+        {
+            PageTitle = "Create Challenge Group";
+            var viewModel = new ChallengeGroupDetailViewModel()
+            {
+                Action = nameof(CreateGroup)
+            };
+
+            return View("GroupDetail", viewModel);
+        }
+
+        [Authorize(Policy = Policy.AddChallengeGroups)]
+        [HttpPost]
+        public async Task<IActionResult> CreateGroup(ChallengeGroupDetailViewModel model)
+        {
+            var challengeIds = new List<int>();
+            if (!string.IsNullOrWhiteSpace(model.ChallengeIds))
+            {
+                challengeIds = model?.ChallengeIds
+                .Split(',')
+                .Where(_ => !string.IsNullOrWhiteSpace(_))
+                .Select(int.Parse)
+                .ToList();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var serviceResult = await _challengeService.AddGroupAsync(model.ChallengeGroup,
+                        challengeIds);
+                    if (serviceResult.Status == ServiceResultStatus.Warning
+                        && !string.IsNullOrWhiteSpace(serviceResult.Message))
+                    {
+                        ShowAlertWarning(serviceResult.Message);
+                    }
+                    ShowAlertSuccess($"Added Challenge Group \"{model.ChallengeGroup.Name}\"!");
+                    return RedirectToAction(nameof(EditGroup), new { id = serviceResult.Data.Id });
+                }
+                catch (GraException gex)
+                {
+                    ShowAlertDanger("Unable to add Challenge Group: ", gex);
+                }
+            }
+
+            model.ChallengeGroup.Challenges = await _challengeService.GetByIdsAsync(challengeIds);
+            foreach (var challenge in model.ChallengeGroup.Challenges)
+            {
+                if (!string.IsNullOrWhiteSpace(challenge.BadgeFilename))
+                {
+                    challenge.BadgeFilename = _pathResolver.ResolveContentPath(
+                        challenge.BadgeFilename);
+                }
+            }
+
+            PageTitle = "Create Challenge Group";
+            return View("GroupDetail", model);
+        }
+
+        [Authorize(Policy = Policy.EditChallengeGroups)]
+        public async Task<IActionResult> EditGroup(int id)
+        {
+            PageTitle = "Edit Challenge Group";
+            var challengeGroup = await _challengeService.GetGroupByIdAsync(id);
+            var viewModel = new ChallengeGroupDetailViewModel()
+            {
+                ChallengeGroup = challengeGroup,
+                ChallengeIds = string.Join(",", challengeGroup.Challenges.Select(_ => _.Id)),
+                Action = nameof(EditGroup)
+            };
+
+            foreach (var challenge in viewModel.ChallengeGroup.Challenges)
+            {
+                if (!string.IsNullOrWhiteSpace(challenge.BadgeFilename))
+                {
+                    challenge.BadgeFilename = _pathResolver.ResolveContentPath(
+                        challenge.BadgeFilename);
+                }
+            }
+
+            return View("GroupDetail", viewModel);
+        }
+
+        [Authorize(Policy = Policy.EditChallengeGroups)]
+        [HttpPost]
+        public async Task<IActionResult> EditGroup(ChallengeGroupDetailViewModel model)
+        {
+            var challengeIds = new List<int>();
+            if (!string.IsNullOrWhiteSpace(model.ChallengeIds))
+            {
+                challengeIds = model?.ChallengeIds
+                .Split(',')
+                .Where(_ => !string.IsNullOrWhiteSpace(_))
+                .Select(int.Parse)
+                .ToList();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var serviceResult = await _challengeService.EditGroupAsync(model.ChallengeGroup,
+                        challengeIds);
+                    if (serviceResult.Status == ServiceResultStatus.Warning
+                        && !string.IsNullOrWhiteSpace(serviceResult.Message))
+                    {
+                        ShowAlertWarning(serviceResult.Message);
+                    }
+                    ShowAlertSuccess($"Saved Challenge Group \"{model.ChallengeGroup.Name}\"!");
+                    return RedirectToAction(nameof(EditGroup), new { id = serviceResult.Data.Id });
+                }
+                catch (GraException gex)
+                {
+                    ShowAlertDanger("Unable to edit Challenge Group: ", gex);
+                }
+            }
+
+            model.ChallengeGroup.Challenges = await _challengeService.GetByIdsAsync(challengeIds);
+            foreach (var challenge in model.ChallengeGroup.Challenges)
+            {
+                if (!string.IsNullOrWhiteSpace(challenge.BadgeFilename))
+                {
+                    challenge.BadgeFilename = _pathResolver.ResolveContentPath(
+                        challenge.BadgeFilename);
+                }
+            }
+
+            PageTitle = "Edit Challenge Group";
+            return View("GroupDetail", model);
+        }
+
+        [Authorize(Policy = Policy.EditChallengeGroups)]
+        public async Task<IActionResult> DeleteGroup(ChallengeGroupListViewModel model)
+        {
+            try
+            {
+                await _challengeService.RemoveGroupAsync(model.ChallengeGroup.Id);
+                ShowAlertSuccess($"Category \"{model.ChallengeGroup.Name}\" removed!");
+            }
+            catch (GraException gex)
+            {
+                ShowAlertDanger("Unable to remove Challenge Group: ", gex);
+            }
+
+            return RedirectToAction("Groups", new
+            {
+                search = model.Search,
+                page = model.PaginateModel.CurrentPage
+            });
+        }
+
+        [Authorize(Policy = Policy.ViewAllChallenges)]
+        public async Task<IActionResult> GetChallengeList(string challengeIds,
+            string scope,
+            string search,
+            int page = 1)
+        {
+            var filter = new ChallengeFilter(page, 10)
+            {
+                Search = search
+            };
+
+            if (!string.IsNullOrWhiteSpace(challengeIds))
+            {
+                filter.ChallengeIds = challengeIds.Split(',')
+                    .Where(_ => !string.IsNullOrWhiteSpace(_))
+                    .Select(int.Parse)
+                    .ToList();
+            }
+
+            switch (scope.ToLower())
+            {
+                case ("system"):
+                    filter.SystemIds = new List<int> { GetId(ClaimType.SystemId) };
+                    break;
+                case ("branch"):
+                    filter.BranchIds = new List<int> { GetId(ClaimType.BranchId) };
+                    break;
+                case ("mine"):
+                    filter.UserIds = new List<int> { GetId(ClaimType.UserId) };
+                    break;
+                default:
+                    break;
+            }
+
+            var challengeList = await _challengeService.GetPaginatedChallengeListAsync(filter);
+            var paginateModel = new PaginateViewModel
+            {
+                ItemCount = challengeList.Count,
+                CurrentPage = page,
+                ItemsPerPage = filter.Take.Value
+            };
+            var viewModel = new ChallengesListViewModel
+            {
+                Challenges = challengeList.Data,
+                PaginateModel = paginateModel
+            };
+
+            foreach (var challenge in viewModel.Challenges)
+            {
+                if (!string.IsNullOrWhiteSpace(challenge.BadgeFilename))
+                {
+                    challenge.BadgeFilename = _pathResolver.ResolveContentPath(
+                        challenge.BadgeFilename);
+                }
+            }
+
+            return PartialView("_ChallengeListPartial", viewModel);
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> StubInUse(string stub)
+        {
+            return Json(await _challengeService.StubInUseAsync(stub));
         }
         #endregion
     }

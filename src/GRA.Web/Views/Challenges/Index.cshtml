@@ -16,9 +16,13 @@
     <div class="col-xs-12 col-sm-10 col-sm-offset-1">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="lead">Challenges</span>
+                <span class="lead">@(Model.ChallengeGroup != null ? $"Challenge Group: {Model.ChallengeGroup.Name}" : "Challenges")</span>
             </div>
             <div class="panel-body">
+                @if (Model.ChallengeGroup != null)
+                {
+                    <p>@Model.ChallengeGroup.Description</p>
+                }
                 <form id="searchForm" asp-controller="Challenges" asp-action="Index" method="get" role="form">
                     @if (Model.Favorites == true)
                     {

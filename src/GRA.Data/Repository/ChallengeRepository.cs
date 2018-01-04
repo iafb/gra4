@@ -69,6 +69,11 @@ namespace GRA.Data.Repository
                 challenges = challenges.Where(_ => filter.UserIds.Contains(_.CreatedBy));
             }
 
+            if (filter.ChallengeIds?.Any() == true)
+            {
+                challenges = challenges.Where(_ => filter.ChallengeIds.Contains(_.Id) == false);
+            }
+
             if (filter.CategoryIds?.Any() == true)
             {
                 challenges = challenges
@@ -88,6 +93,18 @@ namespace GRA.Data.Repository
                              join userFavorites in userFavoriteChallenges
                              on challengeList.Id equals userFavorites.ChallengeId
                              select challengeList;
+            }
+
+            if (filter.GroupId.HasValue)
+            {
+                var challengeGroup = _context.ChallengeGroups
+                    .AsNoTracking()
+                    .Include(_ => _.ChallengeGroupChallenges)
+                    .Where(_ => _.Id == filter.GroupId)
+                    .SelectMany(_ => _.ChallengeGroupChallenges)
+                    .Select(_ => _.ChallengeId);
+
+                challenges = challenges.Where(_ => challengeGroup.Contains(_.Id));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -148,6 +165,18 @@ namespace GRA.Data.Repository
                     .ToListAsync();
             }
             return challenge;
+        }
+
+        public async Task<List<Challenge>> GetByIdsAsync(int siteId, IEnumerable<int> ids)
+        {
+            return await DbSet
+                .AsNoTracking()
+                .Where(_ => _.SiteId == siteId && _.IsDeleted == false && ids.Contains(_.Id))
+                .OrderBy(_ => _.Name)
+                .Distinct()
+                .ProjectTo<Challenge>()
+                .ToListAsync();
+                
         }
 
         public async Task<Challenge> GetActiveByIdAsync(int id, int? userId = null)
@@ -471,7 +500,7 @@ namespace GRA.Data.Repository
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<int>> ValidateChallengeIds(int siteId,
+        public async Task<IEnumerable<int>> ValidateChallengeIdsAsync(int siteId,
             IEnumerable<int> challengeIds)
         {
             return await DbSet

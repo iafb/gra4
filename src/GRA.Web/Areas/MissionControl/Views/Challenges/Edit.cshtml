@@ -249,10 +249,48 @@
     <input asp-for="Challenge.Id" type="hidden" />
     <input asp-for="Challenge.BadgeId" type="hidden" />
     <input asp-for="MaxPointsMessage" type="hidden" />
+    <input asp-for="CanEditGroups" type="hidden" />
     <input asp-for="CanViewTriggers" type="hidden" />
     <input asp-for="UseBadgeMaker" type="hidden" />
     <input asp-for="BadgeMakerUrl" type="hidden" />
     <input asp-for="BadgeMakerImage" type="hidden" />
+
+    @if (Model.Groups.Count > 0)
+    {
+        <div class="panel-group row-spacing" id="accordion" role="tablist" aria-multiselectable="true">
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="headingGroups">
+                    <h4 class="panel-title">
+                        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseGroups" aria-expanded="false" aria-controls="collapseGroups">
+                            Challenge Groups
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseGroups" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingGroups">
+                    <div class="panel-body">
+                        The following groups(s) contain this challenge:
+                        <ul>
+                            @foreach (var group in Model.Groups)
+                            {
+                                @if (Model.CanEditGroups)
+                                {
+                                    <li>
+                                        <a href="@Url.Action("EditGroup", new { id = group.Id })" target="_blank">@group.Name</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li>
+                                        <a href="@Url.Action("List", "Challenges", new { area = String.Empty, id = group.Stub })" target="_blank">@group.Name</a>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     @if (Model.DependentTriggers.Count > 0)
     {
@@ -274,7 +312,7 @@
                                 @if (Model.CanViewTriggers)
                                 {
                                     <li>
-                                        <a target="_blank" href="@Url.Action(" Edit", new { id=trigger.Id })"> @trigger.Name</a>
+                                        <a target="_blank" href="@Url.Action("Edit", "Triggers", new { id = trigger.Id })"> @trigger.Name</a>
                                     </li>
                                 }
                                 else

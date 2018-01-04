@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Ability to add a small logo image in the page navigation
 - Uploading files with markdown editor
 - Mission Control ability to delete multiple history entries at once
+- Challenge groups
 
 ### Fixed
 - Issue with favorites list filtering
