@@ -1,4 +1,4 @@
-﻿@model GRA.Controllers.ViewModel.MissionControl.Challenges.ChallengesListViewModel
+﻿@model GRA.Controllers.ViewModel.MissionControl.Lookup.ChallengesListViewModel
 
 @if (Model.Challenges.Count() == 0)
 {
@@ -12,7 +12,10 @@ else
                 <tr>
                     <td>Name</td>
                     <td>Badge</td>
-                    <td width="42px">Active</td>
+                    @if (Model.ShowActive)
+                    {
+                        <td width="42px">Active</td>
+                    }
                     <td width="42px">&nbsp;</td>
                 </tr>
             </thead>
@@ -21,7 +24,16 @@ else
                 {
                     <tr>
                         <td>
-                            <a asp-action="Edit" asp-route-id="@challenge.Id" target="_blank">@challenge.Name</a>
+                            @if (Model.CanEditChallenges)
+                            {
+                                <a asp-controller="Challenges" asp-action="Edit" asp-route-id="@challenge.Id" target="_blank">@challenge.Name</a>
+                            }
+                            else
+                            {
+                                <a asp-area="" asp-controller="Challenges" asp-action="Details" asp-route-id="@challenge.Id"  target="_blank">@challenge.Name</a>
+
+                            }
+
                         </td>
                         <td>
                             @if (!string.IsNullOrWhiteSpace(challenge.BadgeFilename))
@@ -35,16 +47,19 @@ else
                                 <text>&nbsp;</text>
                             }
                         </td>
-                        <td class="gra-mc-icon">
-                            @if (challenge.IsActive)
-                            {
-                                <span class="fa fa-lg fa-check text-success"></span>
-                            }
-                            else
-                            {
-                                <span class="fa fa-lg fa-ban text-danger"></span>
-                            }
-                        </td>
+                        @if (Model.ShowActive)
+                        {
+                            <td class="gra-mc-icon">
+                                @if (challenge.IsActive)
+                                {
+                                    <span class="fa fa-lg fa-check text-success"></span>
+                                }
+                                else
+                                {
+                                    <span class="fa fa-lg fa-ban text-danger"></span>
+                                }
+                            </td>
+                        }
                         <td class="gra-mc-icon">
                             <button type="button"
                                     class="btn btn-link btn-xs addChallengeButton"

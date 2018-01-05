@@ -275,13 +275,13 @@
                                 @if (Model.CanEditGroups)
                                 {
                                     <li>
-                                        <a href="@Url.Action("EditGroup", new { id = group.Id })" target="_blank">@group.Name</a>
+                                        <a asp-action="EditGroup" asp-route-id="@group.Id" target="_blank">@group.Name</a>
                                     </li>
                                 }
                                 else
                                 {
                                     <li>
-                                        <a href="@Url.Action("List", "Challenges", new { area = String.Empty, id = group.Stub })" target="_blank">@group.Name</a>
+                                        <a asp-area="" asp-controller="Challenges" asp-action="List" asp-route-id="@group.Stub" target="_blank">@group.Name</a>
                                     </li>
                                 }
                             }
@@ -312,7 +312,7 @@
                                 @if (Model.CanViewTriggers)
                                 {
                                     <li>
-                                        <a target="_blank" href="@Url.Action("Edit", "Triggers", new { id = trigger.Id })"> @trigger.Name</a>
+                                        <a asp-controller="Triggers" asp-action="Edit" asp-route-id="@trigger.Id" target="_blank">@trigger.Name</a>
                                     </li>
                                 }
                                 else

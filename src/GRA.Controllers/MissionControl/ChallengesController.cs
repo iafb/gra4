@@ -844,7 +844,7 @@ namespace GRA.Controllers.MissionControl
         public async Task<IActionResult> Groups(string search, int page = 1)
         {
             PageTitle = "Challenge Groups";
-            var filter = new BaseFilter(page)
+            var filter = new ChallengeGroupFilter(page)
             {
                 Search = search
             };
@@ -1028,65 +1028,6 @@ namespace GRA.Controllers.MissionControl
                 search = model.Search,
                 page = model.PaginateModel.CurrentPage
             });
-        }
-
-        [Authorize(Policy = Policy.ViewAllChallenges)]
-        public async Task<IActionResult> GetChallengeList(string challengeIds,
-            string scope,
-            string search,
-            int page = 1)
-        {
-            var filter = new ChallengeFilter(page, 10)
-            {
-                Search = search
-            };
-
-            if (!string.IsNullOrWhiteSpace(challengeIds))
-            {
-                filter.ChallengeIds = challengeIds.Split(',')
-                    .Where(_ => !string.IsNullOrWhiteSpace(_))
-                    .Select(int.Parse)
-                    .ToList();
-            }
-
-            switch (scope.ToLower())
-            {
-                case ("system"):
-                    filter.SystemIds = new List<int> { GetId(ClaimType.SystemId) };
-                    break;
-                case ("branch"):
-                    filter.BranchIds = new List<int> { GetId(ClaimType.BranchId) };
-                    break;
-                case ("mine"):
-                    filter.UserIds = new List<int> { GetId(ClaimType.UserId) };
-                    break;
-                default:
-                    break;
-            }
-
-            var challengeList = await _challengeService.GetPaginatedChallengeListAsync(filter);
-            var paginateModel = new PaginateViewModel
-            {
-                ItemCount = challengeList.Count,
-                CurrentPage = page,
-                ItemsPerPage = filter.Take.Value
-            };
-            var viewModel = new ChallengesListViewModel
-            {
-                Challenges = challengeList.Data,
-                PaginateModel = paginateModel
-            };
-
-            foreach (var challenge in viewModel.Challenges)
-            {
-                if (!string.IsNullOrWhiteSpace(challenge.BadgeFilename))
-                {
-                    challenge.BadgeFilename = _pathResolver.ResolveContentPath(
-                        challenge.BadgeFilename);
-                }
-            }
-
-            return PartialView("_ChallengeListPartial", viewModel);
         }
 
         [HttpPost]

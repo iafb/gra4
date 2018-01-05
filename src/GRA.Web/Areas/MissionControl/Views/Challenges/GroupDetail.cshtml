@@ -84,7 +84,7 @@
                     Stub
                     @if (Model.Action == nameof(ChallengesController.EditGroup))
                     {
-                        <a href="@Url.Action("List", "Challenges", new { area = String.Empty, id = Model.ChallengeGroup.Stub })" target="_blank">Link</a>
+                        <a asp-area="" asp-controller="Challenges" asp-action="List" asp-route-id="@Model.ChallengeGroup.Stub" target="_blank">Link</a>
                     }
                 </label>
                 <span id="Stub-Icon" class="fa colored-icon hide"></span>
@@ -173,7 +173,7 @@
 @section scripts {
     <script>
         var challengeIds = $("#ChallengeIds").val().split(',').filter(function (x) { return x }).map(Number);
-        var challengesUrl = "@Url.Action("GetChallengeList", "Challenges")";
+        var challengesUrl = "@Url.Action("GetChallengeList", "Lookup")";
         var page = 1;
         var scope = "All";
         var search = "";
@@ -184,6 +184,7 @@
                     challengeIds: challengeIds.join(','),
                     scope: scope,
                     search: search,
+                    showActive: true,
                     page: page
                 }, function(response) {
                     $("#modalChallengeList").html(response);

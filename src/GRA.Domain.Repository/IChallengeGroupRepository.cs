@@ -9,8 +9,8 @@ namespace GRA.Domain.Repository
     {
         Task<ChallengeGroup> GetByStubAsync(int siteId, string stub);
         Task<List<ChallengeGroup>> GetByChallengeId(int siteId, int challengeId);
-        Task<int> CountAsync(BaseFilter filter);
-        Task<IEnumerable<ChallengeGroup>> PageAsync(BaseFilter filter);
+        Task<int> CountAsync(ChallengeGroupFilter filter);
+        Task<IEnumerable<ChallengeGroup>> PageAsync(ChallengeGroupFilter filter);
         Task<ChallengeGroup> AddSaveAsync(int userId, ChallengeGroup challengeGroup,
             IEnumerable<int> challengeIds);
         Task<ChallengeGroup> UpdateSaveAsync(int userId, ChallengeGroup challengeGroup,

@@ -96,7 +96,7 @@
                                     @group.Description
                                 </td>
                                 <td class="on-top">
-                                    <a href="@Url.Action("List", "Challenges", new { area = String.Empty, id = group.Stub })" target="_blank">@group.Stub</a>
+                                    <a asp-area="" asp-controller="Challenges" asp-action="List" asp-route-id="@group.Stub" target="_blank">@group.Stub</a>
                                 </td>
                                 @if (Model.CanEditGroups)
                                 {

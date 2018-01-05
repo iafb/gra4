@@ -19,6 +19,6 @@ namespace GRA.Domain.Model
         [Required]
         public string Stub { get; set; }
 
-        public virtual ICollection<Challenge> Challenges { get; set; }
+        public ICollection<Challenge> Challenges { get; set; }
     }
 }

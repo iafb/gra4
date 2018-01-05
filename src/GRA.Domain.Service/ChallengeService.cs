@@ -533,7 +533,7 @@ namespace GRA.Domain.Service
         }
 
         public async Task<DataWithCount<IEnumerable<ChallengeGroup>>>
-            GetPaginatedGroupListAsync(BaseFilter filter)
+            GetPaginatedGroupListAsync(ChallengeGroupFilter filter)
         {
             VerifyPermission(Permission.ViewAllChallenges);
             filter.SiteId = GetCurrentSiteId();

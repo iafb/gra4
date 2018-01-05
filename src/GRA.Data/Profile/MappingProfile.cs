@@ -18,8 +18,6 @@ namespace GRA.Data.Profile
                         src => src.ChallengeCategories.Select(_ => _.Category)))
                 .ReverseMap();
             CreateMap<Model.ChallengeGroup, Domain.Model.ChallengeGroup>()
-                .ForMember(dest => dest.Challenges, opt => opt.MapFrom(
-                    src => src.ChallengeGroupChallenges.Select(_ => _.Challenge)))
                 .ReverseMap();
             CreateMap<Model.ChallengeTask, Domain.Model.ChallengeTask>().ReverseMap();
             CreateMap<Model.DashboardContent, Domain.Model.DashboardContent>().ReverseMap();

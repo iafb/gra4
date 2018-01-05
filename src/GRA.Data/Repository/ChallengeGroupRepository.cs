@@ -49,13 +49,13 @@ namespace GRA.Data.Repository
                 .ToListAsync();
         }
 
-        public async Task<int> CountAsync(BaseFilter filter)
+        public async Task<int> CountAsync(ChallengeGroupFilter filter)
         {
             return await ApplyFilters(filter)
                 .CountAsync();
         }
 
-        public async Task<IEnumerable<ChallengeGroup>> PageAsync(BaseFilter filter)
+        public async Task<IEnumerable<ChallengeGroup>> PageAsync(ChallengeGroupFilter filter)
         {
             return await ApplyFilters(filter)
                 .OrderBy(_ => _.Name)
@@ -64,28 +64,26 @@ namespace GRA.Data.Repository
                 .ToListAsync();
         }
 
-        public async Task<DataWithCount<IEnumerable<ChallengeGroup>>> PageAsyncTest(BaseFilter filter)
-        {
-            var queryable = ApplyFilters(filter);
-            var data = await queryable
-                .OrderBy(_ => _.Name)
-                .ApplyPagination(filter)
-                .ProjectTo<ChallengeGroup>()
-                .ToListAsync();
-
-            var count = await queryable.CountAsync();
-            return new DataWithCount<IEnumerable<ChallengeGroup>>
-            {
-                Data = data,
-                Count = count
-            };
-        }
-
-        public IQueryable<Model.ChallengeGroup> ApplyFilters(BaseFilter filter)
+        public IQueryable<Model.ChallengeGroup> ApplyFilters(ChallengeGroupFilter filter)
         {
             var challengeGroupList = DbSet
                 .AsNoTracking()
                 .Where(_ => _.SiteId == filter.SiteId);
+
+            if (filter.ActiveGroups.HasValue)
+            {
+                var inactiveChallengeIds = _context.Challenges
+                    .AsNoTracking()
+                    .Where(_ => _.IsActive == false)
+                    .Select(_ => _.Id);
+
+                challengeGroupList = challengeGroupList
+                    .Where(_ => 
+                        _.ChallengeGroupChallenges
+                            .Where(c => inactiveChallengeIds.Contains(c.ChallengeId) == false)
+                            .Select(c => c.ChallengeGroupId)
+                        .Contains(_.Id) == filter.ActiveGroups.Value);
+            }
 
             if (!string.IsNullOrWhiteSpace(filter.Search))
             {
@@ -99,7 +97,7 @@ namespace GRA.Data.Repository
             ChallengeGroup challengeGroup, IEnumerable<int> challengeIds)
         {
             var newChallengeGroup = await base.AddSaveAsync(userId, challengeGroup);
-            if (challengeGroup.Challenges?.Count > 0)
+            if (challengeIds.Count() > 0)
             {
                 var time = _dateTimeProvider.Now;
                 var challengeGroupChallengeList = new List<Model.ChallengeGroupChallenge>();

@@ -64,7 +64,7 @@
         {
             <div class="row" style="padding-top:10px;">
                 <div class="col-xs-12">
-                    <a href="@Url.Action("Edit", "Triggers", new { id = Model.Event.RelatedTriggerId })" target="_blank" class="btn btn-default">
+                    <a asp-controller="Triggers" asp-action="Edit" asp-route-id="@Model.Event.RelatedTriggerId" target="_blank" class="btn btn-default">
                         View Related Trigger
                     </a>
                 </div>
