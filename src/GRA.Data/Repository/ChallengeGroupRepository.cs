@@ -29,11 +29,24 @@ namespace GRA.Data.Repository
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<ChallengeGroup> GetByStubAsync(int siteId, string stub)
+        public async Task<ChallengeGroup> GetActiveByIdAsync(int id)
         {
             return await DbSet
                 .AsNoTracking()
-                .Where(_ => _.SiteId == siteId && _.Stub == stub)
+                .Where(_ => _.Id == id 
+                    && _.ChallengeGroupChallenges.Any(c => c.Challenge.IsActive == true
+                       && c.Challenge.IsDeleted == false))
+                .ProjectTo<ChallengeGroup>()
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<ChallengeGroup> GetActiveByStubAsync(int siteId, string stub)
+        {
+            return await DbSet
+                .AsNoTracking()
+                .Where(_ => _.SiteId == siteId && _.Stub == stub
+                    && _.ChallengeGroupChallenges.Any(c => c.Challenge.IsActive == true 
+                        && c.Challenge.IsDeleted == false))
                 .ProjectTo<ChallengeGroup>()
                 .SingleOrDefaultAsync();
         }
@@ -70,11 +83,17 @@ namespace GRA.Data.Repository
                 .AsNoTracking()
                 .Where(_ => _.SiteId == filter.SiteId);
 
+            if (filter.ChallengeGroupIds?.Count > 0)
+            {
+                challengeGroupList = challengeGroupList
+                    .Where(_ => filter.ChallengeGroupIds.Contains(_.Id) == false);
+            }
+
             if (filter.ActiveGroups.HasValue)
             {
                 var inactiveChallengeIds = _context.Challenges
                     .AsNoTracking()
-                    .Where(_ => _.IsActive == false)
+                    .Where(_ => _.IsActive == false || _.IsDeleted == true)
                     .Select(_ => _.Id);
 
                 challengeGroupList = challengeGroupList

@@ -28,12 +28,14 @@ namespace GRA.Controllers.MissionControl
         private readonly BadgeService _badgeService;
         private readonly CategoryService _categoryService;
         private readonly ChallengeService _challengeService;
+        private readonly EventService _eventService;
         private readonly SiteService _siteService;
         public ChallengesController(ILogger<ChallengesController> logger,
             ServiceFacade.Controller context,
             BadgeService badgeService,
             CategoryService categoryService,
             ChallengeService challengeService,
+            EventService eventService,
             SiteService siteService)
             : base(context)
         {
@@ -41,6 +43,7 @@ namespace GRA.Controllers.MissionControl
             _badgeService = Require.IsNotNull(badgeService, nameof(badgeService));
             _categoryService = Require.IsNotNull(categoryService, nameof(categoryService));
             _challengeService = Require.IsNotNull(challengeService, nameof(challengeService));
+            _eventService = Require.IsNotNull(eventService, nameof(eventService));
             _siteService = Require.IsNotNull(siteService, nameof(SiteService));
             PageTitle = "Challenges";
         }
@@ -422,9 +425,11 @@ namespace GRA.Controllers.MissionControl
                 Challenge = challenge,
                 CanActivate = canActivate,
                 CanEditGroups = UserHasPermission(Permission.EditChallengeGroups),
+                CanManageEvents = UserHasPermission(Permission.ManageEvents),
                 CanViewTriggers = UserHasPermission(Permission.ManageTriggers),
                 DependentTriggers = await _challengeService.GetDependentsAsync(challenge.Id),
                 Groups = await _challengeService.GetGroupsByChallengeId(challenge.Id),
+                RelatedEvents = await _eventService.GetByChallengeIdAsync(challenge.Id),
                 BadgeMakerUrl = GetBadgeMakerUrl(siteUrl, site.FromEmailAddress),
                 UseBadgeMaker = true
             };
@@ -570,6 +575,7 @@ namespace GRA.Controllers.MissionControl
                 model.DependentTriggers = await _challengeService
                     .GetDependentsAsync(model.Challenge.Id);
                 model.Groups = await _challengeService.GetGroupsByChallengeId(model.Challenge.Id);
+                model.RelatedEvents = await _eventService.GetByChallengeIdAsync(model.Challenge.Id);
 
                 return View(model);
             }
@@ -947,7 +953,9 @@ namespace GRA.Controllers.MissionControl
             {
                 ChallengeGroup = challengeGroup,
                 ChallengeIds = string.Join(",", challengeGroup.Challenges.Select(_ => _.Id)),
-                Action = nameof(EditGroup)
+                Action = nameof(EditGroup),
+                RelatedEvents = await _eventService.GetByChallengeGroupIdAsync(challengeGroup.Id),
+                CanManageEvents = UserHasPermission(Permission.ManageEvents)
             };
 
             foreach (var challenge in viewModel.ChallengeGroup.Challenges)
@@ -997,6 +1005,9 @@ namespace GRA.Controllers.MissionControl
             }
 
             model.ChallengeGroup.Challenges = await _challengeService.GetByIdsAsync(challengeIds);
+            model.RelatedEvents = await _eventService.GetByChallengeGroupIdAsync(
+                model.ChallengeGroup.Id);
+            model.CanManageEvents = UserHasPermission(Permission.ManageEvents);
             foreach (var challenge in model.ChallengeGroup.Challenges)
             {
                 if (!string.IsNullOrWhiteSpace(challenge.BadgeFilename))

@@ -72,7 +72,7 @@ namespace GRA.Controllers
             ChallengeGroup challengeGroup = null;
             if (!string.IsNullOrWhiteSpace(Group))
             {
-                challengeGroup = await _challengeService.GetGroupByStubAsync(Group);
+                challengeGroup = await _challengeService.GetActiveGroupByStubAsync(Group);
                 if (challengeGroup != null)
                 {
                     filter.GroupId = challengeGroup.Id;
@@ -148,7 +148,7 @@ namespace GRA.Controllers
         {
             if (!string.IsNullOrWhiteSpace(id))
             {
-                var challengeGroup = await _challengeService.GetGroupByStubAsync(id);
+                var challengeGroup = await _challengeService.GetActiveGroupByStubAsync(id);
                 if (challengeGroup != null)
                 {
                     return await Index(Search, Categories, id, Favorites, page);

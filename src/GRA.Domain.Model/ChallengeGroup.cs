@@ -19,6 +19,7 @@ namespace GRA.Domain.Model
         [Required]
         public string Stub { get; set; }
 
+        public IEnumerable<int> ChallengeIds { get; set; }
         public ICollection<Challenge> Challenges { get; set; }
     }
 }

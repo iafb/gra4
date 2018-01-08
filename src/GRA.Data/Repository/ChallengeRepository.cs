@@ -82,7 +82,7 @@ namespace GRA.Data.Repository
                         .Select(c => c.CategoryId)
                         .Any(c => filter.CategoryIds.Contains(c)));
             }
-            
+
             if (filter.Favorites == true && filter.FavoritesUserId.HasValue)
             {
                 var userFavoriteChallenges = _context.UserFavoriteChallenges
@@ -167,16 +167,24 @@ namespace GRA.Data.Repository
             return challenge;
         }
 
-        public async Task<List<Challenge>> GetByIdsAsync(int siteId, IEnumerable<int> ids)
+        public async Task<List<Challenge>> GetByIdsAsync(int siteId, IEnumerable<int> ids,
+            bool ActiveOnly = false)
         {
-            return await DbSet
+            var challenges = DbSet
                 .AsNoTracking()
-                .Where(_ => _.SiteId == siteId && _.IsDeleted == false && ids.Contains(_.Id))
+                .Where(_ => _.SiteId == siteId && _.IsDeleted == false && ids.Contains(_.Id));
+
+            if (ActiveOnly)
+            {
+                challenges = challenges.Where(_ => _.IsActive);
+            }
+
+            return await challenges
                 .OrderBy(_ => _.Name)
                 .Distinct()
                 .ProjectTo<Challenge>()
                 .ToListAsync();
-                
+
         }
 
         public async Task<Challenge> GetActiveByIdAsync(int id, int? userId = null)
@@ -310,10 +318,12 @@ namespace GRA.Data.Repository
         public override async Task RemoveSaveAsync(int userId, int id)
         {
             var entity = await _context.Challenges
+                .Include(_ => _.ChallengeGroupChallenges)
                 .Where(_ => _.IsDeleted == false && _.Id == id)
                 .SingleAsync();
             entity.IsDeleted = true;
             await base.UpdateAsync(userId, entity, null);
+            _context.ChallengeGroupChallenges.RemoveRange(entity.ChallengeGroupChallenges);
             await base.SaveAsync();
         }
 

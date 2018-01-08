@@ -21,6 +21,7 @@ namespace GRA.Domain.Service
         private readonly IChallengeRepository _challengeRepository;
         private readonly IChallengeGroupRepository _challengeGroupRepository;
         private readonly IChallengeTaskRepository _challengeTaskRepository;
+        private readonly IEventRepository _eventRepository;
         private readonly IPathResolver _pathResolver;
         private readonly ITriggerRepository _triggerRepository;
         private readonly IUserRepository _userRepository;
@@ -34,6 +35,7 @@ namespace GRA.Domain.Service
             IChallengeRepository challengeRepository,
             IChallengeGroupRepository challengeGroupRepository,
             IChallengeTaskRepository challengeTaskRepository,
+            IEventRepository eventRepository,
             IPathResolver pathResolver,
             ITriggerRepository triggerRepository,
             IUserRepository userRepository) : base(logger, dateTimeProvider, userContextProvider)
@@ -47,6 +49,7 @@ namespace GRA.Domain.Service
                 nameof(challengeGroupRepository));
             _challengeTaskRepository = Require.IsNotNull(challengeTaskRepository,
                 nameof(challengeTaskRepository));
+            _eventRepository = Require.IsNotNull(eventRepository, nameof(eventRepository));
             _pathResolver = Require.IsNotNull(pathResolver, nameof(pathResolver));
             _triggerRepository = Require.IsNotNull(triggerRepository, nameof(triggerRepository));
             _userRepository = Require.IsNotNull(userRepository, nameof(userRepository));
@@ -304,18 +307,19 @@ namespace GRA.Domain.Service
 
         public async Task RemoveChallengeAsync(int challengeId)
         {
+            var userId = GetClaimId(ClaimType.UserId);
             if (HasPermission(Permission.RemoveChallenges))
             {
                 if (await _challengeRepository.HasDependentsAsync(challengeId))
                 {
                     throw new GraException("Challenge has dependents");
                 }
+                await _eventRepository.DetachRelatedChallenge(userId, challengeId);
                 await _challengeRepository
-                    .RemoveSaveAsync(GetClaimId(ClaimType.UserId), challengeId);
+                    .RemoveSaveAsync(userId, challengeId);
             }
             else
             {
-                int userId = GetClaimId(ClaimType.UserId);
                 _logger.LogError($"User {userId} doesn't have permission to remove challenge {challengeId}.");
                 throw new Exception("Permission denied.");
             }
@@ -522,14 +526,17 @@ namespace GRA.Domain.Service
             {
                 throw new GraException("The request challenge group could not be accessed or does not exist");
             }
+            challengeGroup.Challenges = await _challengeRepository.GetByIdsAsync(GetCurrentSiteId(),
+                challengeGroup.ChallengeIds);
             await AddBadgeFilenames(challengeGroup.Challenges);
 
             return challengeGroup;
         }
 
-        public async Task<ChallengeGroup> GetGroupByStubAsync(string stub)
+        public async Task<ChallengeGroup> GetActiveGroupByStubAsync(string stub)
         {
-            return await _challengeGroupRepository.GetByStubAsync(GetCurrentSiteId(), stub.ToLower());
+            return await _challengeGroupRepository.GetActiveByStubAsync(GetCurrentSiteId(),
+                stub.ToLower());
         }
 
         public async Task<DataWithCount<IEnumerable<ChallengeGroup>>>
@@ -596,7 +603,8 @@ namespace GRA.Domain.Service
                 serviceResult.Message = "One or more of the selected challenges could not be added to this group.";
             }
 
-            var currentChallengeIds = currentChallengeGroup.Challenges.Select(_ => _.Id);
+            var currentChallengeIds = currentChallengeGroup.Challenges?.Select(_ => _.Id) 
+                ?? new List<int>();
             var challengesToAdd = ChallengeIds.Except(currentChallengeIds);
             var challengesToRemove = currentChallengeIds.Except(ChallengeIds);
 
@@ -609,7 +617,9 @@ namespace GRA.Domain.Service
         public async Task RemoveGroupAsync(int groupId)
         {
             VerifyPermission(Permission.EditChallengeGroups);
-            await _challengeGroupRepository.RemoveSaveAsync(GetClaimId(ClaimType.UserId), groupId);
+            var userId = GetClaimId(ClaimType.UserId);
+            await _eventRepository.DetachRelatedChallengeGroup(userId, groupId);
+            await _challengeGroupRepository.RemoveSaveAsync(userId, groupId);
         }
 
         public async Task<List<Challenge>> GetByIdsAsync(IEnumerable<int> challengeIds)

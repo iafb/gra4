@@ -7,7 +7,8 @@ namespace GRA.Domain.Repository
 {
     public interface IChallengeGroupRepository : IRepository<ChallengeGroup>
     {
-        Task<ChallengeGroup> GetByStubAsync(int siteId, string stub);
+        Task<ChallengeGroup> GetActiveByIdAsync(int id);
+        Task<ChallengeGroup> GetActiveByStubAsync(int siteId, string stub);
         Task<List<ChallengeGroup>> GetByChallengeId(int siteId, int challengeId);
         Task<int> CountAsync(ChallengeGroupFilter filter);
         Task<IEnumerable<ChallengeGroup>> PageAsync(ChallengeGroupFilter filter);

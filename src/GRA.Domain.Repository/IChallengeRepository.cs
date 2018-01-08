@@ -10,7 +10,8 @@ namespace GRA.Domain.Repository
         Task<int> GetChallengeCountAsync(ChallengeFilter filter);
         Task<IEnumerable<ChallengeTask>> GetChallengeTasksAsync(int challengeId, int? userId);
         new Task<Challenge> GetByIdAsync(int id);
-        Task<List<Challenge>> GetByIdsAsync(int siteId, IEnumerable<int> ids);
+        Task<List<Challenge>> GetByIdsAsync(int siteId, IEnumerable<int> ids,
+            bool ActiveOnly = false);
         Task<Challenge> GetActiveByIdAsync(int id, int? userId = default(int));
         Task<ICollection<Challenge>> PageAllAsync(ChallengeFilter filter);
         Task<DataWithCount<IEnumerable<int>>> PageIdsAsync(ChallengeFilter filter, int userId);
