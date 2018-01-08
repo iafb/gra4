@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Uploading files with markdown editor
 - Mission Control ability to delete multiple history entries at once
 - Site setting to restrict changing system and branch after signup
+- Site setting to require events to be created with badges
 
 ### Fixed
 - Issue with favorites list filtering
