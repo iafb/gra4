@@ -228,6 +228,7 @@ namespace GRA.Controllers.MissionControl
                 CanAddSecretCode = requireSecretCode ||
                     UserHasPermission(Permission.ManageTriggers),
                 CanManageLocations = UserHasPermission(Permission.ManageLocations),
+                CanRelateChallenge = UserHasPermission(Permission.ViewAllChallenges),
                 SystemList = new SelectList(systemList, "Id", "Name"),
                 LocationList = new SelectList(locationList, "Id", "Name"),
                 ProgramList = new SelectList(programList, "Id", "Name"),
@@ -246,7 +247,8 @@ namespace GRA.Controllers.MissionControl
             {
                 try
                 {
-                    var graEvent = await _eventService.GetDetails(id.Value);
+                    var graEvent = await _eventService.GetDetails(id.Value,
+                        viewModel.CanRelateChallenge);
                     if (!graEvent.ParentEventId.HasValue)
                     {
                         graEvent.ParentEventId = graEvent.Id;
@@ -349,6 +351,10 @@ namespace GRA.Controllers.MissionControl
             {
                 try
                 {
+                    if (model.Event.ChallengeId.HasValue)
+                    {
+                        model.Event.ChallengeGroupId = null;
+                    }
                     if (model.Event.AllDay)
                     {
                         model.Event.StartDate = model.Event.StartDate.Date;
@@ -471,7 +477,7 @@ namespace GRA.Controllers.MissionControl
 
             try
             {
-                var graEvent = await _eventService.GetDetails(id);
+                var graEvent = await _eventService.GetDetails(id, true);
                 var systemList = await _siteService.GetSystemList(true);
                 var branchList = await _siteService.GetBranches(GetId(ClaimType.SystemId));
                 var locationList = await _eventService.GetLocations();
@@ -481,7 +487,9 @@ namespace GRA.Controllers.MissionControl
                     Event = graEvent,
                     UseLocation = graEvent.AtLocationId.HasValue,
                     CanAddSecretCode = UserHasPermission(Permission.ManageTriggers),
+                    CanEditGroups = UserHasPermission(Permission.EditChallengeGroups),
                     CanManageLocations = UserHasPermission(Permission.ManageLocations),
+                    CanRelateChallenge = UserHasPermission(Permission.ViewAllChallenges),
                     SystemList = new SelectList(systemList, "Id", "Name"),
                     BranchList = new SelectList(branchList, "Id", "Name"),
                     LocationList = new SelectList(locationList, "Id", "Name"),
@@ -500,6 +508,13 @@ namespace GRA.Controllers.MissionControl
                     viewModel.SystemId = GetId(ClaimType.SystemId);
                     viewModel.BranchList = new SelectList(await _siteService
                         .GetBranches(viewModel.SystemId, true), "Id", "Name");
+                }
+
+                if (graEvent.Challenge?.BadgeId != null)
+                {
+                    var badge = await _badgeService.GetByIdAsync(graEvent.Challenge.BadgeId.Value);
+                    graEvent.Challenge.BadgeFilename = _pathResolver
+                        .ResolveContentPath(badge.Filename);
                 }
 
                 return View(viewModel);
@@ -558,6 +573,10 @@ namespace GRA.Controllers.MissionControl
             {
                 try
                 {
+                    if (model.Event.ChallengeId.HasValue)
+                    {
+                        model.Event.ChallengeGroupId = null;
+                    }
                     if (model.Event.AllDay)
                     {
                         model.Event.StartDate = model.Event.StartDate.Date;
@@ -613,6 +632,8 @@ namespace GRA.Controllers.MissionControl
                 }
             }
             PageTitle = "Edit Event";
+
+            model.Event = await _eventService.GetRelatedChallengeDetails(model.Event, true);
 
             var systemList = await _siteService.GetSystemList(true);
             var branchList = await _siteService.GetBranches(model.SystemId, true);
