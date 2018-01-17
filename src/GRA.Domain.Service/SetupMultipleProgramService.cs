@@ -65,6 +65,7 @@ namespace GRA.Domain.Service
                 ActivityDescriptionPlural = "minutes",
                 IsSingleEvent = false,
                 PointsEarned = 1,
+                SiteId = siteId,
                 TranslationName = "One minute, one point",
                 TranslationDescriptionPastTense = "read {0}",
                 TranslationDescriptionPresentTense = "reading {0}"

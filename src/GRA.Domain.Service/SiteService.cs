@@ -216,7 +216,7 @@ namespace GRA.Domain.Service
             };
             program.Position = await _programRepository.CountAsync(filter);
             program.SiteId = siteId;
-            
+
             return await _programRepository.AddSaveAsync(GetClaimId(ClaimType.UserId), program);
         }
 
@@ -231,7 +231,7 @@ namespace GRA.Domain.Service
                 _logger.LogError($"User {authId} cannot remove program {currentProgram.Id} for site {currentProgram.SiteId}.");
                 throw new GraException($"Permission denied - program belongs to site id {currentProgram.SiteId}.");
             }
-            
+
             currentProgram.AchieverPointAmount = program.AchieverPointAmount;
             currentProgram.AgeMaximum = program.AgeMaximum;
             currentProgram.AgeMinimum = program.AgeMinimum;
@@ -239,6 +239,8 @@ namespace GRA.Domain.Service
             currentProgram.AskAge = program.AskAge;
             currentProgram.AskSchool = program.AskSchool;
             currentProgram.DailyLiteracyTipId = program.DailyLiteracyTipId;
+            currentProgram.JoinBadgeId = currentProgram.JoinBadgeId ?? program.JoinBadgeId;
+            currentProgram.JoinBadgeName = program.JoinBadgeName;
             currentProgram.Name = program.Name;
             currentProgram.PointTranslationId = program.PointTranslationId;
             currentProgram.SchoolRequired = program.SchoolRequired;
@@ -257,11 +259,11 @@ namespace GRA.Domain.Service
                 _logger.LogError($"User {authId} cannot remove program {programId} for site {program.SiteId}.");
                 throw new GraException($"Permission denied - program belongs to site id {program.SiteId}.");
             }
-            if (await _programRepository.IsInUseAsync(programId))
+            if (await _programRepository.IsInUseAsync(programId, siteId))
             {
-                throw new GraException($"Users currently belong to program {program.Name}.");
+                throw new GraException($"Users currently belong to the program \"{program.Name}\".");
             }
-            await _programRepository.RemoveSaveAsync(GetClaimId(ClaimType.UserId), programId);
+            await _programRepository.RemoveSaveAsync(GetClaimId(ClaimType.UserId), program);
         }
 
         public async Task UpdateProgramListOrderAsync(List<int> programOrderList)
@@ -274,7 +276,7 @@ namespace GRA.Domain.Service
             var programIdList = programs.Select(_ => _.Id);
             if (programOrderList.All(programIdList.Contains) && programOrderList.Count == programIdList.Count())
             {
-                _logger.LogError($"User {authId} cannot update programs {string.Join(", " ,programOrderList)} belonging to another site.");
+                _logger.LogError($"User {authId} cannot update programs {string.Join(", ", programOrderList)} belonging to another site.");
                 throw new GraException("Invalid program selection.");
             }
             foreach (var program in programs)
@@ -282,6 +284,18 @@ namespace GRA.Domain.Service
                 program.Position = programOrderList.IndexOf(program.Id);
                 await _programRepository.UpdateSaveAsync(authId, program);
             }
+        }
+
+        public async Task DecreaseProgramPositionAsync(int programId)
+        {
+            VerifyPermission(Permission.ManagePrograms);
+            await _programRepository.DecreasePositionAsync(programId, GetCurrentSiteId());
+        }
+
+        public async Task IncreaseProgramPositionAsync(int programId)
+        {
+            VerifyPermission(Permission.ManagePrograms);
+            await _programRepository.IncreasePositionAsync(programId, GetCurrentSiteId());
         }
 
         public async Task<Program> GetProgramByIdAsync(int programId)

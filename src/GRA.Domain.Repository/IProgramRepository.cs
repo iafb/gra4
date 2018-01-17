@@ -10,7 +10,10 @@ namespace GRA.Domain.Repository
         Task<IEnumerable<Program>> GetAllAsync(int siteId);
         Task<ICollection<Program>> PageAsync(BaseFilter filter);
         Task<int> CountAsync(BaseFilter filter);
-        Task<bool> IsInUseAsync(int programId);
+        Task RemoveSaveAsync(int userId, Program program);
+        Task<bool> IsInUseAsync(int programId, int siteId);
         Task<bool> ValidateAsync(int programId, int siteId);
+        Task DecreasePositionAsync(int programId, int siteId);
+        Task IncreasePositionAsync(int programId, int siteId);
     }
 }

@@ -28,7 +28,7 @@ namespace GRA.Domain.Service
                 nameof(dailyLiteracyTipRepository));
         }
 
-        public async Task<IEnumerable<DailyLiteracyTip>> GetList()
+        public async Task<IEnumerable<DailyLiteracyTip>> GetListAsync()
         {
             return await _dailyLiteracyTipRepository.GetAllAsync(GetCurrentSiteId());
         }

@@ -65,6 +65,7 @@ namespace GRA.Domain.Service
                 ActivityDescriptionPlural = "books",
                 IsSingleEvent = true,
                 PointsEarned = 10,
+                SiteId = siteId,
                 TranslationName = "One book, ten points",
                 TranslationDescriptionPastTense = "read {0}",
                 TranslationDescriptionPresentTense = "reading {0}"

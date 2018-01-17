@@ -22,7 +22,7 @@ namespace GRA.Domain.Service
                 ?? throw new ArgumentNullException(nameof(pointTranslationRepository));
         }
 
-        public async Task<IEnumerable<PointTranslation>> GetList()
+        public async Task<IEnumerable<PointTranslation>> GetListAsync()
         {
             return await _pointTranslationRepository.GetAllAsync(GetCurrentSiteId());
         }

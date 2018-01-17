@@ -33,7 +33,9 @@ namespace GRA.Data.Model
         public int? AgeMinimum { get; set; }
 
         public int? DailyLiteracyTipId { get; set; }
+        public DailyLiteracyTip DailyLiteracy { get; set; }
 
         public int PointTranslationId { get; set; }
+        public PointTranslation PointTranslation { get; set; }
     }
 }
