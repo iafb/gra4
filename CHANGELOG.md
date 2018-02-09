@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 - Fix error that occurred when editing challenge groups
 
+### Removed
+- Remove entered schools
+
 ## [4.0.0-alpha9] 2018-01-23
 ### Added
 - Better error handling in AJAX favoriting

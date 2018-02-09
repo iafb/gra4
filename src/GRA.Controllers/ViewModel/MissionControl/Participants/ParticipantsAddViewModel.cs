@@ -45,9 +45,6 @@ namespace GRA.Controllers.ViewModel.MissionControl.Participants
         public int? Age { get; set; }
         [DisplayName("School")]
         public int? SchoolId { get; set; }
-        [DisplayName("School Name")]
-        [MaxLength(255)]
-        public string EnteredSchoolName { get; set; }
 
         [DisplayName("Email Address")]
         [EmailAddress]
@@ -62,7 +59,6 @@ namespace GRA.Controllers.ViewModel.MissionControl.Participants
         public bool RequirePostalCode { get; set; }
         public bool ShowAge { get; set; }
         public bool ShowSchool { get; set; }
-        public bool NewEnteredSchool { get; set; }
         public int? SchoolDistrictId { get; set; }
         public int? SchoolTypeId { get; set; }
         public string ProgramJson { get; set; }

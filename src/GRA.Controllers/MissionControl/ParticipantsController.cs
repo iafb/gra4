@@ -276,23 +276,9 @@ namespace GRA.Controllers.MissionControl
                 {
                     ModelState.AddModelError("Age", "The Age field is required.");
                 }
-                if (program.SchoolRequired)
+                if (program.SchoolRequired && !model.SchoolId.HasValue)
                 {
-                    if (!model.NewEnteredSchool && !model.SchoolId.HasValue)
-                    {
-                        ModelState.AddModelError("SchoolId", "The School field is required.");
-                    }
-                    else if (model.NewEnteredSchool
-                        && string.IsNullOrWhiteSpace(model.EnteredSchoolName))
-                    {
-                        ModelState.AddModelError("EnteredSchoolName", "The School Name field is required.");
-                    }
-                }
-                if (model.NewEnteredSchool && !model.SchoolDistrictId.HasValue
-                    && ((program.AskSchool && !string.IsNullOrWhiteSpace(model.EnteredSchoolName))
-                        || program.SchoolRequired))
-                {
-                    ModelState.AddModelError("SchoolDistrictId", "The School District field is required.");
+                    ModelState.AddModelError("SchoolId", "The School field is required.");
                 }
             }
 
@@ -302,21 +288,9 @@ namespace GRA.Controllers.MissionControl
                 {
                     model.Age = null;
                 }
-                if (askSchool)
-                {
-                    if (model.NewEnteredSchool)
-                    {
-                        model.SchoolId = null;
-                    }
-                    else
-                    {
-                        model.EnteredSchoolName = null;
-                    }
-                }
-                else
+                if (!askSchool)
                 {
                     model.SchoolId = null;
-                    model.EnteredSchoolName = null;
                 }
 
                 User user = _mapper.Map<User>(model);
@@ -330,8 +304,7 @@ namespace GRA.Controllers.MissionControl
 
                 try
                 {
-                    var newUser = await _userService.RegisterUserAsync(user, model.Password,
-                        model.SchoolDistrictId, true);
+                    var newUser = await _userService.RegisterUserAsync(user, model.Password, true);
                     await _mailService.SendUserBroadcastsAsync(newUser.Id, false, true);
                     if (UserHasPermission(Permission.EditParticipants))
                     {
@@ -450,7 +423,6 @@ namespace GRA.Controllers.MissionControl
                     RequirePostalCode = (await GetCurrentSiteAsync()).RequirePostalCode,
                     ShowAge = userProgram.AskAge,
                     ShowSchool = userProgram.AskSchool,
-                    HasSchoolId = user.SchoolId.HasValue,
                     ProgramJson = Newtonsoft.Json.JsonConvert.SerializeObject(programViewObject),
                     BranchList = new SelectList(branchList.ToList(), "Id", "Name"),
                     ProgramList = new SelectList(programList.ToList(), "Id", "Name"),
@@ -507,23 +479,9 @@ namespace GRA.Controllers.MissionControl
             {
                 ModelState.AddModelError("User.Age", "The Age field is required.");
             }
-            if (program.SchoolRequired && !model.User.EnteredSchoolId.HasValue)
+            if (program.SchoolRequired && !model.User.SchoolId.HasValue)
             {
-                if (!model.NewEnteredSchool && !model.User.SchoolId.HasValue)
-                {
-                    ModelState.AddModelError("User.SchoolId", "The School field is required.");
-                }
-                else if (model.NewEnteredSchool
-                    && string.IsNullOrWhiteSpace(model.User.EnteredSchoolName))
-                {
-                    ModelState.AddModelError("User.EnteredSchoolName", "The School Name field is required.");
-                }
-            }
-            if (model.NewEnteredSchool && !model.SchoolDistrictId.HasValue
-                && ((program.AskSchool && !string.IsNullOrWhiteSpace(model.User.EnteredSchoolName))
-                    || program.SchoolRequired))
-            {
-                ModelState.AddModelError("SchoolDistrictId", "The School District field is required.");
+                ModelState.AddModelError("User.SchoolId", "The School field is required.");
             }
             if (model.CanEditUsername && string.IsNullOrWhiteSpace(model.User.Username))
             {
@@ -534,26 +492,16 @@ namespace GRA.Controllers.MissionControl
             {
                 try
                 {
-                    bool hasSchool = false;
                     if (!program.AskAge)
                     {
                         model.User.Age = null;
                     }
-                    if (program.AskSchool)
+                    if (!program.AskSchool)
                     {
-                        hasSchool = true;
-                        if (model.NewEnteredSchool || model.User.EnteredSchoolId.HasValue)
-                        {
-                            model.User.SchoolId = null;
-                        }
-                        else
-                        {
-                            model.User.EnteredSchoolId = null;
-                            model.User.EnteredSchoolName = null;
-                        }
+                        model.User.SchoolId = null;
                     }
 
-                    await _userService.MCUpdate(model.User, hasSchool, model.SchoolDistrictId);
+                    await _userService.MCUpdate(model.User);
                     AlertSuccess = "Participant infomation updated";
                     return RedirectToAction("Detail", new { id = model.User.Id });
                 }
@@ -1068,23 +1016,9 @@ namespace GRA.Controllers.MissionControl
                 {
                     ModelState.AddModelError("User.Age", "The Age field is required.");
                 }
-                if (program.SchoolRequired)
+                if (program.SchoolRequired && !model.User.SchoolId.HasValue)
                 {
-                    if (!model.NewEnteredSchool && !model.User.SchoolId.HasValue)
-                    {
-                        ModelState.AddModelError("User.SchoolId", "The School field is required.");
-                    }
-                    else if (model.NewEnteredSchool
-                        && string.IsNullOrWhiteSpace(model.User.EnteredSchoolName))
-                    {
-                        ModelState.AddModelError("User.EnteredSchoolName", "The School Name field is required.");
-                    }
-                }
-                if (model.NewEnteredSchool && !model.SchoolDistrictId.HasValue
-                    && ((program.AskSchool && !string.IsNullOrWhiteSpace(model.User.EnteredSchoolName))
-                        || program.SchoolRequired))
-                {
-                    ModelState.AddModelError("SchoolDistrictId", "The School District field is required.");
+                    ModelState.AddModelError("User.SchoolId", "The School field is required.");
                 }
             }
 
@@ -1096,21 +1030,9 @@ namespace GRA.Controllers.MissionControl
                     {
                         model.User.Age = null;
                     }
-                    if (askSchool)
-                    {
-                        if (model.NewEnteredSchool)
-                        {
-                            model.User.SchoolId = null;
-                        }
-                        else
-                        {
-                            model.User.EnteredSchoolName = null;
-                        }
-                    }
-                    else
+                    if (!askSchool)
                     {
                         model.User.SchoolId = null;
-                        model.User.EnteredSchoolName = null;
                     }
 
                     if (askIfFirstTime)
@@ -1120,7 +1042,7 @@ namespace GRA.Controllers.MissionControl
                     }
 
                     var newMember = await _userService.AddHouseholdMemberAsync(headOfHousehold.Id,
-                        model.User, model.SchoolDistrictId);
+                        model.User);
                     await _mailService.SendUserBroadcastsAsync(newMember.Id, false, true);
                     AlertSuccess = "Added family/group member";
                     return RedirectToAction("Household", new { id = model.Id });

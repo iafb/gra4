@@ -10,7 +10,6 @@ namespace GRA.Domain.Service
 {
     public class SchoolService : BaseUserService<SchoolService>
     {
-        private readonly IEnteredSchoolRepository _enteredSchoolRepository;
         private readonly ISchoolRepository _schoolRepository;
         private readonly ISchoolTypeRepository _schoolTypeRepository;
         private readonly ISchoolDistrictRepository _schoolDistrictRepository;
@@ -18,14 +17,11 @@ namespace GRA.Domain.Service
         public SchoolService(ILogger<SchoolService> logger,
             GRA.Abstract.IDateTimeProvider dateTimeProvider,
             IUserContextProvider userContextProvider,
-            IEnteredSchoolRepository enteredSchoolRepository,
             ISchoolDistrictRepository schoolDistrictRepository,
             ISchoolRepository schoolRepository,
             ISchoolTypeRepository schoolTypeRepository,
             IUserRepository userRepository) : base(logger, dateTimeProvider, userContextProvider)
         {
-            _enteredSchoolRepository = Require.IsNotNull(enteredSchoolRepository,
-                nameof(enteredSchoolRepository));
             _schoolDistrictRepository = Require.IsNotNull(schoolDistrictRepository,
                 nameof(schoolDistrictRepository));
             _schoolRepository = Require.IsNotNull(schoolRepository, nameof(schoolRepository));
@@ -61,61 +57,6 @@ namespace GRA.Domain.Service
                 SchoolDisctrictId = school.SchoolDistrictId,
                 SchoolTypeId = school.SchoolTypeId
             };
-        }
-
-        public async Task<EnteredSchool> AddEnteredSchool(string schoolName, int districtId)
-        {
-            var district = await _schoolDistrictRepository.GetByIdAsync(districtId);
-            if (district == null)
-            {
-                throw new GraException("Please select a school district.");
-            }
-            var enteredSchool = new EnteredSchool
-            {
-                SiteId = district.SiteId,
-                Name = schoolName,
-                SchoolDistrictId = districtId
-            };
-            return await _enteredSchoolRepository.AddSaveNoAuditAsync(enteredSchool);
-        }
-
-        public async Task<School> AddEnteredSchoolToList(int enteredSchoolId,
-            string schoolName,
-            int schoolDistrictId,
-            int schoolTypeId)
-        {
-            VerifyPermission(Permission.ManageSchools);
-            var enteredSchool = await _enteredSchoolRepository.GetByIdAsync(enteredSchoolId);
-            var newSchool = await _schoolRepository.AddSaveAsync(GetClaimId(ClaimType.UserId),
-                new School
-                {
-                    Name = schoolName,
-                    SchoolDistrictId = schoolDistrictId,
-                    SiteId = enteredSchool.SiteId,
-                    SchoolTypeId = schoolTypeId
-                });
-            await _enteredSchoolRepository.ConvertSchoolAsync(enteredSchool, newSchool.Id);
-            return newSchool;
-        }
-
-        public async Task<School> MergeEnteredSchoolAsync(int enteredSchoolId, int schoolId)
-        {
-            VerifyPermission(Permission.ManageSchools);
-            var enteredSchool = await _enteredSchoolRepository.GetByIdAsync(enteredSchoolId);
-            var school = await _schoolRepository.GetByIdAsync(schoolId);
-            if (enteredSchool.SiteId != school.SiteId)
-            {
-                throw new GraException("Invalid school selection.");
-            }
-            await _enteredSchoolRepository.ConvertSchoolAsync(enteredSchool, schoolId);
-            return school;
-        }
-
-        public async Task RemoveEnteredSchoolAsync(int enteredSchoolId)
-        {
-            var authUserId = GetClaimId(ClaimType.UserId);
-            await _enteredSchoolRepository
-                    .RemoveSaveAsync(authUserId, enteredSchoolId);
         }
 
         public async Task<SchoolDistrict> AddDistrict(string districtName)
@@ -272,18 +213,6 @@ namespace GRA.Domain.Service
             }
             currentType.Name = type.Name;
             await _schoolTypeRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), currentType);
-        }
-
-        public async Task<DataWithCount<ICollection<EnteredSchool>>> GetPaginatedEnteredListAsync(
-            BaseFilter filter)
-        {
-            VerifyPermission(Permission.ManageSchools);
-            filter.SiteId = GetCurrentSiteId();
-            return new DataWithCount<ICollection<EnteredSchool>>
-            {
-                Data = await _enteredSchoolRepository.PageAsync(filter),
-                Count = await _enteredSchoolRepository.CountAsync(filter)
-            };
         }
     }
 }

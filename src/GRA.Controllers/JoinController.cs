@@ -158,23 +158,9 @@ namespace GRA.Controllers
                 {
                     ModelState.AddModelError("Age", "The Age field is required.");
                 }
-                if (program.SchoolRequired)
+                if (program.SchoolRequired && !model.SchoolId.HasValue)
                 {
-                    if (!model.NewEnteredSchool && !model.SchoolId.HasValue)
-                    {
-                        ModelState.AddModelError("SchoolId", "The School field is required.");
-                    }
-                    else if (model.NewEnteredSchool
-                        && string.IsNullOrWhiteSpace(model.EnteredSchoolName))
-                    {
-                        ModelState.AddModelError("EnteredSchoolName", "The School Name field is required.");
-                    }
-                }
-                if (model.NewEnteredSchool && !model.SchoolDistrictId.HasValue
-                    && ((program.AskSchool && !string.IsNullOrWhiteSpace(model.EnteredSchoolName))
-                        || program.SchoolRequired))
-                {
-                    ModelState.AddModelError("SchoolDistrictId", "The School District field is required.");
+                    ModelState.AddModelError("SchoolId", "The School field is required.");
                 }
             }
 
@@ -184,21 +170,9 @@ namespace GRA.Controllers
                 {
                     model.Age = null;
                 }
-                if (askSchool)
-                {
-                    if (model.NewEnteredSchool)
-                    {
-                        model.SchoolId = null;
-                    }
-                    else
-                    {
-                        model.EnteredSchoolName = null;
-                    }
-                }
-                else
+                if (!askSchool)
                 {
                     model.SchoolId = null;
-                    model.EnteredSchoolName = null;
                 }
 
                 User user = _mapper.Map<User>(model);
@@ -211,8 +185,7 @@ namespace GRA.Controllers
 
                 try
                 {
-                    await _userService.RegisterUserAsync(user, model.Password,
-                        model.SchoolDistrictId);
+                    await _userService.RegisterUserAsync(user, model.Password);
                     var loginAttempt = await _authenticationService
                         .AuthenticateUserAsync(user.Username, model.Password);
                     await LoginUserAsync(loginAttempt);
@@ -456,23 +429,9 @@ namespace GRA.Controllers
                 {
                     ModelState.AddModelError("Age", "The Age field is required.");
                 }
-                if (program.SchoolRequired)
+                if (program.SchoolRequired && !model.SchoolId.HasValue)
                 {
-                    if (!model.NewEnteredSchool && !model.SchoolId.HasValue)
-                    {
-                        ModelState.AddModelError("SchoolId", "The School field is required.");
-                    }
-                    else if (model.NewEnteredSchool
-                        && string.IsNullOrWhiteSpace(model.EnteredSchoolName))
-                    {
-                        ModelState.AddModelError("EnteredSchoolName", "The School Name field is required.");
-                    }
-                }
-                if (model.NewEnteredSchool && !model.SchoolDistrictId.HasValue
-                    && ((program.AskSchool && !string.IsNullOrWhiteSpace(model.EnteredSchoolName))
-                        || program.SchoolRequired))
-                {
-                    ModelState.AddModelError("SchoolDistrictId", "The School District field is required.");
+                    ModelState.AddModelError("SchoolId", "The School field is required.");
                 }
             }
 
@@ -482,21 +441,9 @@ namespace GRA.Controllers
                 {
                     model.Age = null;
                 }
-                if (askSchool)
-                {
-                    if (model.NewEnteredSchool)
-                    {
-                        model.SchoolId = null;
-                    }
-                    else
-                    {
-                        model.EnteredSchoolName = null;
-                    }
-                }
-                else
+                if (!askSchool)
                 {
                     model.SchoolId = null;
-                    model.EnteredSchoolName = null;
                 }
 
                 TempData[TempStep2] = Newtonsoft.Json.JsonConvert.SerializeObject(model);
@@ -620,8 +567,7 @@ namespace GRA.Controllers
 
                 try
                 {
-                    await _userService.RegisterUserAsync(user, model.Password,
-                        step2.SchoolDistrictId);
+                    await _userService.RegisterUserAsync(user, model.Password);
                     TempData.Remove(TempStep1);
                     TempData.Remove(TempStep2);
                     var loginAttempt = await _authenticationService

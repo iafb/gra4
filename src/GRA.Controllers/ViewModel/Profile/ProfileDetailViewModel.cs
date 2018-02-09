@@ -11,8 +11,6 @@ namespace GRA.Controllers.ViewModel.Profile
         public bool RequirePostalCode { get; set; }
         public bool ShowAge { get; set; }
         public bool ShowSchool { get; set; }
-        public bool HasSchoolId { get; set; }
-        public bool NewEnteredSchool { get; set; }
         public int? SchoolDistrictId { get; set; }
         public int? SchoolTypeId { get; set; }
         public string ProgramJson { get; set; }
