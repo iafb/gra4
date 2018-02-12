@@ -61,7 +61,7 @@ namespace GRA.Controllers.MissionControl
             {
                 Schools = schoolList.Data.ToList(),
                 PaginateModel = paginateModel,
-                SchoolDistricts = new SelectList(await _schoolService.GetDistrictsAsync(), "Id", "Name"),
+                DistrictList = await _schoolService.GetDistrictsAsync(),
                 SchoolTypes = new SelectList(await _schoolService.GetTypesAsync(), "Id", "Name")
             };
 
@@ -145,7 +145,7 @@ namespace GRA.Controllers.MissionControl
             DistrictListViewModel viewModel = new DistrictListViewModel()
             {
                 SchoolDistricts = districtList.Data.ToList(),
-                PaginateModel = paginateModel,
+                PaginateModel = paginateModel
             };
 
             return View(viewModel);
@@ -156,7 +156,22 @@ namespace GRA.Controllers.MissionControl
         {
             try
             {
-                await _schoolService.AddDistrict(model.District.Name);
+                if (model.TypeSelection == 1)
+                {
+                    model.District.IsPrivate = true;
+                    model.District.IsCharter = false;
+                }
+                else if (model.TypeSelection == 2)
+                {
+                    model.District.IsPrivate = false;
+                    model.District.IsCharter = true;
+                }
+                else
+                {
+                    model.District.IsPrivate = false;
+                    model.District.IsCharter = false;
+                }
+                await _schoolService.AddDistrict(model.District);
                 ShowAlertSuccess($"Added School District '{model.District.Name}'");
             }
             catch (GraException gex)
@@ -171,6 +186,21 @@ namespace GRA.Controllers.MissionControl
         {
             try
             {
+                if (model.TypeSelection == 1)
+                {
+                    model.District.IsPrivate = true;
+                    model.District.IsCharter = false;
+                }
+                else if (model.TypeSelection == 2)
+                {
+                    model.District.IsPrivate = false;
+                    model.District.IsCharter = true;
+                }
+                else
+                {
+                    model.District.IsPrivate = false;
+                    model.District.IsCharter = false;
+                }
                 await _schoolService.UpdateDistrictAsync(model.District);
                 ShowAlertSuccess($"School District '{model.District.Name}' updated");
             }

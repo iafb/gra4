@@ -11,8 +11,7 @@ namespace GRA.Data.Model
         public int SchoolDistrictId { get; set; }
         public virtual SchoolDistrict SchoolDistrict { get; set; }
 
-        [Required]
-        public int SchoolTypeId { get; set; }
+        public int? SchoolTypeId { get; set; }
         public virtual SchoolType SchoolType { get; set; }
 
         [Required]

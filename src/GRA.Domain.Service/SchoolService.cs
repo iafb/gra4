@@ -59,15 +59,13 @@ namespace GRA.Domain.Service
             };
         }
 
-        public async Task<SchoolDistrict> AddDistrict(string districtName)
+        public async Task<SchoolDistrict> AddDistrict(SchoolDistrict district)
         {
             VerifyPermission(Permission.ManageSchools);
+            district.Name = district.Name.Trim();
+            district.SiteId = GetCurrentSiteId();
             return await _schoolDistrictRepository.AddSaveAsync(GetClaimId(ClaimType.UserId),
-                new SchoolDistrict
-                {
-                    SiteId = GetCurrentSiteId(),
-                    Name = districtName
-                });
+                district);
         }
 
         public async Task<SchoolType> AddSchoolType(string typeName)
@@ -81,9 +79,18 @@ namespace GRA.Domain.Service
                 });
         }
 
-        public async Task<School> AddSchool(string schoolName, int districtId, int typeId)
+        public async Task<School> AddSchool(string schoolName, int districtId, int? typeId)
         {
             VerifyPermission(Permission.ManageSchools);
+            var district = await _schoolDistrictRepository.GetByIdAsync(districtId);
+            if (district.IsCharter || district.IsPrivate)
+            {
+                typeId = null;
+            }
+            else if (typeId.HasValue == false)
+            {
+                throw new GraException("No school type selected.");
+            }
             return await _schoolRepository.AddSaveAsync(GetClaimId(ClaimType.UserId),
                 new School
                 {
@@ -163,7 +170,21 @@ namespace GRA.Domain.Service
             }
             currentSchool.Name = school.Name;
             currentSchool.SchoolDistrictId = school.SchoolDistrictId;
-            currentSchool.SchoolTypeId = school.SchoolTypeId;
+
+            var district = await _schoolDistrictRepository.GetByIdAsync(school.SchoolDistrictId);
+            if (district.IsCharter || district.IsPrivate)
+            {
+                currentSchool.SchoolTypeId = null;
+            }
+            else if (school.SchoolTypeId.HasValue == false)
+            {
+                throw new GraException("No school type selected.");
+            }
+            else
+            {
+                currentSchool.SchoolTypeId = school.SchoolTypeId;
+            }
+            
             await _schoolRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), currentSchool);
         }
 
@@ -187,7 +208,9 @@ namespace GRA.Domain.Service
             {
                 throw new GraException($"Permission denied - district belongs site id {currentDistrict.SiteId}.");
             }
-            currentDistrict.Name = district.Name;
+            currentDistrict.IsCharter = district.IsCharter;
+            currentDistrict.IsPrivate = district.IsPrivate;
+            currentDistrict.Name = district.Name.Trim();
             await _schoolDistrictRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), currentDistrict);
         }
 

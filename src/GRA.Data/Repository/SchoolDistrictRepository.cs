@@ -24,7 +24,9 @@ namespace GRA.Data.Repository
             return await DbSet
                 .AsNoTracking()
                 .Where(_ => _.SiteId == siteId)
-                .OrderBy(_ => _.Name)
+                .OrderByDescending(_ => _.IsPrivate)
+                    .ThenByDescending(_ => _.IsCharter)
+                    .ThenBy(_ => _.Name)
                 .ProjectTo<SchoolDistrict>()
                 .ToListAsync();
         }
@@ -38,7 +40,9 @@ namespace GRA.Data.Repository
         public async Task<ICollection<SchoolDistrict>> PageAsync(BaseFilter filter)
         {
             return await ApplyFilters(filter)
-                .OrderBy(_ => _.Name)
+                .OrderByDescending(_ => _.IsPrivate)
+                    .ThenByDescending(_ => _.IsCharter)
+                    .ThenBy(_ => _.Name)
                 .ApplyPagination(filter)
                 .ProjectTo<SchoolDistrict>()
                 .ToListAsync();
