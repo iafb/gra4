@@ -30,9 +30,11 @@ namespace GRA.Domain.Service
             _userRepository = Require.IsNotNull(userRepository, nameof(userRepository));
         }
 
-        public async Task<ICollection<SchoolDistrict>> GetDistrictsAsync()
+        public async Task<ICollection<SchoolDistrict>> GetDistrictsAsync(
+            bool excludeUserUnselectable = false)
         {
-            return await _schoolDistrictRepository.GetAllAsync(GetCurrentSiteId());
+            return await _schoolDistrictRepository.GetAllAsync(GetCurrentSiteId(),
+                excludeUserUnselectable);
         }
 
         public async Task<ICollection<SchoolType>> GetTypesAsync(int? districtId = default(int?))
@@ -184,7 +186,7 @@ namespace GRA.Domain.Service
             {
                 currentSchool.SchoolTypeId = school.SchoolTypeId;
             }
-            
+
             await _schoolRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), currentSchool);
         }
 
@@ -236,6 +238,26 @@ namespace GRA.Domain.Service
             }
             currentType.Name = type.Name;
             await _schoolTypeRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), currentType);
+        }
+
+        public async Task<bool> AnyPrivateSchoolsAsync()
+        {
+            return await _schoolRepository.AnyPrivateSchoolsAsync(GetCurrentSiteId());
+        }
+
+        public async Task<List<School>> GetPrivateSchoolListAsync()
+        {
+            return await _schoolRepository.GetPrivateSchoolListAsync(GetCurrentSiteId());
+        }
+
+        public async Task<bool> AnyCharterSchoolsAsync()
+        {
+            return await _schoolRepository.AnyCharterSchoolsAsync(GetCurrentSiteId());
+        }
+
+        public async Task<List<School>> GetCharterSchoolListAsync()
+        {
+            return await _schoolRepository.GetCharterSchoolListAsync(GetCurrentSiteId());
         }
     }
 }
