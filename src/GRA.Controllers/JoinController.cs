@@ -135,44 +135,33 @@ namespace GRA.Controllers
         public async Task<IActionResult> SchoolCategory(SinglePageViewModel model)
         {
             ModelState.Clear();
+
+            model.PublicSelected = false;
+            model.PrivateSelected = false;
+            model.CharterSelected = false;
+            model.IsHomeschooled = false;
             if (model.SetPrivate)
             {
-                model.SchoolId = null;
-                model.PublicSelected = false;
                 model.PrivateSelected = true;
-                model.CharterSelected = false;
-                model.IsHomeschooled = false;
                 model.SchoolList = new SelectList(
                     await _schoolService.GetPrivateSchoolListAsync(), "Id", "Name");
             }
             else if (model.SetCharter)
             {
-                model.SchoolId = null;
-                model.PublicSelected = false;
-                model.PrivateSelected = false;
                 model.CharterSelected = true;
-                model.IsHomeschooled = false;
                 model.SchoolList = new SelectList(
                     await _schoolService.GetCharterSchoolListAsync(), "Id", "Name");
             }
             else if (model.SetHomeschool)
             {
-                model.SchoolId = null;
-                model.PublicSelected = false;
-                model.PrivateSelected = false;
-                model.CharterSelected = false;
                 model.IsHomeschooled = true;
             }
             else
             {
-                model.SchoolId = null;
                 model.PublicSelected = true;
-                model.PrivateSelected = false;
-                model.CharterSelected = false;
-                model.IsHomeschooled = false;
             }
 
-            model.CategorySelectionAction = nameof(Step2SchoolCategory);
+            model.CategorySelectionAction = nameof(SchoolCategory);
             model.SchoolDistrictList = new SelectList(
                 await _schoolService.GetDistrictsAsync(true), "Id", "Name");
             model.SchoolId = null;
@@ -362,12 +351,13 @@ namespace GRA.Controllers
                 if (model.SchoolId.HasValue)
                 {
                     var schoolDetails = await _schoolService.GetSchoolDetailsAsync(model.SchoolId.Value);
-                    var typeList = await _schoolService.GetTypesAsync(schoolDetails.SchoolDisctrictId);
+                    var typeList = await _schoolService.GetTypesAsync(schoolDetails.SchoolDistrictId);
                     model.SchoolDistrictList = new SelectList(districtList.ToList(), "Id", "Name",
-                        schoolDetails.SchoolDisctrictId);
+                        schoolDetails.SchoolDistrictId);
                     model.SchoolTypeList = new SelectList(typeList.ToList(), "Id", "Name",
                         schoolDetails.SchoolTypeId);
                     model.SchoolList = new SelectList(schoolDetails.Schools.ToList(), "Id", "Name");
+                    ModelState.Remove(nameof(model.SchoolTypeId));
                 }
                 else
                 {
@@ -539,41 +529,30 @@ namespace GRA.Controllers
         public async Task<IActionResult> Step2SchoolCategory(Step2ViewModel model)
         {
             ModelState.Clear();
+
+            model.PublicSelected = false;
+            model.PrivateSelected = false;
+            model.CharterSelected = false;
+            model.IsHomeschooled = false;
             if (model.SetPrivate)
             {
-                model.SchoolId = null;
-                model.PublicSelected = false;
                 model.PrivateSelected = true;
-                model.CharterSelected = false;
-                model.IsHomeschooled = false;
                 model.SchoolList = new SelectList(
                     await _schoolService.GetPrivateSchoolListAsync(), "Id", "Name");
             }
             else if (model.SetCharter)
             {
-                model.SchoolId = null;
-                model.PublicSelected = false;
-                model.PrivateSelected = false;
                 model.CharterSelected = true;
-                model.IsHomeschooled = false;
                 model.SchoolList = new SelectList(
                     await _schoolService.GetCharterSchoolListAsync(), "Id", "Name");
             }
             else if (model.SetHomeschool)
             {
-                model.SchoolId = null;
-                model.PublicSelected = false;
-                model.PrivateSelected = false;
-                model.CharterSelected = false;
                 model.IsHomeschooled = true;
             }
             else
             {
-                model.SchoolId = null;
                 model.PublicSelected = true;
-                model.PrivateSelected = false;
-                model.CharterSelected = false;
-                model.IsHomeschooled = false;
             }
 
             model.CategorySelectionAction = nameof(Step2SchoolCategory);
@@ -703,12 +682,13 @@ namespace GRA.Controllers
                 if (model.SchoolId.HasValue)
                 {
                     var schoolDetails = await _schoolService.GetSchoolDetailsAsync(model.SchoolId.Value);
-                    var typeList = await _schoolService.GetTypesAsync(schoolDetails.SchoolDisctrictId);
+                    var typeList = await _schoolService.GetTypesAsync(schoolDetails.SchoolDistrictId);
                     model.SchoolDistrictList = new SelectList(districtList.ToList(), "Id", "Name",
-                        schoolDetails.SchoolDisctrictId);
+                        schoolDetails.SchoolDistrictId);
                     model.SchoolTypeList = new SelectList(typeList.ToList(), "Id", "Name",
                         schoolDetails.SchoolTypeId);
                     model.SchoolList = new SelectList(schoolDetails.Schools.ToList(), "Id", "Name");
+                    ModelState.Remove(nameof(model.SchoolTypeId));
                 }
                 else
                 {

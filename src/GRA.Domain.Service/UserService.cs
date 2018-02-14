@@ -254,12 +254,14 @@ namespace GRA.Domain.Service
                 currentEntity.CardNumber = userToUpdate.CardNumber?.Trim();
                 currentEntity.Email = userToUpdate.Email?.Trim();
                 currentEntity.FirstName = userToUpdate.FirstName?.Trim();
+                currentEntity.IsHomeschooled = userToUpdate.IsHomeschooled;
                 currentEntity.LastName = userToUpdate.LastName?.Trim();
                 currentEntity.PhoneNumber = userToUpdate.PhoneNumber?.Trim();
                 currentEntity.PostalCode = userToUpdate.PostalCode?.Trim();
                 currentEntity.ProgramId = userToUpdate.ProgramId;
                 currentEntity.ProgramName = null;
                 currentEntity.SchoolId = userToUpdate.SchoolId;
+                currentEntity.SchoolNotListed = userToUpdate.SchoolNotListed;
                 currentEntity.SystemName = null;
                 //currentEntity.Username = userToUpdate.Username;
 
@@ -302,12 +304,14 @@ namespace GRA.Domain.Service
                 currentEntity.CardNumber = userToUpdate.CardNumber?.Trim();
                 currentEntity.Email = userToUpdate.Email?.Trim();
                 currentEntity.FirstName = userToUpdate.FirstName?.Trim();
+                currentEntity.IsHomeschooled = userToUpdate.IsHomeschooled;
                 currentEntity.LastName = userToUpdate.LastName?.Trim();
                 currentEntity.PhoneNumber = userToUpdate.PhoneNumber?.Trim();
                 currentEntity.PostalCode = userToUpdate.PostalCode?.Trim();
                 currentEntity.ProgramId = userToUpdate.ProgramId;
                 currentEntity.ProgramName = null;
                 currentEntity.SchoolId = userToUpdate.SchoolId;
+                currentEntity.SchoolNotListed = userToUpdate.SchoolNotListed;
                 currentEntity.SystemId = userToUpdate.SystemId;
                 currentEntity.SystemName = null;
 

@@ -1,6 +1,10 @@
 ﻿@model GRA.Controllers.ViewModel.Shared.SchoolSelectionViewModel
 
 <script>
+    $(function () {
+        $("#SchoolNotListed").trigger("change");
+    });
+
     $("#SchoolDistrictId").on("change", function() {
         var districtId = $(this).val();
         var typeList = $("#SchoolTypeId");

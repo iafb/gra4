@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace GRA.Controllers.ViewModel.Shared
 {
-    public class SchoolSelectionViewModel
+    public abstract class SchoolSelectionViewModel
     {
         [DisplayName("School")]
         public int? SchoolId { get; set; }

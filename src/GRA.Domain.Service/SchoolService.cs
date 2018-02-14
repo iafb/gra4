@@ -53,10 +53,11 @@ namespace GRA.Domain.Service
             var school = await _schoolRepository.GetByIdAsync(schoolId);
             return new SchoolDetails()
             {
+                School = school,
                 Schools = await _schoolRepository.GetAllAsync(GetCurrentSiteId(),
                     school.SchoolDistrictId,
                     school.SchoolTypeId),
-                SchoolDisctrictId = school.SchoolDistrictId,
+                SchoolDistrictId = school.SchoolDistrictId,
                 SchoolTypeId = school.SchoolTypeId
             };
         }
@@ -258,6 +259,11 @@ namespace GRA.Domain.Service
         public async Task<List<School>> GetCharterSchoolListAsync()
         {
             return await _schoolRepository.GetCharterSchoolListAsync(GetCurrentSiteId());
+        }
+
+        public async Task<SchoolDistrict> GetDistrictByIdAsync(int schoolDistrictId)
+        {
+            return await _schoolDistrictRepository.GetByIdAsync(schoolDistrictId);
         }
     }
 }
