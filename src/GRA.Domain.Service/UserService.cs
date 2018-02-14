@@ -497,15 +497,6 @@ namespace GRA.Domain.Service
                 memberToAdd.PostalCode = memberToAdd.PostalCode?.Trim();
                 memberToAdd.Username = memberToAdd.Username?.Trim();
 
-
-                if (!string.IsNullOrWhiteSpace(memberToAdd.EnteredSchoolName))
-                {
-                    memberToAdd.EnteredSchoolName = memberToAdd.EnteredSchoolName?.Trim();
-                    var enteredSchool = await _schoolService
-                        .AddEnteredSchool(memberToAdd.EnteredSchoolName, schoolDistrictId.Value);
-                    memberToAdd.EnteredSchoolId = enteredSchool.Id;
-                }
-
                 await ValidateUserFields(memberToAdd);
 
                 var registeredUser = await _userRepository.AddSaveAsync(authUserId, memberToAdd);
