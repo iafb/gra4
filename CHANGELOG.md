@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Add mail threading to mission control
 - Setting to ask participants if it's their first time
 - Setting for maximum allowed points earned total
-- Private and homeschool school district types
+- Private and chater school district types
 - Homeschool and school not listed options
 
 ### Changed
