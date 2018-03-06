@@ -5,6 +5,7 @@ using GRA.Domain.Service.Abstract;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,10 +28,23 @@ namespace GRA.Domain.Service
             ISystemRepository systemRepository)
             : base(logger, dateTimeProvider, userContextProvider)
         {
+            SetManagementPermission(Permission.ManageSites);
             _branchRepository = Require.IsNotNull(branchRepository, nameof(branchRepository));
             _programRepository = Require.IsNotNull(programRepository, nameof(programRepository));
             _siteRepository = Require.IsNotNull(siteRepository, nameof(siteRepository));
             _systemRepository = Require.IsNotNull(systemRepository, nameof(systemRepository));
+        }
+
+        public async Task<DataWithCount<IEnumerable<Site>>> GetPaginatedListAsync(BaseFilter filter)
+        {
+            VerifyManagementPermission();
+            return await _siteRepository.PageAsync(filter);
+        }
+
+        public async Task UpdateAsync(Site site)
+        {
+            VerifyManagementPermission();
+            await _siteRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), site);
         }
 
         public async Task<IEnumerable<Model.System>> GetSystemList(bool prioritizeUserSystem = false)
