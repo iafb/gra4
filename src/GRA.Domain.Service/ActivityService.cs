@@ -1203,7 +1203,7 @@ namespace GRA.Domain.Service
         private async Task<int> GetMaximumAllowedPointsAsync(int siteId)
         {
             var maximumPermitted = await _siteLookupService.GetSiteSettingIntAsync(siteId,
-                SiteSettingKey.Points.MaximumPermitted);
+                SiteSettingKey.Points.MaximumPermitted.Key);
 
             return maximumPermitted.IsSet ? maximumPermitted.SetValue : int.MaxValue;
         }

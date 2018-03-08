@@ -56,7 +56,7 @@ namespace GRA.Controllers.MissionControl
             }
 
             var (useGroups, maximumHousehold) =
-                await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup);
+                await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup.Key);
 
 
             return View(new GroupTypesListViewModel

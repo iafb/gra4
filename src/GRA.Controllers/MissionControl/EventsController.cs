@@ -161,7 +161,7 @@ namespace GRA.Controllers.MissionControl
                 ProgramList = await _siteService.GetProgramList(),
                 CanManageLocations = UserHasPermission(Permission.ManageLocations),
                 RequireSecretCode = await GetSiteSettingBoolAsync(
-                    SiteSettingKey.Events.RequireBadge)
+                    SiteSettingKey.Events.RequireBadge.Key)
             };
 
             if (mine == true)
@@ -221,7 +221,7 @@ namespace GRA.Controllers.MissionControl
                 : "Create Event";
 
             var requireSecretCode = await GetSiteSettingBoolAsync(
-                    SiteSettingKey.Events.RequireBadge);
+                    SiteSettingKey.Events.RequireBadge.Key);
             var systemList = await _siteService.GetSystemList(true);
             var locationList = await _eventService.GetLocations();
             var programList = await _siteService.GetProgramList();
@@ -290,7 +290,7 @@ namespace GRA.Controllers.MissionControl
         public async Task<IActionResult> Create(EventsDetailViewModel model)
         {
             var requireSecretCode = await GetSiteSettingBoolAsync(
-                SiteSettingKey.Events.RequireBadge);
+                SiteSettingKey.Events.RequireBadge.Key);
 
             if (model.Event.AllDay)
             {
@@ -659,7 +659,7 @@ namespace GRA.Controllers.MissionControl
             {
                 var deletedText = "Event";
                 var requireSecretCode = await GetSiteSettingBoolAsync(
-                SiteSettingKey.Events.RequireBadge);
+                SiteSettingKey.Events.RequireBadge.Key);
                 if (requireSecretCode)
                 {
                     var graEvent = await _eventService.GetDetails(id);

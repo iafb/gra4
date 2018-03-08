@@ -219,14 +219,14 @@ namespace GRA.Controllers.MissionControl
                 SchoolDistrictList = new SelectList(districtList.ToList(), "Id", "Name")
             };
 
-            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime);
+            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime.Key);
             if (askIfFirstTime)
             {
                 viewModel.AskFirstTime = EmptyNoYes();
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
             if (askActivityGoal)
             {
                 viewModel.DailyPersonalGoal = defaultDailyGoal;
@@ -273,14 +273,14 @@ namespace GRA.Controllers.MissionControl
                 ModelState.AddModelError("PostalCode", "The Zip Code field is required.");
             }
 
-            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime);
+            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime.Key);
             if (!askIfFirstTime)
             {
                 ModelState.Remove(nameof(model.IsFirstTime));
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
 
             bool askAge = false;
             bool askSchool = false;
@@ -587,7 +587,7 @@ namespace GRA.Controllers.MissionControl
                 }
 
                 var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
                 if (askActivityGoal)
                 {
                     var pointTranslation = await _pointTranslationService
@@ -631,7 +631,7 @@ namespace GRA.Controllers.MissionControl
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
 
             if (ModelState.IsValid)
             {
@@ -799,7 +799,7 @@ namespace GRA.Controllers.MissionControl
                     .FamilyMemberCountAsync(user.HouseholdHeadUserId ?? id),
                 IsGroup = groupInfo != null,
                 HasAccount = !string.IsNullOrWhiteSpace(user.Username),
-                DisableSecretCode = await GetSiteSettingBoolAsync(SiteSettingKey.SecretCode.Disable),
+                DisableSecretCode = await GetSiteSettingBoolAsync(SiteSettingKey.SecretCode.Disable.Key),
                 PointTranslation = await _pointTranslationService
                     .GetByProgramIdAsync(user.ProgramId, true)
             };
@@ -975,7 +975,7 @@ namespace GRA.Controllers.MissionControl
                     SystemId = systemId,
                     BranchList = branchList,
                     SystemList = systemList,
-                    DisableSecretCode = await GetSiteSettingBoolAsync(SiteSettingKey.SecretCode.Disable),
+                    DisableSecretCode = await GetSiteSettingBoolAsync(SiteSettingKey.SecretCode.Disable.Key),
                     ShowVendorCodes = showVendorCodes,
                     PointTranslation = await _pointTranslationService
                         .GetByProgramIdAsync(user.ProgramId, true)
@@ -1008,7 +1008,7 @@ namespace GRA.Controllers.MissionControl
                 else
                 {
                     var (useGroups, maximumHousehold) =
-                        await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup);
+                        await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup.Key);
                     if (useGroups && household.Count() + 1 >= maximumHousehold)
                     {
                         viewModel.UpgradeToGroup = true;
@@ -1192,14 +1192,14 @@ namespace GRA.Controllers.MissionControl
                 };
 
                 var askIfFirstTime
-                    = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime);
+                    = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime.Key);
                 if (askIfFirstTime)
                 {
                     viewModel.AskFirstTime = EmptyNoYes();
                 }
 
                 var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
                 if (askActivityGoal)
                 {
                     viewModel.User.DailyPersonalGoal = defaultDailyGoal;
@@ -1235,14 +1235,14 @@ namespace GRA.Controllers.MissionControl
                 ModelState.AddModelError("User.PostalCode", "The Zip Code field is required.");
             }
 
-            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime);
+            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime.Key);
             if (!askIfFirstTime)
             {
                 ModelState.Remove(nameof(model.IsFirstTime));
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
 
             bool askAge = false;
             bool askSchool = false;
@@ -2193,7 +2193,7 @@ namespace GRA.Controllers.MissionControl
         public async Task<IActionResult> UpgradeToGroup(int id)
         {
             var (useGroups, maximumHousehold) =
-                await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup);
+                await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup.Key);
 
             if (!useGroups)
             {

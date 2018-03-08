@@ -100,7 +100,7 @@ namespace GRA.Controllers.MissionControl
             }
 
             var requireSecretCode = await GetSiteSettingBoolAsync(
-                    SiteSettingKey.Events.RequireBadge);
+                    SiteSettingKey.Events.RequireBadge.Key);
             foreach (var trigger in triggerList.Data)
             {
                 trigger.AwardBadgeFilename =
@@ -670,7 +670,7 @@ namespace GRA.Controllers.MissionControl
             try
             {
                 var requireSecretCode = await GetSiteSettingBoolAsync(
-                SiteSettingKey.Events.RequireBadge);
+                SiteSettingKey.Events.RequireBadge.Key);
                 if (requireSecretCode)
                 {
                     var relatedEvents = await _eventService.GetRelatedEventsForTriggerAsync(id);

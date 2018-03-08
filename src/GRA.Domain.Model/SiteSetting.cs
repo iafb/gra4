@@ -13,5 +13,13 @@ namespace GRA.Domain.Model
         public string Value { get; set; }
         [Required]
         public SiteSettingFormat Format { get; set; }
+
+        public string Name { get; set; }
+        public string Info { get; set; }
+
+        public SiteSetting Clone()
+        {
+            return (SiteSetting)MemberwiseClone();
+        }
     }
 }
