@@ -86,12 +86,12 @@ namespace GRA.Controllers.Filter
                 // hide means that if the value is set then we want showChallenges to be false
                 // hence == null rather than != null
                 showChallenges = site.Settings
-                    .Where(_ => _.Key == SiteSettingKey.Challenges.HideUntilRegistrationOpen.Key)
+                    .Where(_ => _.Key == SiteSettingKey.Challenges.HideUntilRegistrationOpen)
                     .FirstOrDefault()?
                     .Value == null;
 
                 showEvents = site.Settings
-                    .Where(_ => _.Key == SiteSettingKey.Events.HideUntilRegistrationOpen.Key)
+                    .Where(_ => _.Key == SiteSettingKey.Events.HideUntilRegistrationOpen)
                     .FirstOrDefault()?
                     .Value == null;
             }

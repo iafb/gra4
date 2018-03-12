@@ -107,7 +107,7 @@ namespace GRA.Controllers
                 BranchList = new SelectList(branchList.ToList(), "Id", "Name"),
                 SystemList = new SelectList(systemList.ToList(), "Id", "Name"),
                 ProgramList = new SelectList(programList.ToList(), "Id", "Name"),
-                RestrictChangingSystemBranch = (await GetSiteSettingBoolAsync(SiteSettingKey.Users.RestrictChangingSystemBranch.Key)),
+                RestrictChangingSystemBranch = (await GetSiteSettingBoolAsync(SiteSettingKey.Users.RestrictChangingSystemBranch)),
                 CategorySelectionAction = nameof(SchoolCategory),
                 ShowPrivateOption = await _schoolService.AnyPrivateSchoolsAsync(),
                 ShowCharterOption = await _schoolService.AnyCharterSchoolsAsync()
@@ -178,7 +178,7 @@ namespace GRA.Controllers
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal);
             if (askActivityGoal)
             {
                 var pointTranslation = await _pointTranslationService
@@ -250,7 +250,7 @@ namespace GRA.Controllers
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal);
             if (askActivityGoal)
             {
                 var pointTranslation = await _pointTranslationService
@@ -284,7 +284,7 @@ namespace GRA.Controllers
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal);
 
             if (ModelState.IsValid)
             {
@@ -480,7 +480,7 @@ namespace GRA.Controllers
                 CanLogActivity = siteStage == SiteStage.ProgramOpen,
                 CanEditHousehold = siteStage == SiteStage.RegistrationOpen
                     || siteStage == SiteStage.ProgramOpen,
-                DisableSecretCode = await GetSiteSettingBoolAsync(SiteSettingKey.SecretCode.Disable.Key),
+                DisableSecretCode = await GetSiteSettingBoolAsync(SiteSettingKey.SecretCode.Disable),
                 ShowVendorCodes = showVendorCodes,
                 PointTranslation = await _pointTranslationService
                         .GetByProgramIdAsync(authUser.ProgramId, true)
@@ -644,8 +644,8 @@ namespace GRA.Controllers
             }
 
             var (useGroups, maximumHousehold) =
-                await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup.Key);
-            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime.Key);
+                await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup);
+            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime);
 
             if (useGroups)
             {
@@ -724,7 +724,7 @@ namespace GRA.Controllers
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal);
             if (askActivityGoal)
             {
                 viewModel.User.DailyPersonalGoal = defaultDailyGoal;
@@ -795,14 +795,14 @@ namespace GRA.Controllers
                 model.ShowSchool = program.AskSchool;
             }
 
-            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime.Key);
+            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime);
             if (askIfFirstTime)
             {
                 model.AskFirstTime = EmptyNoYes();
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal);
             if (askActivityGoal)
             {
                 var pointTranslation = programList.First().PointTranslation;
@@ -829,14 +829,14 @@ namespace GRA.Controllers
                 ModelState.AddModelError("User.PostalCode", "The Zip Code field is required.");
             }
 
-            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime.Key);
+            var askIfFirstTime = await GetSiteSettingBoolAsync(SiteSettingKey.Users.AskIfFirstTime);
             if (!askIfFirstTime)
             {
                 ModelState.Remove(nameof(model.IsFirstTime));
             }
 
             var (askActivityGoal, defaultDailyGoal) = await GetSiteSettingIntAsync(
-                SiteSettingKey.Users.DefaultDailyPersonalGoal.Key);
+                SiteSettingKey.Users.DefaultDailyPersonalGoal);
 
             bool askAge = false;
             bool askSchool = false;
@@ -1039,7 +1039,7 @@ namespace GRA.Controllers
                 {
                     // check if we're going to trip group membership requirements
                     var (useGroups, maximumHousehold) =
-                        await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup.Key);
+                        await GetSiteSettingIntAsync(SiteSettingKey.Users.MaximumHouseholdSizeBeforeGroup);
 
                     if (useGroups)
                     {

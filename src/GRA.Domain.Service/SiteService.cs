@@ -52,7 +52,7 @@ namespace GRA.Domain.Service
         {
             VerifyManagementPermission();
             await _siteRepository.UpdateSaveAsync(GetClaimId(ClaimType.UserId), site);
-            //await _siteLookupService.ReloadSiteCacheAsync();
+            await _siteLookupService.ReloadSiteCacheAsync();
         }
 
         public async Task UpdateSiteSettingsAsync(int siteId, IEnumerable<SiteSetting> siteSettings)

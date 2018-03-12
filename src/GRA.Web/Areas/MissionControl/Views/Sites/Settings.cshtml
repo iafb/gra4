@@ -10,26 +10,26 @@
     {
         <h2>@Model.SiteSettingGroups[i].Name</h2>
 
-        @for (int j = 0; j < Model.SiteSettingGroups[i].SiteSettings.Count; j++)
+        @for (int j = 0; j < Model.SiteSettingGroups[i].SettingInformations.Count; j++)
         {
-            <input asp-for="SiteSettingGroups[i].SiteSettings[j].Key" type="hidden" />
+            <input asp-for="SiteSettingGroups[i].SettingInformations[j].SiteSetting.Key" value="@Model.SiteSettingGroups[i].SettingInformations[j].Key" type="hidden" />
 
             <div class="row row-spacing">
                 <div class="col-xs-12">
-                    <label asp-for="SiteSettingGroups[i].SiteSettings[j].Value">@Model.SiteSettingGroups[i].SiteSettings[j].Name</label>
-                    <span class="fa fa-question-circle-o wide-tooltip" title="@Model.SiteSettingGroups[i].SiteSettings[j].Info" data-toggle="tooltip" data-placement="top"></span>
-                    @if (Model.SiteSettingGroups[i].SiteSettings[j].Format == GRA.Domain.Model.SiteSettingFormat.Boolean)
+                    <label asp-for="SiteSettingGroups[i].SettingInformations[j].SiteSetting.Value">@Model.SiteSettingGroups[i].SettingInformations[j].Definition.Name</label>
+                    <span class="fa fa-question-circle-o wide-tooltip" title="@Model.SiteSettingGroups[i].SettingInformations[j].Definition.Info" data-toggle="tooltip" data-placement="top"></span>
+                    @if (Model.SiteSettingGroups[i].SettingInformations[j].Definition.Format == GRA.Domain.Model.SiteSettingFormat.Boolean)
                     {
-                        <select asp-for="SiteSettingGroups[i].SiteSettings[j].Value" class="form-control">
+                        <select asp-for="SiteSettingGroups[i].SettingInformations[j].SiteSetting.Value" class="form-control">
                             <option></option>
                             <option value="True">Yes</option>
                         </select>
                     }
-                    else if (Model.SiteSettingGroups[i].SiteSettings[j].Format == GRA.Domain.Model.SiteSettingFormat.Integer)
+                    else if (Model.SiteSettingGroups[i].SettingInformations[j].Definition.Format == GRA.Domain.Model.SiteSettingFormat.Integer)
                     {
-                        <input asp-for="SiteSettingGroups[i].SiteSettings[j].Value" type="number" class="form-control" autocomplete="off" />
+                        <input asp-for="SiteSettingGroups[i].SettingInformations[j].SiteSetting.Value" type="number" class="form-control" />
                     }
-                    <span asp-validation-for="SiteSettingGroups[i].SiteSettings[j].Value" class="text-danger"></span>
+                    <span asp-validation-for="SiteSettingGroups[i].SettingInformations[j].SiteSetting.Value" class="text-danger"></span>
                 </div>
             </div>
         }

@@ -128,7 +128,7 @@ namespace GRA.Domain.Service
                 trigger);
 
             var requireSecretCode = await _siteLookupService.GetSiteSettingBoolAsync(
-                GetCurrentSiteId(), SiteSettingKey.Events.RequireBadge.Key);
+                GetCurrentSiteId(), SiteSettingKey.Events.RequireBadge);
 
             if (requireSecretCode == false)
             {

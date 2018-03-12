@@ -217,15 +217,21 @@ namespace GRA.Controllers.MissionControl
             var site = await _siteLookupService.GetByIdAsync(id);
             PageTitle = $"Site management - {site.Name}";
 
-            var settingGroups = GetSettingGroups();
 
-            foreach (var siteSetting in site.Settings)
-            {
-                settingGroups.SelectMany(_ => _.SiteSettings)
-                    .Where(_ => _.Key == siteSetting.Key)
-                    .Single()
-                    .Value = siteSetting.Value;
-            }
+            var settingGroups = SiteSettingDefinitions.DefinitionDictionary
+                .GroupBy(_ => _.Value.Category)
+                .Select(_ => new SiteSettingGroup()
+                {
+                    Name = _.Key,
+                    SettingInformations = _.Select(i => new SiteSettingInformation()
+                    {
+                        SiteSetting = site.Settings.Where(s => s.Key == i.Key).SingleOrDefault() 
+                            ?? new SiteSetting(),
+                        Definition = i.Value,
+                        Key = i.Key
+                    }).ToList()
+                })
+                .ToList();
 
             var viewModel = new SiteSettingsViewModel()
             {
@@ -242,18 +248,14 @@ namespace GRA.Controllers.MissionControl
             var site = await _siteLookupService.GetByIdAsync(model.Id);
 
             var siteSettings = model.SiteSettingGroups
-                .SelectMany(_ => _.SiteSettings)
+                .SelectMany(_ => _.SettingInformations.Select(s => s.SiteSetting))
                 .Where(_ => !string.IsNullOrWhiteSpace(_.Value))
                 .GroupBy(_ => _.Key)
                 .Select(_ => _.First());
-            var settingGroups = GetSettingGroups();
-            var settingKeys = settingGroups.SelectMany(_ => _.SiteSettings);
 
+            var settingKeys = SiteSettingDefinitions.DefinitionDictionary.Keys.ToList();
             var invalidKeys = siteSettings
-                .Where(_ => settingGroups
-                    .SelectMany(s => s.SiteSettings)
-                    .Select(s => s.Key)
-                    .Contains(_.Key) == false)
+                .Where(_ => settingKeys.Contains(_.Key) == false)
                 .Select(_ => _.Key);
             if (invalidKeys.Any())
             {
@@ -263,25 +265,22 @@ namespace GRA.Controllers.MissionControl
                 return RedirectToAction(nameof(Settings), new { id = site.Id });
             }
 
-            foreach (var siteSetting in settingGroups.SelectMany(_ => _.SiteSettings))
+            foreach (var siteSetting in siteSettings)
             {
                 siteSetting.SiteId = site.Id;
-                siteSetting.Value = siteSettings
-                    .Where(_ => _.Key == siteSetting.Key)
-                    .Select(_ => _.Value)
-                    .FirstOrDefault();
-
+                
                 if (!string.IsNullOrWhiteSpace(siteSetting.Value))
                 {
-                    if (siteSetting.Format == SiteSettingFormat.Boolean)
+                    var definition = SiteSettingDefinitions.DefinitionDictionary[siteSetting.Key];
+                    if (definition.Format == SiteSettingFormat.Boolean)
                     {
                         siteSetting.Value = "True";
                     }
-                    else if (siteSetting.Format == SiteSettingFormat.Integer)
+                    else if (definition.Format == SiteSettingFormat.Integer)
                     {
                         if (int.TryParse(siteSetting.Value, out int value) == false)
                         {
-                            ModelState.AddModelError("", $"Please enter a whole number for {siteSetting.Name}.");
+                            ModelState.AddModelError("", $"Please enter a whole number for {definition.Name}.");
                         }
                     }
                 }
@@ -289,13 +288,25 @@ namespace GRA.Controllers.MissionControl
 
             if (ModelState.IsValid)
             {
-                var settingsUpdateList = settingGroups
-                    .SelectMany(_ => _.SiteSettings)
-                    .Where(_ => !string.IsNullOrWhiteSpace(_.Value));
-                await _siteService.UpdateSiteSettingsAsync(site.Id, settingsUpdateList);
+                await _siteService.UpdateSiteSettingsAsync(site.Id, siteSettings);
                 ShowAlertSuccess($"Site '{site.Name}' settings successfully updated!");
                 return RedirectToAction(nameof(Settings), new { id = site.Id });
             }
+
+            var settingGroups = SiteSettingDefinitions.DefinitionDictionary
+                .GroupBy(_ => _.Value.Category)
+                .Select(_ => new SiteSettingGroup()
+                {
+                    Name = _.Key,
+                    SettingInformations = _.Select(i => new SiteSettingInformation()
+                    {
+                        SiteSetting = siteSettings.Where(s => s.Key == i.Key).SingleOrDefault()
+                            ?? new SiteSetting(),
+                        Definition = i.Value,
+                        Key = i.Key
+                    }).ToList()
+                })
+                .ToList();
 
             var viewModel = new SiteSettingsViewModel()
             {
@@ -305,27 +316,6 @@ namespace GRA.Controllers.MissionControl
             PageTitle = $"Site management - {site.Name}";
 
             return View(viewModel);
-        }
-
-        private  List<SiteSettingGroup> GetSettingGroups()
-        {
-            // Loop through the list of structs in SiteSettingKey and add each struct with its name
-            // and list of site settings to the setting group list. GetValue returns a reference to
-            // the object so it's cloned to prevent overwritting the default values.
-            var settingGroups = new List<SiteSettingGroup>();
-            foreach (var settingGroup in typeof(SiteSettingKey).GetNestedTypes(BindingFlags.Public))
-            {
-                var displayName = (DisplayNameAttribute)settingGroup.GetTypeInfo()
-                    .GetCustomAttribute(typeof(DisplayNameAttribute));
-                settingGroups.Add(new SiteSettingGroup()
-                {
-                    Name = displayName?.DisplayName ?? settingGroup.Name,
-                    SiteSettings = settingGroup.GetFields()
-                        .Select(_ => ((SiteSetting)_.GetValue(null)).Clone())
-                        .ToList()
-                });
-            }
-            return settingGroups;
         }
     }
 }

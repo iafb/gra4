@@ -268,7 +268,7 @@ namespace GRA.Domain.Service
 
                 bool restrictChangingSystemBranch = await _siteLookupService
                     .GetSiteSettingBoolAsync(currentEntity.SiteId,
-                    SiteSettingKey.Users.RestrictChangingSystemBranch.Key);
+                    SiteSettingKey.Users.RestrictChangingSystemBranch);
 
                 if (!restrictChangingSystemBranch)
                 {
