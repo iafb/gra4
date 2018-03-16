@@ -77,10 +77,10 @@ namespace GRA.Controllers
             {
                 return RedirectToAction("Step1");
             }
+            var siteStage = GetSiteStage();
 
             if (useAuthCode == false)
             {
-                var siteStage = GetSiteStage();
                 if (siteStage == SiteStage.BeforeRegistration)
                 {
                     if (site.RegistrationOpens.HasValue)
