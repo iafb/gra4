@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Homeschool and school not listed options
 - Setting for asking participants daily personal goals
 - Site and site setting management
+- Authorization code entry during signup
 
 ### Changed
 - Participant mail subject to be clickable
