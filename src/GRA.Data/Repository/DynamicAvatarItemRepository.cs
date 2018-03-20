@@ -19,7 +19,7 @@ namespace GRA.Data.Repository
         {
         }
 
-        public async Task<ICollection<DynamicAvatarItem>> GetItemsByLayerAsync(int layerId)
+        public async Task<ICollection<DynamicAvatarItem>> GetByLayerAsync(int layerId)
         {
             return await DbSet.AsNoTracking()
                 .Where(_ => _.DynamicAvatarLayerId == layerId)

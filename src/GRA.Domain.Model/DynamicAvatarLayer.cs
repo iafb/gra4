@@ -18,6 +18,8 @@ namespace GRA.Domain.Model
         public bool DefaultLayer { get; set; }
         public bool ShowItemSelector { get; set; }
         public bool ShowColorSelector { get; set; }
+        [MaxLength(255)]
+        public string Icon { get; set; }
 
         public int? SelectedItem { get; set; }
         public int? SelectedColor { get; set; }

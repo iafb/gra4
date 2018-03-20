@@ -20,6 +20,9 @@ namespace GRA.Data.Model
         public bool ShowItemSelector { get; set; }
         public bool ShowColorSelector { get; set; }
 
+        [MaxLength(255)]
+        public string Icon { get; set; }
+
         public ICollection<DynamicAvatarColor> DynamicAvatarColors { get; set; }
         public ICollection<DynamicAvatarItem> DynamicAvatarItems { get; set; }
     }

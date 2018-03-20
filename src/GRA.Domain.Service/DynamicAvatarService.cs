@@ -147,9 +147,9 @@ namespace GRA.Domain.Service
                 GetClaimId(ClaimType.UserId), layer);
         }
 
-        public async Task<IEnumerable<DynamicAvatarItem>> GetItemsByLayerAsync(int layerId)
+        public async Task<ICollection<DynamicAvatarItem>> GetItemsByLayerAsync(int layerId)
         {
-            return await _dynamicAvatarItemRepository.GetItemsByLayerAsync(layerId);
+            return await _dynamicAvatarItemRepository.GetByLayerAsync(layerId);
         }
 
         public async Task<DynamicAvatarItem> AddItemAsync(DynamicAvatarItem item)
@@ -159,6 +159,17 @@ namespace GRA.Domain.Service
                 GetClaimId(ClaimType.UserId), item);
         }
 
+        public async Task AddItemListAsync(ICollection<DynamicAvatarItem> itemList)
+        {
+            VerifyManagementPermission();
+            var userId = GetClaimId(ClaimType.UserId);
+            foreach (var item in itemList)
+            {
+                await _dynamicAvatarItemRepository.AddAsync(userId, item);
+            }
+            await _dynamicAvatarItemRepository.SaveAsync();
+        }
+
         public async Task<DynamicAvatarItem> UpdateItemAsync(DynamicAvatarItem item)
         {
             VerifyManagementPermission();
@@ -166,11 +177,38 @@ namespace GRA.Domain.Service
                 GetClaimId(ClaimType.UserId), item);
         }
 
+        public async Task UpdateItemListAsync(ICollection<DynamicAvatarItem> itemList)
+        {
+            VerifyManagementPermission();
+            var userId = GetClaimId(ClaimType.UserId);
+            foreach (var item in itemList)
+            {
+                await _dynamicAvatarItemRepository.UpdateAsync(userId, item);
+            }
+            await _dynamicAvatarItemRepository.SaveAsync();
+        }
+
+        public async Task<ICollection<DynamicAvatarColor>> GetColorsByLayerAsync(int layerId)
+        {
+            return await _dynamicAvatarColorRepository.GetByLayerAsync(layerId);
+        }
+
         public async Task<DynamicAvatarColor> AddColorAsync(DynamicAvatarColor color)
         {
             VerifyManagementPermission();
             return await _dynamicAvatarColorRepository.AddSaveAsync(
                 GetClaimId(ClaimType.UserId), color);
+        }
+
+        public async Task AddColorListAsync(ICollection<DynamicAvatarColor> colorList)
+        {
+            VerifyManagementPermission();
+            var userId = GetClaimId(ClaimType.UserId);
+            foreach (var color in colorList)
+            {
+                await _dynamicAvatarColorRepository.AddAsync(userId, color);
+            }
+            await _dynamicAvatarColorRepository.SaveAsync();
         }
 
         public async Task<DynamicAvatarColor> UpdateColorAsync(DynamicAvatarColor color)

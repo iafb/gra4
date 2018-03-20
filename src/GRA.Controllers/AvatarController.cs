@@ -36,25 +36,36 @@ namespace GRA.Controllers
         {
             var currentSite = await GetCurrentSiteAsync();
             var userWardrobe = await _dynamicAvatarService.GetUserWardrobeAsync();
-            if (userWardrobe?.Count > 0)
+            DynamicAvatarJsonModel model = new DynamicAvatarJsonModel();
+            model.Layers = _mapper
+                .Map<ICollection<DynamicAvatarJsonModel.DynamicAvatarLayer>>(userWardrobe);
+            DynamicAvatarViewModel viewModel = new DynamicAvatarViewModel()
             {
-                DynamicAvatarJsonModel model = new DynamicAvatarJsonModel();
-                model.Layers = _mapper
-                    .Map<ICollection<DynamicAvatarJsonModel.DynamicAvatarLayer>>(userWardrobe);
-                DynamicAvatarViewModel viewModel = new DynamicAvatarViewModel()
-                {
-                    Layers = userWardrobe,
-                    GroupIds = userWardrobe.Select(_ => _.GroupId).Distinct(),
-                    DefaultLayer = userWardrobe.Where(_ => _.DefaultLayer).Select(_ => _.Id).First(),
-                    ImagePath = _pathResolver.ResolveContentPath($"site{currentSite.Id}/dynamicavatars/"),
-                    AvatarPiecesJson = Newtonsoft.Json.JsonConvert.SerializeObject(model)
-                };
-                return View("DynamicIndex", viewModel);
-            }
-            else
+                Layers = userWardrobe,
+                GroupIds = userWardrobe.Select(_ => _.GroupId).Distinct(),
+                DefaultLayer = userWardrobe.Where(_ => _.DefaultLayer).Select(_ => _.Id).First(),
+                ImagePath = _pathResolver.ResolveContentPath($"site{currentSite.Id}/dynamicavatars/"),
+                AvatarPiecesJson = Newtonsoft.Json.JsonConvert.SerializeObject(model)
+            };
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> New(int? id)
+        {
+            var currentSite = await GetCurrentSiteAsync();
+            var userWardrobe = await _dynamicAvatarService.GetUserWardrobeAsync();
+            DynamicAvatarJsonModel model = new DynamicAvatarJsonModel();
+            model.Layers = _mapper
+                .Map<ICollection<DynamicAvatarJsonModel.DynamicAvatarLayer>>(userWardrobe);
+            DynamicAvatarViewModel viewModel = new DynamicAvatarViewModel()
             {
-                return RedirectToAction("Index", "Home");
-            }
+                Layers = userWardrobe,
+                GroupIds = userWardrobe.Select(_ => _.GroupId).Distinct(),
+                DefaultLayer = userWardrobe.Where(_ => _.DefaultLayer).Select(_ => _.Id).First(),
+                ImagePath = _pathResolver.ResolveContentPath($"site{currentSite.Id}/dynamicavatars/"),
+                AvatarPiecesJson = Newtonsoft.Json.JsonConvert.SerializeObject(model)
+            };
+            return View(viewModel);
         }
 
         [HttpPost]
