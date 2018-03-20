@@ -15,5 +15,6 @@ namespace GRA.Domain.Repository
         Task<int> CountAsync(AvatarFilter filter);
         Task<ICollection<AvatarItem>> PageAsync(AvatarFilter filter);
         Task<ICollection<AvatarItem>> GetByIdsAsync(List<int> ids);
+        Task<AvatarItem> GetByLayerPositionSortOrderAsync(int layerPosition, int sortOrder);
     }
 }

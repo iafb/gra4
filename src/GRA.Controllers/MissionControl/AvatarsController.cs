@@ -203,7 +203,13 @@ namespace GRA.Controllers.MissionControl
                 foreach (var bundle in bundleList)
                 {
                     _logger.LogInformation($"Processing bundle {bundle.Name}...");
-                    List<int> items = bundle.AvatarItems.Select(_ => _.Id).ToList();
+                    var items = new List<int>();
+                    foreach (var bundleItem in bundle.AvatarItems)
+                    {
+                        var item = await _avatarService.GetItemByLayerPositionSortOrderAsync(
+                            bundleItem.AvatarLayerPosition, bundleItem.SortOrder);
+                        items.Add(item.Id);
+                    }
                     bundle.AvatarItems = null;
                     var newBundle = await _avatarService.AddBundleAsync(bundle, items);
                 }

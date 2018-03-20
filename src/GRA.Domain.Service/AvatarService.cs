@@ -152,6 +152,14 @@ namespace GRA.Domain.Service
             return await _avatarItemRepository.GetByLayerAsync(layerId);
         }
 
+        public async Task<AvatarItem> GetItemByLayerPositionSortOrderAsync(int layerPosition,
+            int sortOrder)
+        {
+            VerifyManagementPermission();
+            return await _avatarItemRepository.GetByLayerPositionSortOrderAsync(layerPosition,
+                sortOrder);
+        }
+
         public async Task<AvatarItem> AddItemAsync(AvatarItem item)
         {
             VerifyManagementPermission();

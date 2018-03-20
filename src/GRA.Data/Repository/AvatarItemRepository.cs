@@ -32,12 +32,12 @@ namespace GRA.Data.Repository
             int layerId)
         {
             var userUnlockedItems = _context.UserAvatarItems.AsNoTracking()
-                .Where(_ => _.UserId == userId 
+                .Where(_ => _.UserId == userId
                     && _.AvatarItem.AvatarLayerId == layerId)
                 .Select(_ => _.AvatarItem);
 
             return await DbSet.AsNoTracking()
-                .Where(_ => _.AvatarLayerId == layerId 
+                .Where(_ => _.AvatarLayerId == layerId
                 && (_.Unlockable == false || userUnlockedItems.Select(u => u.Id).Contains(_.Id)))
                 .OrderBy(_ => _.SortOrder)
                 .ProjectTo<AvatarItem>()
@@ -120,6 +120,15 @@ namespace GRA.Data.Repository
                 .Where(_ => ids.Contains(_.Id))
                 .ProjectTo<AvatarItem>()
                 .ToListAsync();
+        }
+
+        public async Task<AvatarItem> GetByLayerPositionSortOrderAsync(int layerPosition,
+            int sortOrder)
+        {
+            return await DbSet.AsNoTracking()
+                .Where(_ => _.AvatarLayer.Position == layerPosition && _.SortOrder == sortOrder)
+                .ProjectTo<AvatarItem>()
+                .SingleAsync();
         }
     }
 }
