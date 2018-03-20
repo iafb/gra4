@@ -4,19 +4,19 @@ using System.Text;
 
 namespace GRA.Controllers.ViewModel.Avatar
 {
-    public class DynamicAvatarJsonModel
+    public class AvatarJsonModel
     {
-        public ICollection<DynamicAvatarLayer> Layers { get; set; }
+        public ICollection<AvatarLayer> Layers { get; set; }
 
-        public class DynamicAvatarLayer
+        public class AvatarLayer
         {
             public int Id { get; set; }
 
             public ICollection<int> Items { get; set; }
-            public ICollection<DynamicAvatarColor> Colors { get; set; }
+            public ICollection<AvatarColor> Colors { get; set; }
         }
 
-        public class DynamicAvatarColor
+        public class AvatarColor
         {
             public int Id { get; set; }
             public string Value { get; set; }

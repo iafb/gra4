@@ -15,19 +15,19 @@ namespace GRA.Controllers
     {
         private readonly ILogger<AvatarController> _logger;
         private readonly AutoMapper.IMapper _mapper;
-        private readonly DynamicAvatarService _dynamicAvatarService;
+        private readonly AvatarService _avatarService;
         private readonly UserService _userService;
 
         public AvatarController(ILogger<AvatarController> logger,
             ServiceFacade.Controller context,
-            DynamicAvatarService dynamicAvatarService,
+            AvatarService avatarService,
             UserService userService)
             : base(context)
         {
             _logger = Require.IsNotNull(logger, nameof(logger));
             _mapper = context.Mapper;
-            _dynamicAvatarService = Require.IsNotNull(dynamicAvatarService,
-                nameof(dynamicAvatarService));
+            _avatarService = Require.IsNotNull(avatarService,
+                nameof(avatarService));
             _userService = Require.IsNotNull(userService, nameof(userService));
             PageTitle = "Avatar";
         }
@@ -35,16 +35,16 @@ namespace GRA.Controllers
         public async Task<IActionResult> Index(int? id)
         {
             var currentSite = await GetCurrentSiteAsync();
-            var userWardrobe = await _dynamicAvatarService.GetUserWardrobeAsync();
-            DynamicAvatarJsonModel model = new DynamicAvatarJsonModel();
+            var userWardrobe = await _avatarService.GetUserWardrobeAsync();
+            AvatarJsonModel model = new AvatarJsonModel();
             model.Layers = _mapper
-                .Map<ICollection<DynamicAvatarJsonModel.DynamicAvatarLayer>>(userWardrobe);
-            DynamicAvatarViewModel viewModel = new DynamicAvatarViewModel()
+                .Map<ICollection<AvatarJsonModel.AvatarLayer>>(userWardrobe);
+            AvatarViewModel viewModel = new AvatarViewModel()
             {
                 Layers = userWardrobe,
                 GroupIds = userWardrobe.Select(_ => _.GroupId).Distinct(),
                 DefaultLayer = userWardrobe.Where(_ => _.DefaultLayer).Select(_ => _.Id).First(),
-                ImagePath = _pathResolver.ResolveContentPath($"site{currentSite.Id}/dynamicavatars/"),
+                ImagePath = _pathResolver.ResolveContentPath($"site{currentSite.Id}/avatars/"),
                 AvatarPiecesJson = Newtonsoft.Json.JsonConvert.SerializeObject(model)
             };
             return View(viewModel);
@@ -53,16 +53,16 @@ namespace GRA.Controllers
         public async Task<IActionResult> New(int? id)
         {
             var currentSite = await GetCurrentSiteAsync();
-            var userWardrobe = await _dynamicAvatarService.GetUserWardrobeAsync();
-            DynamicAvatarJsonModel model = new DynamicAvatarJsonModel();
+            var userWardrobe = await _avatarService.GetUserWardrobeAsync();
+            AvatarJsonModel model = new AvatarJsonModel();
             model.Layers = _mapper
-                .Map<ICollection<DynamicAvatarJsonModel.DynamicAvatarLayer>>(userWardrobe);
-            DynamicAvatarViewModel viewModel = new DynamicAvatarViewModel()
+                .Map<ICollection<AvatarJsonModel.AvatarLayer>>(userWardrobe);
+            AvatarViewModel viewModel = new AvatarViewModel()
             {
                 Layers = userWardrobe,
                 GroupIds = userWardrobe.Select(_ => _.GroupId).Distinct(),
                 DefaultLayer = userWardrobe.Where(_ => _.DefaultLayer).Select(_ => _.Id).First(),
-                ImagePath = _pathResolver.ResolveContentPath($"site{currentSite.Id}/dynamicavatars/"),
+                ImagePath = _pathResolver.ResolveContentPath($"site{currentSite.Id}/avatars/"),
                 AvatarPiecesJson = Newtonsoft.Json.JsonConvert.SerializeObject(model)
             };
             return View(viewModel);
@@ -74,9 +74,9 @@ namespace GRA.Controllers
             try
             {
                 var selection = Newtonsoft.Json.JsonConvert
-                    .DeserializeObject<ICollection<DynamicAvatarLayer>>(selectionJson);
+                    .DeserializeObject<ICollection<AvatarLayer>>(selectionJson);
                 selection = selection.Where(_ => _.SelectedItem.HasValue).ToList();
-                await _dynamicAvatarService.UpdateUserAvatarAsync(selection);
+                await _avatarService.UpdateUserAvatarAsync(selection);
                 return Json(new { success = true });
             }
             catch (GraException gex)

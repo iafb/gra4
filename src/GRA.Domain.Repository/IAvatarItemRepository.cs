@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 
 namespace GRA.Domain.Repository
 {
-    public interface IDynamicAvatarItemRepository : IRepository<DynamicAvatarItem>
+    public interface IAvatarItemRepository : IRepository<AvatarItem>
     {
-        Task<ICollection<DynamicAvatarItem>> GetByLayerAsync(int layerId);
-        Task<ICollection<DynamicAvatarItem>> GetUserItemsByLayerAsync(int userId, int layerId);
+        Task<ICollection<AvatarItem>> GetByLayerAsync(int layerId);
+        Task<ICollection<AvatarItem>> GetUserItemsByLayerAsync(int userId, int layerId);
         Task<bool> HasUserUnlockedItemAsync(int userId, int itemId);
         Task<ICollection<int>> GetUserUnlockedItemsAsync(int userId);
         Task AddUserItemsAsync(int userId, List<int> itemId);
         Task<int> CountAsync(AvatarFilter filter);
-        Task<ICollection<DynamicAvatarItem>> PageAsync(AvatarFilter filter);
-        Task<ICollection<DynamicAvatarItem>> GetByIdsAsync(List<int> ids);
+        Task<ICollection<AvatarItem>> PageAsync(AvatarFilter filter);
+        Task<ICollection<AvatarItem>> GetByIdsAsync(List<int> ids);
     }
 }

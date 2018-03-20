@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace GRA.Data.Model
+namespace GRA.Domain.Model
 {
-    public class DynamicAvatarLayer : Abstract.BaseDbEntity
+    public class AvatarLayer : Abstract.BaseDomainEntity
     {
-        [Required]
         public int SiteId { get; set; }
 
         [Required]
@@ -19,11 +18,14 @@ namespace GRA.Data.Model
         public bool DefaultLayer { get; set; }
         public bool ShowItemSelector { get; set; }
         public bool ShowColorSelector { get; set; }
-
         [MaxLength(255)]
         public string Icon { get; set; }
 
-        public ICollection<DynamicAvatarColor> DynamicAvatarColors { get; set; }
-        public ICollection<DynamicAvatarItem> DynamicAvatarItems { get; set; }
+        public int? SelectedItem { get; set; }
+        public int? SelectedColor { get; set; }
+        public string FilePath { get; set; }
+
+        public ICollection<AvatarColor> AvatarColors { get; set; }
+        public ICollection<AvatarItem> AvatarItems { get; set; }
     }
 }

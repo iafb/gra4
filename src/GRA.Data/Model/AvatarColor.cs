@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace GRA.Domain.Model
+namespace GRA.Data.Model
 {
-    public class DynamicAvatarColor : Abstract.BaseDomainEntity
+    public class AvatarColor : Abstract.BaseDbEntity
     {
         [Required]
-        public int DynamicAvatarLayerId { get; set; }
+        public int AvatarLayerId { get; set; }
+        public AvatarLayer AvatarLayer { get; set; }
 
         [MaxLength(15)]
         [Required]

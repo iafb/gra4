@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace GRA.Data.Model
+namespace GRA.Domain.Model
 {
-    public class DynamicAvatarBundle : Abstract.BaseDbEntity
+    public class AvatarBundle : Abstract.BaseDomainEntity
     {
         public int SiteId { get; set; }
 
@@ -14,6 +14,6 @@ namespace GRA.Data.Model
         public bool IsDeleted { get; set; }
         public bool HasBeenAwarded { get; set; }
 
-        public ICollection<DynamicAvatarBundleItem> DynamicAvatarBundleItems { get; set; }
+        public ICollection<AvatarItem> AvatarItems { get; set; }
     }
 }

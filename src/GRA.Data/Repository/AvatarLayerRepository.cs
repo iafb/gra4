@@ -9,32 +9,32 @@ using System.Threading.Tasks;
 
 namespace GRA.Data.Repository
 {
-    public class DynamicAvatarLayerRepository
-        : AuditingRepository<Model.DynamicAvatarLayer, DynamicAvatarLayer>,
-        IDynamicAvatarLayerRepository
+    public class AvatarLayerRepository
+        : AuditingRepository<Model.AvatarLayer, AvatarLayer>,
+        IAvatarLayerRepository
     {
-        public DynamicAvatarLayerRepository(ServiceFacade.Repository repositoryFacade,
-            ILogger<DynamicAvatarLayerRepository> logger) : base(repositoryFacade, logger)
+        public AvatarLayerRepository(ServiceFacade.Repository repositoryFacade,
+            ILogger<AvatarLayerRepository> logger) : base(repositoryFacade, logger)
         {
         }
 
-        public async Task<ICollection<DynamicAvatarLayer>> GetAllAsync(int siteId)
+        public async Task<ICollection<AvatarLayer>> GetAllAsync(int siteId)
         {
             return await DbSet.AsNoTracking()
                .Where(_ => _.SiteId == siteId)
                .OrderBy(_ => _.GroupId)
                .ThenBy(_ => _.SortOrder)
-               .ProjectTo<DynamicAvatarLayer>()
+               .ProjectTo<AvatarLayer>()
                .ToListAsync();
         }
 
-        public async Task<ICollection<DynamicAvatarLayer>> GetAllWithColorsAsync(int siteId, int userId)
+        public async Task<ICollection<AvatarLayer>> GetAllWithColorsAsync(int siteId, int userId)
         {
             return await DbSet.AsNoTracking()
                 .Where(_ => _.SiteId == siteId)
                 .OrderBy(_ => _.GroupId)
                 .ThenBy(_ => _.SortOrder)
-                .ProjectTo<DynamicAvatarLayer>(_ => _.DynamicAvatarColors)
+                .ProjectTo<AvatarLayer>(_ => _.AvatarColors)
                 .ToListAsync();
         }
     }

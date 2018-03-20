@@ -5,11 +5,11 @@ using System.Text;
 
 namespace GRA.Data.Model
 {
-    public class DynamicAvatarItem : Abstract.BaseDbEntity
+    public class AvatarItem : Abstract.BaseDbEntity
     {
         [Required]
-        public int DynamicAvatarLayerId { get; set; }
-        public DynamicAvatarLayer DynamicAvatarLayer { get; set; }
+        public int AvatarLayerId { get; set; }
+        public AvatarLayer AvatarLayer { get; set; }
 
         [MaxLength(255)]
         [Required]

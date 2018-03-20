@@ -1,4 +1,4 @@
-﻿@model GRA.Controllers.ViewModel.Avatar.DynamicAvatarViewModel
+﻿@model GRA.Controllers.ViewModel.Avatar.AvatarViewModel
 
 @section styles {
     <style>
@@ -79,13 +79,13 @@
                                     <div class="btn-group" role="group">
                                         <button type="button"
                                                 id="@($"selector{layer.Id}")"
-                                                class="btn btn-default dynamic-avatar-layer-button dynamic-avatar-layer-selector"
+                                                class="btn btn-default avatar-layer-button avatar-layer-selector"
                                                 data-layer="@layer.Id">
                                             @layer.Name
                                         </button>
                                         @if (layer.CanBeEmpty)
                                         {
-                                            <button type="button" id="@($"remove{layer.Id}")" class="btn btn-default dynamic-avatar-layer-button removeLayer" style="@(!layer.SelectedItem.HasValue ? "display:none;" : "")" data-layer="@layer.Id">
+                                            <button type="button" id="@($"remove{layer.Id}")" class="btn btn-default avatar-layer-button removeLayer" style="@(!layer.SelectedItem.HasValue ? "display:none;" : "")" data-layer="@layer.Id">
                                                 <span class="text-danger fa fa-times-circle fa-lg"></span>
                                             </button>
                                         }
@@ -146,17 +146,17 @@
                 <table style="margin-left:auto; margin-right:auto">
                     <tr>
                         <td>
-                            <button type="button" id="decrease" class="btn btn-link dynamic-avatar-item-selector" style="display:none;">
+                            <button type="button" id="decrease" class="btn btn-link avatar-item-selector" style="display:none;">
                                 <span class="fa fa-2x fa-chevron-left"></span>
                             </button>
                         </td>
                         <td rowspan="3">
-                            <div class="dynamic-avatar-container" style="margin-left: auto;margin-right:auto">
+                            <div class="avatar-container" style="margin-left: auto;margin-right:auto">
                                 @foreach (var layer in Model.Layers)
                                 {
                                     <img src="~/@layer.FilePath"
                                          id="@($"image{layer.Id}")"
-                                         class="dynamic-avatar-layer"
+                                         class="avatar-layer"
                                          style="z-index: @(layer.Position + 1); @(string.IsNullOrWhiteSpace(layer.FilePath) ? "visibility:hidden;" : "")"
                                          data-layer="@layer.Id"
                                          data-removable="@layer.CanBeEmpty"
@@ -168,7 +168,7 @@
                             </div>
                         </td>
                         <td>
-                            <button type="button" id="increase" class="btn btn-link dynamic-avatar-item-selector" style="display:none;">
+                            <button type="button" id="increase" class="btn btn-link avatar-item-selector" style="display:none;">
                                 <span class="fa fa-2x fa-chevron-right"></span>
                             </button>
                         </td>
@@ -184,7 +184,7 @@
             </div>
         </div>
         <div class="col-sm-3 visible-sm visible-md visible-lg">
-            <div class="well dynamic-avatar-color-selector" style="display:none;">
+            <div class="well avatar-color-selector" style="display:none;">
             </div>
         </div>
     </div>
@@ -235,7 +235,7 @@
                 else {
                     currentIndex = undefined;
                 }
-                $(".dynamic-avatar-color-selector").empty();
+                $(".avatar-color-selector").empty();
                 $("#xsColorSelector").empty();
                 if (currentLayer.Colors.length > 0) {
                     $.each(currentLayer.Colors, function (i, color) {
@@ -243,23 +243,23 @@
                         if (selectedColor == color.Id) {
                             colorSpan.addClass("selected-color");
                         }
-                        $(".dynamic-avatar-color-selector").append(colorSpan.clone().addClass("colorSelection"));
+                        $(".avatar-color-selector").append(colorSpan.clone().addClass("colorSelection"));
                         $("#xsColorSelector").append(colorSpan.addClass("xsColorSelection"));
                     });
                 }
 
                 if (currentLayerImage.data("showitemselector") == "True") {
-                    $(".dynamic-avatar-item-selector").show();
+                    $(".avatar-item-selector").show();
                 }
                 else {
-                    $(".dynamic-avatar-item-selector").hide();
+                    $(".avatar-item-selector").hide();
                 }
                 if (currentLayerImage.data("showcolorselector") == "True") {
-                    $(".dynamic-avatar-color-selector").show();
+                    $(".avatar-color-selector").show();
                     $("#xsColorButton").show();
                 }
                 else {
-                    $(".dynamic-avatar-color-selector").hide();
+                    $(".avatar-color-selector").hide();
                     $("#xsColorButton").hide();
                 }
 
@@ -315,7 +315,7 @@
         }
 
         function SetLayerImage() {
-            var imagePath = layerPath + selectedItem + "/" + selectedItem;
+            var imagePath = layerPath + selectedItem + "/item";
             if (selectedColor != "") {
                 imagePath += "_" + selectedColor;
             }
@@ -336,7 +336,7 @@
             $("#xsLayerDropdown").removeClass("flat-border-right");
         }
 
-        $(".dynamic-avatar-layer-selector, .xsLayerSelector").on("click", function () {
+        $(".avatar-layer-selector, .xsLayerSelector").on("click", function () {
             SetLayer($(this).data("layer"));
         });
 
@@ -404,7 +404,7 @@
 
         $("#saveAvatar").on("click", function (e) {
             var data_array = new Array();
-            $(".dynamic-avatar-layer").each(function () {
+            $(".avatar-layer").each(function () {
                 var layer = {};
                 layer['Id'] = $(this).data("layer");
                 layer['SelectedItem'] = $(this).data("item");

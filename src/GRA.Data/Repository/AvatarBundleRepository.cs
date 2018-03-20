@@ -12,20 +12,20 @@ using System.Threading.Tasks;
 
 namespace GRA.Data.Repository
 {
-    public class DynamicAvatarBundleRepository
-        : AuditingRepository<Model.DynamicAvatarBundle, DynamicAvatarBundle>,
-        IDynamicAvatarBundleRepository
+    public class AvatarBundleRepository
+        : AuditingRepository<Model.AvatarBundle, AvatarBundle>,
+        IAvatarBundleRepository
     {
-        public DynamicAvatarBundleRepository(ServiceFacade.Repository repositoryFacade,
-            ILogger<DynamicAvatarBundleRepository> logger) : base(repositoryFacade, logger)
+        public AvatarBundleRepository(ServiceFacade.Repository repositoryFacade,
+            ILogger<AvatarBundleRepository> logger) : base(repositoryFacade, logger)
         {
         }
 
-        public async Task<DynamicAvatarBundle> GetByIdAsync(int id, bool includeDeleted)
+        public async Task<AvatarBundle> GetByIdAsync(int id, bool includeDeleted)
         {
             var bundles = DbSet.AsNoTracking()
-                .Include(_ => _.DynamicAvatarBundleItems)
-                    .ThenInclude(_ => _.DynamicAvatarItem)
+                .Include(_ => _.AvatarBundleItems)
+                    .ThenInclude(_ => _.AvatarItem)
                 .Where(_ => _.Id == id);
 
             if (!includeDeleted)
@@ -34,7 +34,7 @@ namespace GRA.Data.Repository
             }
 
             return await bundles
-                .ProjectTo<DynamicAvatarBundle>()
+                .ProjectTo<AvatarBundle>()
                 .SingleOrDefaultAsync();
         }
 
@@ -44,15 +44,15 @@ namespace GRA.Data.Repository
                 .CountAsync();
         }
 
-        public async Task<ICollection<DynamicAvatarBundle>> PageAsync(AvatarFilter filter)
+        public async Task<ICollection<AvatarBundle>> PageAsync(AvatarFilter filter)
         {
             return await ApplyFilters(filter)
                 .ApplyPagination(filter)
-                .ProjectTo<DynamicAvatarBundle>()
+                .ProjectTo<AvatarBundle>()
                 .ToListAsync();
         }
 
-        private IQueryable<Model.DynamicAvatarBundle> ApplyFilters(AvatarFilter filter)
+        private IQueryable<Model.AvatarBundle> ApplyFilters(AvatarFilter filter)
         {
             var bundles = DbSet
                 .AsNoTracking()
@@ -70,10 +70,10 @@ namespace GRA.Data.Repository
         {
             foreach (var itemId in itemIds)
             {
-                await _context.DynamicAvatarBundleItems.AddAsync(new Model.DynamicAvatarBundleItem
+                await _context.AvatarBundleItems.AddAsync(new Model.AvatarBundleItem
                 {
-                    DynamicAvatarBundleId = bundleId,
-                    DynamicAvatarItemId = itemId
+                    AvatarBundleId = bundleId,
+                    AvatarItemId = itemId
                 });
             }
 
@@ -82,36 +82,36 @@ namespace GRA.Data.Repository
 
         public async Task RemoveItemsAsync(int bundleId, List<int> itemIds)
         {
-            _context.DynamicAvatarBundleItems.RemoveRange(
-                _context.DynamicAvatarBundleItems
-                .Where(_ => _.DynamicAvatarBundleId == bundleId
-                    && itemIds.Contains(_.DynamicAvatarItemId)));
+            _context.AvatarBundleItems.RemoveRange(
+                _context.AvatarBundleItems
+                .Where(_ => _.AvatarBundleId == bundleId
+                    && itemIds.Contains(_.AvatarItemId)));
 
             await SaveAsync();
         }
 
-        public async Task<ICollection<DynamicAvatarItem>> GetRandomDefaultBundleAsync(int siteId)
+        public async Task<ICollection<AvatarItem>> GetRandomDefaultBundleAsync(int siteId)
         {
             var bundleItems = await DbSet.AsNoTracking()
-               .Include(_ => _.DynamicAvatarBundleItems)
-                   .ThenInclude(_ => _.DynamicAvatarItem)
+               .Include(_ => _.AvatarBundleItems)
+                   .ThenInclude(_ => _.AvatarItem)
                .Where(_ => _.SiteId == siteId && _.CanBeUnlocked == false)
                .OrderBy(_ => Guid.NewGuid())
                .Take(1)
-               .Select(_ => _.DynamicAvatarBundleItems.Select(i => i.DynamicAvatarItem))
+               .Select(_ => _.AvatarBundleItems.Select(i => i.AvatarItem))
                .FirstOrDefaultAsync();
 
             if (bundleItems != null)
             {
-                return _mapper.Map<ICollection<DynamicAvatarItem>>(bundleItems.ToList());
+                return _mapper.Map<ICollection<AvatarItem>>(bundleItems.ToList());
             }
             else
             {
-                return new List<DynamicAvatarItem>();
+                return new List<AvatarItem>();
             }
         }
 
-        public async Task<ICollection<DynamicAvatarBundle>> GetAllAsync(int siteId,
+        public async Task<ICollection<AvatarBundle>> GetAllAsync(int siteId,
             bool? unlockable = null)
         {
             var bundles = DbSet.AsNoTracking().Where(_ => _.SiteId == siteId);
@@ -122,7 +122,7 @@ namespace GRA.Data.Repository
                     && _.IsDeleted == false);
             }
 
-            return await bundles.ProjectTo<DynamicAvatarBundle>().ToListAsync();
+            return await bundles.ProjectTo<AvatarBundle>().ToListAsync();
         }
     }
 }

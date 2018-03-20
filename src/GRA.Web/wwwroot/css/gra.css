@@ -265,7 +265,7 @@ input.form-checkbox {
     }
 
 /* Responsive avatar display */
-.dynamic-avatar-container-dashboard {
+.avatar-container-dashboard {
     width: 240px;
     height: 200px;
     margin-left: auto;
@@ -274,7 +274,7 @@ input.form-checkbox {
     overflow: hidden;
 }
 
-.dynamic-avatar-layer-dashboard {
+.avatar-layer-dashboard {
     position: absolute;
     top: -25px;
     left: 0px;
@@ -282,13 +282,13 @@ input.form-checkbox {
     width: 240px;
 }
 
-.dynamic-avatar-container {
+.avatar-container {
     width: 210px;
     height: 350px;
     position: relative;
 }
 
-.dynamic-avatar-layer {
+.avatar-layer {
     position: absolute;
     height: 100%;
     width: 100%;
@@ -296,20 +296,20 @@ input.form-checkbox {
     left: 0;
 }
 
-.dynamic-avatar-layer-selector {
+.avatar-layer-selector {
     width: 80px;
 }
 
-.dynamic-avatar-layer-button {
+.avatar-layer-button {
     border-radius: 0px;
 }
 
-.dynamic-avatar-item-selector {
+.avatar-item-selector {
     height: 200px;
     width: 50px;
 }
 
-.dynamic-avatar-color-selector {
+.avatar-color-selector {
     width: 184px;
 }
 
@@ -319,18 +319,18 @@ input.form-checkbox {
 
 /* Small Devices, Tablets */
 @media only screen and (min-width : 768px) {
-    .dynamic-avatar-container-dashboard {
+    .avatar-container-dashboard {
         height: 220px;
         width: 150px;
     }
 
-    .dynamic-avatar-layer-dashboard {
+    .avatar-layer-dashboard {
         top: 0;
         height: 250px;
         width: 150px;
     }
 
-    .dynamic-avatar-container {
+    .avatar-container {
         width: 240px;
         height: 400px;
     }
@@ -338,59 +338,59 @@ input.form-checkbox {
 
 /* Medium Devices, Desktops */
 @media only screen and (min-width : 992px) {
-    .dynamic-avatar-container-dashboard {
+    .avatar-container-dashboard {
         height: 308px;
         width: 210px;
     }
 
-    .dynamic-avatar-layer-dashboard {
+    .avatar-layer-dashboard {
         height: 350px;
         width: 210px;
     }
 
-    .dynamic-avatar-container {
+    .avatar-container {
         width: 300px;
         height: 500px;
     }
 
-    .dynamic-avatar-layer-selector {
+    .avatar-layer-selector {
         width: 100px;
     }
 
-    .dynamic-avatar-layer-button {
+    .avatar-layer-button {
         padding: 10px 16px;
         font-size: 18px;
         line-height: 1.3333333;
     }
 
-    .dynamic-avatar-item-selector {
+    .avatar-item-selector {
         height: 200px;
         width: 50px;
     }
 
-    .dynamic-avatar-color-selector {
+    .avatar-color-selector {
         width: 220px;
     }
 }
 
 /* Large Devices, Wide Screens */
 @media only screen and (min-width : 1200px) {
-    .dynamic-avatar-container-dashboard {
+    .avatar-container-dashboard {
         height: 374px;
         width: 255px;
     }
 
-    .dynamic-avatar-layer-dashboard {
+    .avatar-layer-dashboard {
         height: 425px;
         width: 255px;
     }
 
-    .dynamic-avatar-item-selector {
+    .avatar-item-selector {
         height: 200px;
         width: 100px;
     }
 
-    .dynamic-avatar-color-selector {
+    .avatar-color-selector {
         width: 256px;
     }
 }

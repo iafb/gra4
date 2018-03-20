@@ -1,8 +1,8 @@
-﻿@model GRA.Controllers.ViewModel.MissionControl.DynamicAvatars.AvatarsElementDetailViewModel
+﻿@model GRA.Controllers.ViewModel.MissionControl.Avatars.AvatarsElementDetailViewModel
 
 <h3>@Model.Layer.Name</h3>
 
-<form asp-controller="DynamicAvatars" asp-action="EditElement" method="post" enctype="multipart/form-data" role="form">
+<form asp-controller="Avatars" asp-action="EditElement" method="post" enctype="multipart/form-data" role="form">
     <input asp-for="Element.Id" type="hidden" />
     <input asp-for="Create" type="hidden"/>
     <input asp-for="AvatarId" type="hidden" />

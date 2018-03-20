@@ -23,12 +23,12 @@ namespace GRA.Controllers.MissionControl
     public class AvatarsController : Base.MCController
     {
         private readonly ILogger<AvatarsController> _logger;
-        private readonly DynamicAvatarService _avatarService;
+        private readonly AvatarService _avatarService;
         private readonly SiteService _siteService;
         private readonly IHostingEnvironment _hostingEnvironment;
         public AvatarsController(ILogger<AvatarsController> logger,
             ServiceFacade.Controller context,
-            DynamicAvatarService avatarService,
+            AvatarService avatarService,
             SiteService siteService,
             IHostingEnvironment hostingEnvironment)
             : base(context)
@@ -71,22 +71,22 @@ namespace GRA.Controllers.MissionControl
                 return RedirectToAction(nameof(Index));
             }
 
-            assetPath = Path.Combine(assetPath, "dynamicavatars");
+            assetPath = Path.Combine(assetPath, "defaultavatars");
             if (!Directory.Exists(assetPath))
             {
                 AlertDanger = $"Asset directory not found at: {assetPath}";
                 return RedirectToAction(nameof(Index));
             }
 
-            IEnumerable<DynamicAvatarLayer> avatarList;
+            IEnumerable<AvatarLayer> avatarList;
             var jsonPath = Path.Combine(assetPath, "default avatars.json");
             using (StreamReader file = System.IO.File.OpenText(jsonPath))
             {
                 var jsonString = await file.ReadToEndAsync();
-                avatarList = JsonConvert.DeserializeObject<IEnumerable<DynamicAvatarLayer>>(jsonString);
+                avatarList = JsonConvert.DeserializeObject<IEnumerable<AvatarLayer>>(jsonString);
             }
 
-            _logger.LogInformation($"Found {avatarList.Count()} DynamicAvatarLayer objects in avatar file");
+            _logger.LogInformation($"Found {avatarList.Count()} AvatarLayer objects in avatar file");
 
             var time = _dateTimeProvider.Now;
             int totalFilesCopied = 0;
@@ -96,15 +96,15 @@ namespace GRA.Controllers.MissionControl
             {
                 int layerFilesCopied = 0;
 
-                var colors = layer.DynamicAvatarColors;
-                var items = layer.DynamicAvatarItems;
-                layer.DynamicAvatarColors = null;
-                layer.DynamicAvatarItems = null;
+                var colors = layer.AvatarColors;
+                var items = layer.AvatarItems;
+                layer.AvatarColors = null;
+                layer.AvatarItems = null;
 
                 var addedLayer = await _avatarService.AddLayerAsync(layer);
 
                 var layerAssetPath = Path.Combine(assetPath, addedLayer.Name);
-                var destinationRoot = Path.Combine($"site{siteId}", "dynamicavatars", $"layer{addedLayer.Id}");
+                var destinationRoot = Path.Combine($"site{siteId}", "avatars", $"layer{addedLayer.Id}");
                 var destinationPath = _pathResolver.ResolveContentFilePath(destinationRoot);
                 if (!Directory.Exists(destinationPath))
                 {
@@ -121,7 +121,7 @@ namespace GRA.Controllers.MissionControl
                 {
                     foreach (var color in colors)
                     {
-                        color.DynamicAvatarLayerId = addedLayer.Id;
+                        color.AvatarLayerId = addedLayer.Id;
                         color.CreatedAt = time;
                         color.CreatedBy = userId;
                     }
@@ -130,14 +130,14 @@ namespace GRA.Controllers.MissionControl
                 }
                 foreach (var item in items)
                 {
-                    item.DynamicAvatarLayerId = addedLayer.Id;
+                    item.AvatarLayerId = addedLayer.Id;
                     item.CreatedAt = time;
                     item.CreatedBy = userId;
                 }
                 await _avatarService.AddItemListAsync(items);
                 items = await _avatarService.GetItemsByLayerAsync(addedLayer.Id);
 
-                List<DynamicAvatarElement> elementList = new List<DynamicAvatarElement>();
+                List<AvatarElement> elementList = new List<AvatarElement>();
                 _logger.LogInformation($"Processing {items.Count()} items in {addedLayer.Name}...");
 
                 foreach (var item in items)
@@ -156,10 +156,10 @@ namespace GRA.Controllers.MissionControl
                     {
                         foreach (var color in colors)
                         {
-                            var element = new DynamicAvatarElement()
+                            var element = new AvatarElement()
                             {
-                                DynamicAvatarItemId = item.Id,
-                                DynamicAvatarColorId = color.Id,
+                                AvatarItemId = item.Id,
+                                AvatarColorId = color.Id,
                                 Filename = Path.Combine(itemRoot, $"item_{color.Id}.png")
                             };
                             elementList.Add(element);
@@ -171,9 +171,9 @@ namespace GRA.Controllers.MissionControl
                     }
                     else
                     {
-                        var element = new DynamicAvatarElement()
+                        var element = new AvatarElement()
                         {
-                            DynamicAvatarItemId = item.Id,
+                            AvatarItemId = item.Id,
                             Filename = Path.Combine(itemRoot, "item.png")
                         };
                         elementList.Add(element);
@@ -193,24 +193,24 @@ namespace GRA.Controllers.MissionControl
             var bundleJsonPath = Path.Combine(assetPath, "default bundles.json");
             if (System.IO.File.Exists(bundleJsonPath))
             {
-                IEnumerable<DynamicAvatarBundle> bundleList;
+                IEnumerable<AvatarBundle> bundleList;
                 using (StreamReader file = System.IO.File.OpenText(bundleJsonPath))
                 {
                     var jsonString = await file.ReadToEndAsync();
-                    bundleList = JsonConvert.DeserializeObject<IEnumerable<DynamicAvatarBundle>>(jsonString);
+                    bundleList = JsonConvert.DeserializeObject<IEnumerable<AvatarBundle>>(jsonString);
                 }
 
                 foreach (var bundle in bundleList)
                 {
                     _logger.LogInformation($"Processing bundle {bundle.Name}...");
-                    List<int> items = bundle.DynamicAvatarItems.Select(_ => _.Id).ToList();
-                    bundle.DynamicAvatarItems = null;
+                    List<int> items = bundle.AvatarItems.Select(_ => _.Id).ToList();
+                    bundle.AvatarItems = null;
                     var newBundle = await _avatarService.AddBundleAsync(bundle, items);
                 }
             }
 
             sw.Stop();
-            string loaded = $"Default dynamic avatars added in {sw.Elapsed.TotalSeconds} seconds.";
+            string loaded = $"Default avatars added in {sw.Elapsed.TotalSeconds} seconds.";
             _logger.LogInformation(loaded);
             ShowAlertSuccess(loaded);
             return RedirectToAction(nameof(Index));
@@ -292,8 +292,8 @@ namespace GRA.Controllers.MissionControl
 
             if (itemList.Count > 0)
             {
-                model.Bundle.DynamicAvatarItems = await _avatarService.GetItemsByIdsAsync(itemList);
-                foreach (var item in model.Bundle.DynamicAvatarItems)
+                model.Bundle.AvatarItems = await _avatarService.GetItemsByIdsAsync(itemList);
+                foreach (var item in model.Bundle.AvatarItems)
                 {
                     item.Thumbnail = _pathResolver.ResolveContentPath(item.Thumbnail);
                 }
@@ -305,7 +305,7 @@ namespace GRA.Controllers.MissionControl
 
         public async Task<IActionResult> BundleEdit(int id)
         {
-            var bundle = new Domain.Model.DynamicAvatarBundle();
+            var bundle = new Domain.Model.AvatarBundle();
             try
             {
                 bundle = await _avatarService.GetBundleByIdAsync(id);
@@ -315,7 +315,7 @@ namespace GRA.Controllers.MissionControl
                 ShowAlertWarning("Unable to view bundle: ", gex);
                 return RedirectToAction("Bundles");
             }
-            foreach (var item in bundle.DynamicAvatarItems)
+            foreach (var item in bundle.AvatarItems)
             {
                 item.Thumbnail = _pathResolver.ResolveContentPath(item.Thumbnail);
             }
@@ -324,7 +324,7 @@ namespace GRA.Controllers.MissionControl
             {
                 Bundle = bundle,
                 Action = "Edit",
-                ItemsList = string.Join(",", bundle.DynamicAvatarItems.Select(_ => _.Id)),
+                ItemsList = string.Join(",", bundle.AvatarItems.Select(_ => _.Id)),
                 Layers = new SelectList(await _avatarService.GetLayersAsync(), "Id", "Name")
             };
             if (bundle.CanBeUnlocked)
@@ -366,8 +366,8 @@ namespace GRA.Controllers.MissionControl
 
             if (itemList.Count > 0)
             {
-                model.Bundle.DynamicAvatarItems = await _avatarService.GetItemsByIdsAsync(itemList);
-                foreach (var item in model.Bundle.DynamicAvatarItems)
+                model.Bundle.AvatarItems = await _avatarService.GetItemsByIdsAsync(itemList);
+                foreach (var item in model.Bundle.AvatarItems)
                 {
                     item.Thumbnail = _pathResolver.ResolveContentPath(item.Thumbnail);
                 }
@@ -529,7 +529,7 @@ namespace GRA.Controllers.MissionControl
         {
             PageTitle = "Edit Avatar";
 
-            var avatarRoot = Path.Combine($"site{GetCurrentSiteId()}", "dynamicavatars");
+            var avatarRoot = Path.Combine($"site{GetCurrentSiteId()}", "avatars");
 
             var avatar = await _avatarService.GetAvatarDetailsAsync(id);
             var layerList = await _avatarService.GetAllLayersAsync();
@@ -538,7 +538,7 @@ namespace GRA.Controllers.MissionControl
 
             foreach (var layer in layerList)
             {
-                var element = avatar.Elements.Where(_ => _.DynamicAvatarLayerId == layer.Id).FirstOrDefault();
+                var element = avatar.Elements.Where(_ => _.AvatarLayerId == layer.Id).FirstOrDefault();
 
                 var newElement = new AvatarsElementDetailViewModel()
                 {
@@ -612,8 +612,8 @@ namespace GRA.Controllers.MissionControl
         public async Task<IActionResult> EditElement(AvatarsElementDetailViewModel viewModel)
         {
             var element = viewModel.Element;
-            element.DynamicAvatarId = viewModel.AvatarId;
-            element.DynamicAvatarLayerId = viewModel.Layer.Id;
+            element.AvatarId = viewModel.AvatarId;
+            element.AvatarLayerId = viewModel.Layer.Id;
 
             if (viewModel.Create || element == null)
             {

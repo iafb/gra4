@@ -11,43 +11,43 @@ using Microsoft.Extensions.Logging;
 
 namespace GRA.Data.Repository
 {
-    public class DynamicAvatarItemRepository : AuditingRepository<Model.DynamicAvatarItem, DynamicAvatarItem>,
-        IDynamicAvatarItemRepository
+    public class AvatarItemRepository : AuditingRepository<Model.AvatarItem, AvatarItem>,
+        IAvatarItemRepository
     {
-        public DynamicAvatarItemRepository(ServiceFacade.Repository repositoryFacade,
-            ILogger<DynamicAvatarItemRepository> logger) : base(repositoryFacade, logger)
+        public AvatarItemRepository(ServiceFacade.Repository repositoryFacade,
+            ILogger<AvatarItemRepository> logger) : base(repositoryFacade, logger)
         {
         }
 
-        public async Task<ICollection<DynamicAvatarItem>> GetByLayerAsync(int layerId)
+        public async Task<ICollection<AvatarItem>> GetByLayerAsync(int layerId)
         {
             return await DbSet.AsNoTracking()
-                .Where(_ => _.DynamicAvatarLayerId == layerId)
+                .Where(_ => _.AvatarLayerId == layerId)
                 .OrderBy(_ => _.SortOrder)
-                .ProjectTo<DynamicAvatarItem>()
+                .ProjectTo<AvatarItem>()
                 .ToListAsync();
         }
 
-        public async Task<ICollection<DynamicAvatarItem>> GetUserItemsByLayerAsync(int userId,
+        public async Task<ICollection<AvatarItem>> GetUserItemsByLayerAsync(int userId,
             int layerId)
         {
             var userUnlockedItems = _context.UserAvatarItems.AsNoTracking()
                 .Where(_ => _.UserId == userId 
-                    && _.DynamicAvatarItem.DynamicAvatarLayerId == layerId)
-                .Select(_ => _.DynamicAvatarItem);
+                    && _.AvatarItem.AvatarLayerId == layerId)
+                .Select(_ => _.AvatarItem);
 
             return await DbSet.AsNoTracking()
-                .Where(_ => _.DynamicAvatarLayerId == layerId 
+                .Where(_ => _.AvatarLayerId == layerId 
                 && (_.Unlockable == false || userUnlockedItems.Select(u => u.Id).Contains(_.Id)))
                 .OrderBy(_ => _.SortOrder)
-                .ProjectTo<DynamicAvatarItem>()
+                .ProjectTo<AvatarItem>()
                 .ToListAsync();
         }
 
         public async Task<bool> HasUserUnlockedItemAsync(int userId, int itemId)
         {
             return await _context.UserAvatarItems.AsNoTracking()
-                .Where(_ => _.UserId == userId && _.DynamicAvatarItemId == itemId)
+                .Where(_ => _.UserId == userId && _.AvatarItemId == itemId)
                 .AnyAsync();
         }
 
@@ -55,7 +55,7 @@ namespace GRA.Data.Repository
         {
             return await _context.UserAvatarItems.AsNoTracking()
                 .Where(_ => _.UserId == userId)
-                .Select(_ => _.DynamicAvatarItemId)
+                .Select(_ => _.AvatarItemId)
                 .ToListAsync();
         }
 
@@ -66,7 +66,7 @@ namespace GRA.Data.Repository
                 await _context.UserAvatarItems.AddAsync(new Model.UserAvatarItem()
                 {
                     UserId = userId,
-                    DynamicAvatarItemId = itemId
+                    AvatarItemId = itemId
                 });
             }
             await _context.SaveChangesAsync();
@@ -78,18 +78,18 @@ namespace GRA.Data.Repository
                 .CountAsync();
         }
 
-        public async Task<ICollection<DynamicAvatarItem>> PageAsync(AvatarFilter filter)
+        public async Task<ICollection<AvatarItem>> PageAsync(AvatarFilter filter)
         {
             return await ApplyFilters(filter)
                 .ApplyPagination(filter)
-                .ProjectTo<DynamicAvatarItem>()
+                .ProjectTo<AvatarItem>()
                 .ToListAsync();
         }
 
-        private IQueryable<Model.DynamicAvatarItem> ApplyFilters(AvatarFilter filter)
+        private IQueryable<Model.AvatarItem> ApplyFilters(AvatarFilter filter)
         {
             var items = DbSet.AsNoTracking()
-                .Where(_ => _.DynamicAvatarLayer.SiteId == filter.SiteId);
+                .Where(_ => _.AvatarLayer.SiteId == filter.SiteId);
 
             if (filter.Unlockable.HasValue)
             {
@@ -98,7 +98,7 @@ namespace GRA.Data.Repository
 
             if (filter.LayerId.HasValue)
             {
-                items = items.Where(_ => _.DynamicAvatarLayerId == filter.LayerId.Value);
+                items = items.Where(_ => _.AvatarLayerId == filter.LayerId.Value);
             }
 
             if (filter.ItemIds?.Count > 0)
@@ -114,11 +114,11 @@ namespace GRA.Data.Repository
             return items;
         }
 
-        public async Task<ICollection<DynamicAvatarItem>> GetByIdsAsync(List<int> ids)
+        public async Task<ICollection<AvatarItem>> GetByIdsAsync(List<int> ids)
         {
             return await DbSet.AsNoTracking()
                 .Where(_ => ids.Contains(_.Id))
-                .ProjectTo<DynamicAvatarItem>()
+                .ProjectTo<AvatarItem>()
                 .ToListAsync();
         }
     }

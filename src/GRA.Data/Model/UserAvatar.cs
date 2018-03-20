@@ -2,14 +2,14 @@
 
 namespace GRA.Data.Model
 {
-    public class UserDynamicAvatar
+    public class UserAvatar
     {
         [Required]
         public int UserId { get; set; }
         public User User { get; set; }
 
         [Required]
-        public int DynamicAvatarElementId { get; set; }
-        public DynamicAvatarElement DynamicAvatarElement { get; set; }
+        public int AvatarElementId { get; set; }
+        public AvatarElement AvatarElement { get; set; }
     }
 }

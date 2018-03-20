@@ -1,4 +1,4 @@
-@model GRA.Controllers.ViewModel.MissionControl.DynamicAvatars.AvatarsListViewModel
+@model GRA.Controllers.ViewModel.MissionControl.Avatars.AvatarsListViewModel
 
 <div class="row">
     <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel">
@@ -14,7 +14,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal" style="margin-right: 1em;">Cancel</button>
-                    <form asp-controller="DynamicAvatars" asp-action="Delete" method="post" role="form" style="display:inline">
+                    <form asp-controller="Avatars" asp-action="Delete" method="post" role="form" style="display:inline">
                         <input id="Id" name="Id" type="hidden" />
                         <button id="modal-deleteButton" type="submit" class="btn btn-danger pull-right" aria-label="Confirm">
                             <span class="fa fa-remove" aria-hidden="true"></span>
@@ -28,7 +28,7 @@
 </div>
 
 
-<form asp-controller="DynamicAvatars" asp-action="Index" method="get" role="form">
+<form asp-controller="Avatars" asp-action="Index" method="get" role="form">
     <div class="row" style="padding: 10px 0;">
         <div class="col-xs-8">
             <input asp-for="Search" class="form-control" />

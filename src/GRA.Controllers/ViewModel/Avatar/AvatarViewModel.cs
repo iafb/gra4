@@ -5,9 +5,9 @@ using GRA.Domain.Model;
 
 namespace GRA.Controllers.ViewModel.Avatar
 {
-    public class DynamicAvatarViewModel
+    public class AvatarViewModel
     {
-        public ICollection<DynamicAvatarLayer> Layers { get; set; }
+        public ICollection<AvatarLayer> Layers { get; set; }
         public IEnumerable<int> GroupIds { get; set; }
 
         public int DefaultLayer { get; set; }

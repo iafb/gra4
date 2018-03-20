@@ -2,12 +2,12 @@
 
 namespace GRA.Domain.Model
 {
-    public class DynamicAvatarItem : Abstract.BaseDomainEntity
+    public class AvatarItem : Abstract.BaseDomainEntity
     {
         [Required]
-        public int DynamicAvatarLayerId { get; set; }
-        public int DynamicAvatarLayerPosition { get; set; }
-        public string DynamicAvatarLayerName { get; set; }
+        public int AvatarLayerId { get; set; }
+        public int AvatarLayerPosition { get; set; }
+        public string AvatarLayerName { get; set; }
 
         [MaxLength(255)]
         [Required]
