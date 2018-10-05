@@ -65,6 +65,14 @@ namespace GRA.Controllers
             }
             if (AuthUser.Identity.IsAuthenticated)
             {
+                if (TempData.ContainsKey(TempDataKey.UserJoined)
+                    && UserHasPermission(Permission.AccessPerformerRegistration)
+                    && UserHasPermission(Permission.AccessMissionControl) == false)
+                {
+                    return RedirectToAction(nameof(PerformerRegistration.HomeController.Information),
+                        "Home", new { Area = "PerformerRegistration" });
+                }
+
                 // signed-in users can view the dashboard
                 var user = await _userService.GetDetails(GetActiveUserId());
 
@@ -186,7 +194,7 @@ namespace GRA.Controllers
                         if (site != null)
                         {
                             viewModel.CollectEmail = await _siteLookupService
-                                .GetSiteSettingBoolAsync(site.Id, 
+                                .GetSiteSettingBoolAsync(site.Id,
                                     SiteSettingKey.Users.CollectPreregistrationEmails);
                             if (site.RegistrationOpens != null)
                             {
