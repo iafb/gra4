@@ -19,5 +19,6 @@ namespace GRA.Controllers
         public static readonly string UnreadCount = "UnreadCount";
         public static readonly string ShowChallenges = "ShowChallenges";
         public static readonly string ShowEvents = "ShowEvents";
+        public const string ShowPerformerRegistration = "ShowPerformerRegistration";
     }
 }
