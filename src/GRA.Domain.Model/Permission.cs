@@ -49,6 +49,7 @@ namespace GRA.Domain.Model
         ViewAllReporting,
         ViewParticipantList,
         ViewParticipantDetails,
+        ViewPerformerDetails,
         ViewUnpublishedPages,
         ViewUserPrizes
     }

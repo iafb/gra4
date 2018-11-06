@@ -14,11 +14,11 @@ namespace GRA.Controllers
         public static readonly string NotificationsList = "NotificationsList";
         public static readonly string NotificationsModal = "NotificationsModal";
         public static readonly string ShowMissionControl = "ShowMissionControl";
+        public static readonly string ShowPerformerRegistration = "ShowPerformerRegistration";
         public static readonly string SiteId = "SiteId";
         public static readonly string SiteStage = "SiteStage";
         public static readonly string UnreadCount = "UnreadCount";
         public static readonly string ShowChallenges = "ShowChallenges";
         public static readonly string ShowEvents = "ShowEvents";
-        public const string ShowPerformerRegistration = "ShowPerformerRegistration";
     }
 }
